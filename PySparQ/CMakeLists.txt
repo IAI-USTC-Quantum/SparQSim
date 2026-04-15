@@ -12,19 +12,12 @@ project(
 # Find the module development requirements (requires FindPython from 3.17 or
 # scikit-build-core's built-in backport)
 find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
+# find_package(pybind11 CONFIG REQUIRED)
 
 # Add a library using FindPython's tooling (pybind11 also provides a helper like
 # this)
 python_add_library(_core MODULE core.cpp WITH_SOABI)
-
-# Link to pybind11 - works with both add_subdirectory and find_package
-if(TARGET pybind11::module)
-    target_link_libraries(_core PRIVATE pybind11::module)
-elseif(TARGET pybind11::pybind11_headers)
-    target_link_libraries(_core PRIVATE pybind11::pybind11_headers)
-else()
-    target_link_libraries(_core PRIVATE pybind11::headers)
-endif()
+target_link_libraries(_core PRIVATE pybind11::headers)
 target_link_libraries(_core PRIVATE SparQ)
 
 # This is passing in the version as a define just as an example
