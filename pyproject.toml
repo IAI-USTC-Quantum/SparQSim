@@ -21,6 +21,11 @@ cmake.build-type = "Release"
 wheel.packages = ["PySparQ/pysparq"]
 ninja.make-fallback = false
 
+# Include PEP 561 type marker file
+[[tool.scikit-build.wheel.include]]
+path = "PySparQ/pysparq/py.typed"
+destination = "pysparq/py.typed"
+
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
