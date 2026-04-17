@@ -28,6 +28,7 @@ See Also:
 from __future__ import annotations
 
 from ._core import *
+from .dynamic_operator import compile_operator, CompilationError, DynamicOperatorError
 
 
 def test_import() -> None:
