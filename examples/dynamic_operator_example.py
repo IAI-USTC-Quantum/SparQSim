@@ -26,14 +26,14 @@ print("动态算子扩展示例")
 print("=" * 60)
 
 try:
-    # 首选：从 PySparQ 导入 compile_operator
-    from PySparQ import compile_operator
-    print("✓ 成功从 PySparQ 导入 compile_operator")
+    # 首选：从 pysparq 导入 compile_operator
+    from pysparq import compile_operator
+    print("✓ 成功从 pysparq 导入 compile_operator")
 except ImportError:
     # 备选：直接从 dynamic_operator 模块导入
-    print("! PySparQ 未完全安装，尝试直接导入 dynamic_operator...")
-    from PySparQ.dynamic_operator import compile_operator
-    print("✓ 成功从 PySparQ.dynamic_operator 导入")
+    print("! pysparq 未完全安装，尝试直接导入 dynamic_operator...")
+    from pysparq.dynamic_operator import compile_operator
+    print("✓ 成功从 pysparq.dynamic_operator 导入")
 
 print()
 
@@ -165,7 +165,7 @@ print("示例 4: 使用动态算子 (如果 pysparq 可用)")
 print("-" * 60)
 
 try:
-    from PySparQ.pysparq import SparseState, System, Boolean
+    from pysparq import SparseState, System, Boolean
 
     # 创建一个简单的量子态
     System.clear()

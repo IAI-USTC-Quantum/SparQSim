@@ -18,7 +18,7 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
-from PySparQ.dynamic_operator import (
+from pysparq.dynamic_operator import (
     compile_operator,
     CompilationError,
     clear_cache,

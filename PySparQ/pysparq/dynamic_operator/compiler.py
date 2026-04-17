@@ -216,14 +216,27 @@ def compute_code_hash(cpp_code: str, class_name: str, config: CompilerConfig) ->
 
 def find_project_root() -> Optional[Path]:
     """
-    查找项目根目录（包含 SparQ/ 和 PySparQ/ 的目录）
+    查找项目根目录或已安装的包目录
+
+    对于已安装的包，目录结构为:
+    - site-packages/pysparq/ (Python包)
+    - site-packages/include/ (头文件)
+
+    对于源代码目录:
+    - 项目根目录包含 SparQ/ 和 PySparQ/
 
     Returns:
-        项目根目录路径，未找到返回 None
+        项目根目录路径或已安装的包目录，未找到返回 None
     """
-    # 从当前文件位置开始向上查找
     current = Path(__file__).resolve().parent
+
+    # 检查是否在已安装的包中 (site-packages/pysparq/dynamic_operator)
+    # 在这种情况下，头文件在 site-packages/include/
     for parent in [current] + list(current.parents):
+        # 已安装的包的情况
+        if (parent / "include").exists() and (parent / "pysparq").exists():
+            return parent
+        # 源代码目录的情况
         if (parent / "SparQ").exists() and (parent / "PySparQ").exists():
             return parent
     return None
@@ -306,28 +319,35 @@ def compile_cpp_code(
 
     project_root_path = Path(project_root)
 
-    # 自动添加项目头文件路径（按优先级顺序）
-    sparq_include = project_root_path / "SparQ" / "include"
-    if sparq_include.exists() and str(sparq_include) not in cfg.include_paths:
-        cfg.include_paths.insert(0, str(sparq_include))
+    # 检查是否是已安装的包（头文件在 include/ 目录下）
+    installed_include = project_root_path / "include"
+    if installed_include.exists():
+        # 已安装的包情况：头文件已经在统一的 include/ 目录下
+        if str(installed_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(installed_include))
+    else:
+        # 源代码目录情况：头文件分散在多个子目录
+        sparq_include = project_root_path / "SparQ" / "include"
+        if sparq_include.exists() and str(sparq_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(sparq_include))
 
-    qram_include = project_root_path / "QRAM" / "include"
-    if qram_include.exists() and str(qram_include) not in cfg.include_paths:
-        cfg.include_paths.insert(0, str(qram_include))
+        qram_include = project_root_path / "QRAM" / "include"
+        if qram_include.exists() and str(qram_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(qram_include))
 
-    common_include = project_root_path / "Common" / "include"
-    if common_include.exists() and str(common_include) not in cfg.include_paths:
-        cfg.include_paths.insert(0, str(common_include))
+        common_include = project_root_path / "Common" / "include"
+        if common_include.exists() and str(common_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(common_include))
 
-    # 添加 Eigen 头文件路径
-    eigen_include = project_root_path / "ThirdParty" / "eigen-3.4.0"
-    if eigen_include.exists() and str(eigen_include) not in cfg.include_paths:
-        cfg.include_paths.insert(0, str(eigen_include))
+        # 添加 Eigen 头文件路径
+        eigen_include = project_root_path / "ThirdParty" / "eigen-3.4.0"
+        if eigen_include.exists() and str(eigen_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(eigen_include))
 
-    # 添加 fmt 头文件路径
-    fmt_include = project_root_path / "ThirdParty" / "fmt" / "include"
-    if fmt_include.exists() and str(fmt_include) not in cfg.include_paths:
-        cfg.include_paths.insert(0, str(fmt_include))
+        # 添加 fmt 头文件路径
+        fmt_include = project_root_path / "ThirdParty" / "fmt" / "include"
+        if fmt_include.exists() and str(fmt_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(fmt_include))
 
     # 计算哈希值
     code_hash = compute_code_hash(cpp_code, class_name, cfg)
