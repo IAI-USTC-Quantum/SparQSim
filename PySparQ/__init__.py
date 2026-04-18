@@ -13,10 +13,11 @@ try:
         BaseOperator,
         SelfAdjointOperator,
         StateStorage,
+        __version__,
     )
 except ImportError:
     # pysparq._core 可能尚未编译
-    pass
+    __version__ = "0.0.0.dev0"
 
 # 导入动态算子模块
 try:
@@ -35,6 +36,6 @@ __all__ = [
     "StateStorage",
     # 动态算子
     "compile_operator",
+    # 版本
+    "__version__",
 ]
-
-__version__ = "0.2.0"

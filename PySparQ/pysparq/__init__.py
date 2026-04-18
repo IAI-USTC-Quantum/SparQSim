@@ -27,6 +27,13 @@ See Also:
 
 from __future__ import annotations
 
+# Import version from auto-generated _version.py
+try:
+    from ._version import __version__, __version_tuple__
+except ImportError:
+    __version__ = "0.0.0.dev0"
+    __version_tuple__ = (0, 0, 0, "dev0")
+
 from ._core import *
 from .dynamic_operator import compile_operator, CompilationError, DynamicOperatorError
 
