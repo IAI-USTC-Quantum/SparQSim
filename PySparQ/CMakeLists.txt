@@ -9,10 +9,8 @@ project(
   VERSION ${SKBUILD_PROJECT_VERSION}
   LANGUAGES CXX)
 
-# Find the module development requirements (requires FindPython from 3.17 or
-# scikit-build-core's built-in backport)
-# Use FindPython3 to match what pybind11 uses
-find_package(pybind11 CONFIG REQUIRED)
+# pybind11 is provided by ThirdParty/CMakeLists.txt (add_subdirectory)
+# pybind11_add_module is available without find_package here
 
 pybind11_add_module(_core core.cpp)
 target_link_libraries(_core PRIVATE SparQ)
