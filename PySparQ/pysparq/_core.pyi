@@ -4920,16 +4920,16 @@ class PartialTraceSelectRange:
         ...
 class Phase_Bool(BaseOperator):
     @typing.overload
-    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg: str, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     def clear_control_all_ones(self) -> None:
         """
@@ -8640,29 +8640,29 @@ class Tgate_Bool(Phase_Bool):
         ...
 class U2gate_Bool(Rot_Bool):
     @typing.overload
-    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg: str, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
 class U3gate_Bool(Rot_Bool):
     @typing.overload
-    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, digit: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, digit: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg: str, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg: str, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
     @typing.overload
-    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda: typing.SupportsFloat | typing.SupportsIndex) -> None:
+    def __init__(self, reg_id: typing.SupportsInt | typing.SupportsIndex, theta: typing.SupportsFloat | typing.SupportsIndex, phi: typing.SupportsFloat | typing.SupportsIndex, lambda_: typing.SupportsFloat | typing.SupportsIndex) -> None:
         ...
 class ViewNormalization(SelfAdjointOperator):
     def __init__(self) -> None:
@@ -9672,7 +9672,7 @@ class inverseQFT(BaseOperator):
     @property
     def condition_variable_nonzeros(self) -> list[int]:
         ...
-def combine_systems(to: SparseState, from: SparseState) -> None:
+def combine_systems(to: SparseState, from_: SparseState) -> None:
     ...
 def merge_system(arg0: System, arg1: System) -> None:
     ...

@@ -758,7 +758,7 @@ Example:
           py::arg("condition_variable_by_value"));
 
     m.def("combine_systems", (void (*)(SparseState &, const SparseState &))&combine_systems,
-          py::arg("to"), py::arg("from"));
+          py::arg("to"), py::arg("from_"));
 
     // 寄存器操作
     py::class_<SplitRegister>(m, "SplitRegister")
@@ -815,13 +815,13 @@ Example:
 
     BIND_BASE_OPERATOR(Phase_Bool)
         .def(py::init<std::string_view, size_t, double>(),
-             py::arg("reg"), py::arg("digit"), py::arg("lambda"))
+             py::arg("reg"), py::arg("digit"), py::arg("lambda_"))
         .def(py::init<size_t, size_t, double>(),
-             py::arg("reg_id"), py::arg("digit"), py::arg("lambda"))
+             py::arg("reg_id"), py::arg("digit"), py::arg("lambda_"))
         .def(py::init<std::string_view, double>(),
-             py::arg("reg"), py::arg("lambda"))
+             py::arg("reg"), py::arg("lambda_"))
         .def(py::init<size_t, double>(),
-             py::arg("reg_id"), py::arg("lambda"))
+             py::arg("reg_id"), py::arg("lambda_"))
             BIND_CONTROLLABLE_METHODS(Phase_Bool);
 
     BIND_BASE_OPERATOR(Rot_Bool)
@@ -899,23 +899,23 @@ Example:
 
     py::class_<U2gate_Bool, Rot_Bool>(m, "U2gate_Bool")
         .def(py::init<std::string_view, size_t, double, double>(),
-             py::arg("reg"), py::arg("digit"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg"), py::arg("digit"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<size_t, size_t, double, double>(),
-             py::arg("reg_id"), py::arg("digit"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg_id"), py::arg("digit"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<std::string_view, double, double>(),
-             py::arg("reg"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<size_t, double, double>(),
-             py::arg("reg_id"), py::arg("phi"), py::arg("lambda"));
+             py::arg("reg_id"), py::arg("phi"), py::arg("lambda_"));
 
     py::class_<U3gate_Bool, Rot_Bool>(m, "U3gate_Bool")
         .def(py::init<std::string_view, size_t, double, double, double>(),
-             py::arg("reg"), py::arg("digit"), py::arg("theta"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg"), py::arg("digit"), py::arg("theta"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<size_t, size_t, double, double, double>(),
-             py::arg("reg_id"), py::arg("digit"), py::arg("theta"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg_id"), py::arg("digit"), py::arg("theta"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<std::string_view, double, double, double>(),
-             py::arg("reg"), py::arg("theta"), py::arg("phi"), py::arg("lambda"))
+             py::arg("reg"), py::arg("theta"), py::arg("phi"), py::arg("lambda_"))
         .def(py::init<size_t, double, double, double>(),
-             py::arg("reg_id"), py::arg("theta"), py::arg("phi"), py::arg("lambda"));
+             py::arg("reg_id"), py::arg("theta"), py::arg("phi"), py::arg("lambda_"));
     // {
     //      using namespace block_encoding;
     //      {
