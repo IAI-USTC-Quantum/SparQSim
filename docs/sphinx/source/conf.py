@@ -150,11 +150,5 @@ copybutton_here_doc_delimiter = "EOT"
 nbsphinx_execute = "never"  # Don't execute notebooks during build
 nbsphinx_allow_errors = False
 nbsphinx_timeout = 60
-nbsphinx_prolog = r"""
-{% if docname.endswith('.ipynb') %}
-.. note::
-
-   This page was generated from a Jupyter notebook. The notebook file is
-   available in the source repository.
-{% endif %}
-"""
+# Note: nbsphinx prolog/epilog templates use env.docname instead of docname
+# in newer versions. We omit prolog for simplicity.
