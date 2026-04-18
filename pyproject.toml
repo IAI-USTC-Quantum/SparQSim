@@ -7,11 +7,14 @@ name = "pysparq"
 dynamic = ["version"]
 description = "A sparse state quantum circuit simulator"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Agony", email = "chenzhaoyun@iai.ustc.edu.cn" }]
 
-dependencies = ["numpy", "pybind11_stubgen"]
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = ["pybind11_stubgen"]
 
 [tool.scikit-build]
 wheel.expand-macos-universal-tags = true
