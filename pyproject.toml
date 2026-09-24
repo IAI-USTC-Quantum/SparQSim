@@ -3,6 +3,7 @@ requires = [
     "scikit-build-core>=0.10",
     "pybind11>=2.13",
     "setuptools>=70",
+    "setuptools-scm>=8",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -52,8 +53,11 @@ packages = ["pysparq"]
 [tool.setuptools.package-dir]
 "" = "PySparQ"
 
+# __version__ is read from dist-info at runtime (importlib.metadata) — no
+# generated _version.py needed (scikit-build-core excludes gitignored files
+# from wheels, which silently dropped the written file; pysparq<=0.1.1 was
+# affected).
 [tool.setuptools_scm]
-write_to = "PySparQ/pysparq/_version.py"
 fallback_version = "0.0.0"
 
 [tool.cibuildwheel]

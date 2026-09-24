@@ -38,12 +38,16 @@ See Also:
 
 from __future__ import annotations
 
-# Import version from auto-generated _version.py
+# Version from installed dist-info metadata. setuptools-scm's write_to file
+# is excluded from wheels by scikit-build-core's gitignore filtering (pysparq
+# <= 0.1.1 shipped with __version__ == "0.0.0.dev0" because of this), so read
+# the metadata instead, which always carries the setuptools-scm version.
 try:
-    from ._version import __version__, __version_tuple__
-except ImportError:
+    from importlib.metadata import PackageNotFoundError, version as _dist_version
+
+    __version__: str = _dist_version("pysparq")
+except PackageNotFoundError:  # source tree without metadata
     __version__ = "0.0.0.dev0"
-    __version_tuple__ = (0, 0, 0, "dev0")
 
 # Import everything from _core, then shadow StatePrint/print with Python functions.
 # Using a targeted import + re-bind pattern (rather than "from ._core import *")
