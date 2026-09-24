@@ -10,15 +10,17 @@
 
 ## 仓库分工
 
-SparQSim 仓库发布 [`pysparq`](https://pypi.org/project/pysparq/) 包。C++ 核心在
-[QRAM-Simulator 仓库](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)独立发版
-（其自带一个最小化的 `qram_simulator` 薄绑定）；本仓库以 git submodule
-（相对 URL `../QRAM-Simulator.git`）引用并编译核心。
+依赖方向：**SparQSim → QRAM-Simulator**。SparQSim 发布
+[`pysparq`](https://pypi.org/project/pysparq/) 包并承载 SparQ C++ 框架
+（`SparQ/` 稀疏态模拟器 + `SparQ_Algorithm/` 算法库 + 全部 Python 绑定与算法类实验）；
+QRAM 基座（Common + QRAM + ThirdParty）在
+[QRAM-Simulator 仓库](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)独立发版，
+本仓库以 git submodule（相对 URL `../QRAM-Simulator.git`）引用并编译。
 
 | 仓库 | 内容 | PyPI 包 |
 |------|------|---------|
-| **SparQSim**（本仓库） | pysparq 全功能 Python 框架（core.cpp 富绑定 + 纯 Python 算法层） | `pysparq` |
-| [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) | C++ 稀疏态模拟器核心 + 薄绑定 | `qram-simulator` |
+| **SparQSim**（本仓库） | SparQ C++ 框架 + pysparq 全功能 Python 框架（core.cpp 富绑定 + 纯 Python 算法层）+ `qram_simulator` 薄绑定 | `pysparq`、`qram-simulator` |
+| [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) | 纯 C++ QRAM 基座（Common + QRAM 电路核心 + QRAM 论文实验） | 无（纯 C++） |
 
 ## 安装
 
@@ -105,14 +107,19 @@ dist = ps.Probability.distribution(state, reg)  # 单寄存器完整结果分布
 
 ```
 SparQSim/
-├── extern/qram-simulator/   # C++ 核心 submodule（相对 URL ../QRAM-Simulator.git）
+├── SparQ/                  # SparQ C++ 稀疏态模拟器（伞形目标 SparQ 在根 CMake 定义）
+├── SparQ_Algorithm/        # 高层算法 C++ 库（态制备、块编码、哈密顿模拟、QDA 等）
+├── bindings/python/        # qram_simulator 薄绑定（从核心仓迁入）
+├── Experiments/            # 量子算法 C++ 实验（QDA/Grover/QFT/Shor/QCNN/CKS/GHZ 等）
+├── test/                   # C++ 测试（SparQ 单测 + CommonTest 完整版；SPARQ_BUILD_TESTS 门控）
+├── extern/qram-simulator/  # QRAM 基座 submodule（Common + QRAM + ThirdParty，相对 URL ../QRAM-Simulator.git）
 ├── PySparQ/
-│   ├── core.cpp             # pybind11 富绑定（_core 模块）
-│   ├── pysparq/             # Python 包（operators/ algorithms/ rir conformance dynamic_operator）
-│   └── test/                # pytest 套件
-├── docs/                    # Sphinx 文档 + 算法转译指南
-├── examples/                # Python 示例
-└── pyproject.toml           # pysparq 包（scikit-build-core + setuptools-scm）
+│   ├── core.cpp            # pybind11 富绑定（_core 模块）
+│   ├── pysparq/            # Python 包（operators/ algorithms/ rir conformance dynamic_operator）
+│   └── test/               # pytest 套件
+├── docs/                   # Sphinx 文档 + 算法转译指南
+├── examples/               # C++ 与 Python 示例（SPARQ_BUILD_EXAMPLES 门控 C++ 部分）
+└── pyproject.toml          # pysparq 包（scikit-build-core + setuptools-scm）
 ```
 
 ## 发版流程

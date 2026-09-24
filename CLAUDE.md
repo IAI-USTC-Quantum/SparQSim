@@ -4,12 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SparQSim publishes the `pysparq` Python package: the full-featured pybind11 bindings
-(`PySparQ/core.cpp` → `_core`) plus a pure-Python framework (operators, algorithms,
-RIR interpreter, dynamic operator compilation). The C++ core lives in the separate
+SparQSim is the home of the **SparQ framework and the whole Python ecosystem**:
+the SparQ C++ sparse-state simulator (`SparQ/`), the algorithm library
+(`SparQ_Algorithm/`), the thin `qram_simulator` binding (`bindings/python/`),
+the quantum-algorithm experiments (`Experiments/`), and the `pysparq` package
+(full-featured pybind11 bindings `PySparQ/core.cpp` → `_core` plus a pure-Python
+framework: operators, algorithms, RIR interpreter, dynamic operator compilation).
+The QRAM base (Common + QRAM + ThirdParty) lives in the separate
 **QRAM-Simulator** repository, consumed as a git submodule at `extern/qram-simulator`
 (relative URL `../QRAM-Simulator.git` — resolves on both Gitea and GitHub; do not
-rewrite it to an absolute URL).
+rewrite it to an absolute URL). Dependency direction: **SparQSim → QRAM-Simulator**.
+
+The umbrella `SparQ` CMake target (interface aggregate: SparQ_Algorithm +
+SparQ_Simulator + the submodule's SparQ_QRAMSimulator + SparQ_Common + fmt)
+is defined in the ROOT `CMakeLists.txt` — it moved here from the former
+monorepo's `SparQ_Algorithm/src/CMakeLists.txt`.
 
 ## Build Commands
 
@@ -25,6 +34,12 @@ pip install .
 # Run tests (from project root; needs a C++ toolchain — dynamic-operator
 # tests JIT-compile generated operators with g++)
 pytest PySparQ/test -v
+
+# Full C++ development build (tests + experiments + examples; googletest
+# comes from the core submodule's ThirdParty)
+cmake -S . -B build-full -DSPARQ_BUILD_TESTS=ON \
+    -DSPARQ_BUILD_EXPERIMENTS=ON -DSPARQ_BUILD_EXAMPLES=ON
+cmake --build build-full --config Release
 
 # Regenerate and diff the committed stubs
 pip install pybind11-stubgen
@@ -43,8 +58,9 @@ git add extern/qram-simulator && git commit -m "chore: bump qram-simulator to vX
 
 - **`PySparQ/core.cpp`** — the full pybind11 binding (~150 exported names, incl.
   `conditioned_by_*` control surface via `BindUtils.h` macros). This is the
-  "rich" binding; QRAM-Simulator's repo carries a separate thin binding —
-  C++ API changes may need updates in both places.
+  "rich" binding; the thin `qram_simulator` binding lives in `bindings/python/`
+  of THIS repo (moved from QRAM-Simulator) — C++ API changes may need updates
+  in both places.
 - **`PySparQ/pysparq/`** — pure Python, imports only `._core`/numpy/stdlib:
   - `operators/` — Python-side operator framework (`ControllableOperatorMixin`)
   - `algorithms/` — Grover, Shor, QDA, CKS, state preparation, block encoding

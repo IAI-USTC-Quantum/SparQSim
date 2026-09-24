@@ -38,12 +38,28 @@ ninja.make-fallback = false
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
 # The sdist must be self-contained (PyPI policy: no network fetches during
-# build): embed the QRAM-Simulator submodule source checked out next to it.
-# Remember to init submodules (`git submodule update --init`) before
-# `python -m build --sdist`.
+# build): embed the QRAM-Simulator submodule source checked out next to it,
+# plus the local SparQ framework sources. Remember to init submodules
+# (`git submodule update --init`) before `python -m build --sdist`.
 [tool.scikit-build.sdist]
-include = ["extern/qram-simulator/*"]
-exclude = ["extern/qram-simulator/.git"]
+include = [
+    "extern/qram-simulator/*",
+    "SparQ/*",
+    "SparQ_Algorithm/*",
+]
+exclude = [
+    "extern/qram-simulator/.git",
+    "extern/qram-simulator/Experiments",
+    "extern/qram-simulator/test",
+    "extern/qram-simulator/ThirdParty/googletest",
+    "SparQ/test",
+    "Experiments",
+    "test",
+    "examples",
+    "docs",
+    ".gitea",
+    ".github",
+]
 
 [tool.setuptools]
 # Ensure setuptools auto-discovery finds only the pysparq package, not

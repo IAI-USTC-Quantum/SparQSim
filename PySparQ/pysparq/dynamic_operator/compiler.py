@@ -318,12 +318,17 @@ def compile_cpp_code(
         if str(installed_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(installed_include))
     else:
-        # 源代码目录情况：C++ 核心头文件在 extern/qram-simulator/ 下
+        # 源代码目录情况：SparQ 框架头文件在本仓库根下，
+        # QRAM 核心（QRAM/Common/ThirdParty）在 extern/qram-simulator/ 下
         core_root = project_root_path / "extern" / "qram-simulator"
 
-        sparq_include = core_root / "SparQ" / "include"
+        sparq_include = project_root_path / "SparQ" / "include"
         if sparq_include.exists() and str(sparq_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(sparq_include))
+
+        algo_include = project_root_path / "SparQ_Algorithm" / "include"
+        if algo_include.exists() and str(algo_include) not in cfg.include_paths:
+            cfg.include_paths.insert(0, str(algo_include))
 
         qram_include = core_root / "QRAM" / "include"
         if qram_include.exists() and str(qram_include) not in cfg.include_paths:

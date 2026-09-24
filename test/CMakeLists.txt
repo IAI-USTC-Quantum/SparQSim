@@ -1,0 +1,5 @@
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../SparQ/test sparq-test)
+add_subdirectory(CPUTest)
+if (CUDA_FOUND)
+add_subdirectory(GPUTest)
+endif()

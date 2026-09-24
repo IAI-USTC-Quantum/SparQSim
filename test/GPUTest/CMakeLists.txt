@@ -1,0 +1,2 @@
+add_subdirectory(CommonTest)
+add_subdirectory(ArithmeticTest)

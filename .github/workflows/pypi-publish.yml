@@ -79,7 +79,9 @@ jobs:
 
       - name: Verify sdist is self-contained
         run: |
-          tar -tzf dist/pysparq-*.tar.gz | grep -q "extern/qram-simulator/SparQ/include/sparse_state_simulator.h" \
+          tar -tzf dist/pysparq-*.tar.gz | grep -q "SparQ/include/sparse_state_simulator.h" \
+            || { echo "ERROR: sdist missing SparQ framework headers"; exit 1; }
+          tar -tzf dist/pysparq-*.tar.gz | grep -q "extern/qram-simulator/QRAM/include/qram_circuit_qubit.h" \
             || { echo "ERROR: sdist missing embedded QRAM-Simulator core"; exit 1; }
 
       - uses: actions/upload-artifact@v4
