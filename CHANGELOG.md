@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **仓库拆分说明**：本仓库由原 QRAM-Simulator monorepo 拆分而来（git 历史经
 > filter-repo 完整保留，含 v0.1.0 / v0.1.1 标签）。拆分前的完整变更历史见
-> [qram-simulator 仓库 CHANGELOG](https://github.com/IAI-USTC-Quantum/qram-simulator/blob/main/CHANGELOG.md)。
+> [QRAM-Simulator 仓库 CHANGELOG](https://github.com/IAI-USTC-Quantum/QRAM-Simulator/blob/main/CHANGELOG.md)。
 
 ---
 
@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **从 QRAM-Simulator monorepo 拆分为独立仓库 SparQSim**：pysparq 包
   （PySparQ 富绑定 + 纯 Python 框架）整体迁入；C++ 核心迁至
-  qram-simulator 仓库，本仓库经 git submodule
-  （相对 URL `../qram-simulator.git`，路径 `extern/qram-simulator`）引用并编译
+  QRAM-Simulator 仓库，本仓库经 git submodule
+  （相对 URL `../QRAM-Simulator.git`，路径 `extern/qram-simulator`）引用并编译
 - 根 CMakeLists 新建：`add_subdirectory(extern/qram-simulator)`（核心的
   tests/experiments/薄绑定一律关闭）+ `add_subdirectory(PySparQ)`，
   scikit-build-core 驱动，构建方式与原 monorepo 一致

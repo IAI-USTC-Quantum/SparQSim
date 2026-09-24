@@ -5,8 +5,8 @@
 ## 仓库关系
 
 - 本仓库：pysparq Python 包（富绑定 + 纯 Python 框架）
-- C++ 核心：[qram-simulator](https://github.com/IAI-USTC-Quantum/qram-simulator)，
-  以 submodule 引用（`extern/qram-simulator`，相对 URL `../qram-simulator.git`）
+- C++ 核心：[QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)，
+  以 submodule 引用（`extern/qram-simulator`，相对 URL `../QRAM-Simulator.git`）
 
 ## 开发环境
 
@@ -23,11 +23,11 @@ pytest PySparQ/test -v
 
 ## 核心变更工作流
 
-- C++ 核心改动 → 去 qram-simulator 仓库提 PR；发布 tag 后回本仓库
+- C++ 核心改动 → 去 QRAM-Simulator 仓库提 PR；发布 tag 后回本仓库
   `git submodule update --remote` 并提交 pin
 - 绑定/Python 层改动 → 本仓库直接改
 - 改动 C++ API 时注意双绑定面：本仓库的 `PySparQ/core.cpp`（富绑定）与
-  qram-simulator 的 `bindings/python/`（薄绑定）
+  QRAM-Simulator 的 `bindings/python/`（薄绑定）
 
 ## 编码规范
 

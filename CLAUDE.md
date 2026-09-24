@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 SparQSim publishes the `pysparq` Python package: the full-featured pybind11 bindings
 (`PySparQ/core.cpp` → `_core`) plus a pure-Python framework (operators, algorithms,
 RIR interpreter, dynamic operator compilation). The C++ core lives in the separate
-**qram-simulator** repository, consumed as a git submodule at `extern/qram-simulator`
-(relative URL `../qram-simulator.git` — resolves on both Gitea and GitHub; do not
+**QRAM-Simulator** repository, consumed as a git submodule at `extern/qram-simulator`
+(relative URL `../QRAM-Simulator.git` — resolves on both Gitea and GitHub; do not
 rewrite it to an absolute URL).
 
 ## Build Commands
@@ -34,7 +34,7 @@ diff PySparQ/pysparq/_core.pyi /tmp/stubs/pysparq/_core.pyi
 # Format/lint (pre-commit)
 pre-commit run --all-files
 
-# Bump the core pin (after qram-simulator publishes a tag)
+# Bump the core pin (after QRAM-Simulator publishes a tag)
 git submodule update --remote extern/qram-simulator
 git add extern/qram-simulator && git commit -m "chore: bump qram-simulator to vX.Y.Z"
 ```
@@ -43,7 +43,7 @@ git add extern/qram-simulator && git commit -m "chore: bump qram-simulator to vX
 
 - **`PySparQ/core.cpp`** — the full pybind11 binding (~150 exported names, incl.
   `conditioned_by_*` control surface via `BindUtils.h` macros). This is the
-  "rich" binding; qram-simulator's repo carries a separate thin binding —
+  "rich" binding; QRAM-Simulator's repo carries a separate thin binding —
   C++ API changes may need updates in both places.
 - **`PySparQ/pysparq/`** — pure Python, imports only `._core`/numpy/stdlib:
   - `operators/` — Python-side operator framework (`ControllableOperatorMixin`)
@@ -74,7 +74,7 @@ PySparQ/test/
   algorithms/             per-algorithm unit + end-to-end fidelity tests
 ```
 CKS/QDA end-to-end fidelity tests compare against C++ reference values from
-qram-simulator's `test/CPUTest/CommonTest/CorrectnessTest_*.inl` (values are
+QRAM-Simulator's `test/CPUTest/CommonTest/CorrectnessTest_*.inl` (values are
 transcribed; the C++ files are not read at test time).
 
 ## Code Style
@@ -100,7 +100,7 @@ pypi-publish workflow on `v*` tags.
 
 Version comes from setuptools-scm over this repo's tags (history carries the
 monorepo-era v0.1.x tags; next release is v0.2.0). Before tagging, bump the
-submodule pin to a released qram-simulator tag and update CHANGELOG.md.
+submodule pin to a released QRAM-Simulator tag and update CHANGELOG.md.
 
 ## Critical: CKS/QDA Python Porting Status
 

@@ -1,7 +1,7 @@
 # SparQSim — the pysparq Python package.
 #
-# The C++ core is consumed from the qram-simulator git submodule (relative
-# URL ../qram-simulator.git, resolves on both Gitea and GitHub). scikit-build
+# The C++ core is consumed from the QRAM-Simulator git submodule (relative
+# URL ../QRAM-Simulator.git, resolves on both Gitea and GitHub). scikit-build
 # core drives this file when building the wheel; the core is embedded via
 # add_subdirectory so everything compiles in one CMake invocation, exactly
 # like the former monorepo build.

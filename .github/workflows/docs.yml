@@ -1,7 +1,7 @@
 name: Documentation
 
 # Build the Sphinx (Python) documentation; C++ Doxygen docs live in the
-# qram-simulator repository.
+# QRAM-Simulator repository.
 on:
   push:
     branches: [ "main", "develop" ]

@@ -1,7 +1,7 @@
 # PySparQ full-featured bindings.
 #
 # Added via add_subdirectory() from the SparQSim root CMakeLists. The C++
-# core comes from the qram-simulator submodule (target SparQ + global
+# core comes from the QRAM-Simulator submodule (target SparQ + global
 # include directories wired by its root CMakeLists).
 
 pybind11_add_module(_core core.cpp)
