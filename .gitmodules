@@ -1,0 +1,3 @@
+[submodule "qram-simulator"]
+	path = extern/qram-simulator
+	url = ../qram-simulator.git

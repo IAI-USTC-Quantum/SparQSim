@@ -1,32 +1,20 @@
-# Require CMake 3.15+ (matching scikit-build-core) Use new versions of all
-# policies up to CMake 3.27
-cmake_minimum_required(VERSION 3.15...3.27)
-
-# Scikit-build-core sets these values for you, or you can just hard-code the
-# name and version.
-project(
-  ${SKBUILD_PROJECT_NAME}
-  VERSION ${SKBUILD_PROJECT_VERSION}
-  LANGUAGES CXX)
-
-# pybind11 is provided by ThirdParty/CMakeLists.txt (find_package)
+# PySparQ full-featured bindings.
+#
+# Added via add_subdirectory() from the SparQSim root CMakeLists. The C++
+# core comes from the qram-simulator submodule (target SparQ + global
+# include directories wired by its root CMakeLists).
 
 pybind11_add_module(_core core.cpp)
 target_compile_definitions(_core PRIVATE QRAM_Release)
 target_link_libraries(_core PRIVATE SparQ)
 
+# The dynamic-operator loader is a self-contained dlopen/LoadLibrary wrapper;
+# it only needs its own header (the generated operator code it loads at
+# runtime is compiled against the installed headers by compiler.py).
 pybind11_add_module(_dynamic_operator pysparq/dynamic_operator/src/dynamic_operator_loader.cpp)
 target_include_directories(_dynamic_operator PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/pysparq/dynamic_operator/include
-    ${CMAKE_SOURCE_DIR}/SparQ/include
-    ${CMAKE_SOURCE_DIR}/Common/include
-    ${CMAKE_SOURCE_DIR}/QRAM/include
-    ${CMAKE_SOURCE_DIR}/ThirdParty/eigen-3.4.0
-    ${CMAKE_SOURCE_DIR}/ThirdParty/fmt/include
 )
-
-# This is passing in the version as a define just as an example
-target_compile_definitions(_core PRIVATE VERSION_INFO=${PYQSPARSE_VERSION_INFO})
 
 # The install directory is the output (wheel) directory
 install(TARGETS _core DESTINATION pysparq)

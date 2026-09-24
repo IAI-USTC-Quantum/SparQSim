@@ -213,8 +213,8 @@ def find_project_root() -> Optional[Path]:
     - site-packages/pysparq/ (Python包)
     - site-packages/include/ (头文件，包含 basic_components.h)
 
-    对于源代码目录:
-    - 项目根目录包含 SparQ/ 和 PySparQ/
+    对于源代码目录 (SparQSim 仓库):
+    - 项目根目录包含 extern/qram-simulator/ (C++ 核心 submodule) 和 PySparQ/
 
     Returns:
         项目根目录路径或已安装的包目录，未找到返回 None
@@ -228,8 +228,8 @@ def find_project_root() -> Optional[Path]:
         # 这确保是完整的头文件目录，而不是 PySparQ/include（只有绑定头文件）
         if (parent / "include" / "basic_components.h").exists() and (parent / "pysparq").exists():
             return parent
-        # 源代码目录的情况：检查大写的 SparQ/ 和 PySparQ/
-        if (parent / "SparQ").exists() and (parent / "PySparQ").exists():
+        # 源代码目录的情况：qram-simulator submodule + PySparQ/
+        if (parent / "extern" / "qram-simulator").exists() and (parent / "PySparQ").exists():
             return parent
     return None
 
@@ -318,26 +318,28 @@ def compile_cpp_code(
         if str(installed_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(installed_include))
     else:
-        # 源代码目录情况：头文件分散在多个子目录
-        sparq_include = project_root_path / "SparQ" / "include"
+        # 源代码目录情况：C++ 核心头文件在 extern/qram-simulator/ 下
+        core_root = project_root_path / "extern" / "qram-simulator"
+
+        sparq_include = core_root / "SparQ" / "include"
         if sparq_include.exists() and str(sparq_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(sparq_include))
 
-        qram_include = project_root_path / "QRAM" / "include"
+        qram_include = core_root / "QRAM" / "include"
         if qram_include.exists() and str(qram_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(qram_include))
 
-        common_include = project_root_path / "Common" / "include"
+        common_include = core_root / "Common" / "include"
         if common_include.exists() and str(common_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(common_include))
 
         # 添加 Eigen 头文件路径
-        eigen_include = project_root_path / "ThirdParty" / "eigen-3.4.0"
+        eigen_include = core_root / "ThirdParty" / "eigen-3.4.0"
         if eigen_include.exists() and str(eigen_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(eigen_include))
 
         # 添加 fmt 头文件路径
-        fmt_include = project_root_path / "ThirdParty" / "fmt" / "include"
+        fmt_include = core_root / "ThirdParty" / "fmt" / "include"
         if fmt_include.exists() and str(fmt_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(fmt_include))
 

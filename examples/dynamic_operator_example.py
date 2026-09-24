@@ -17,7 +17,7 @@ import os
 
 # 将项目根目录添加到路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, "PySparQ"))  # 源码树导入;已安装时走 site-packages
 
 print("=" * 70)
 print("PySparQ 动态算子扩展示例")

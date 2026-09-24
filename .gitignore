@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyd
+*.so
+*.dylib
+*.dll
+*.egg-info/
+/wheelhouse/
+/dist/
+.venv/
+uv.lock
+
+# Auto-generated version file (setuptools_scm)
+PySparQ/pysparq/_version.py
+
+# Dynamic-operator JIT cache
+.cache/
+
+# CMake / build artifacts
+build*/
+cmake-build-*/
+
+# Sphinx documentation build
+docs/sphinx/build/
+docs/sphinx/_build/
+docs/sphinx/.venv/
+
+# IDE
+.vscode/
+.vs/
+.idea/
+.zcode/
+
+# Archives
+*.7z
+*.rar
