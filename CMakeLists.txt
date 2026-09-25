@@ -114,6 +114,14 @@ install(DIRECTORY
 
 # Full-featured pysparq bindings. (The thin qram_simulator binding is built
 # and published from the QRAM-Simulator core repo itself.)
+#
+# pybind11_add_module 默认给模块链接 pybind11::lto（MSVC 上 = /GL + /LTCG）；
+# PySparQ/_core 单编译单元吸入全部 SparQ 头文件后，MSVC 链接期代码生成
+# 阶段间歇性触发内部编译器错误 C1001（本机 4 次构建 3 次崩于此，崩点
+# 各不相同：type_caster_base.h / pybind11.h / quantum_arithmetic.h）。
+# 显式定义 CMAKE_INTERPROCEDURAL_OPTIMIZATION 可让 pybind11 跳过 lto
+# 链接（官方逃生口），以牺牲少量跨翻译单元优化换取可构建性。
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
 add_subdirectory(PySparQ)
 
 if(SPARQ_BUILD_TESTS)

@@ -53,12 +53,15 @@ exclude = [
     "extern/qram-simulator/test",
     "extern/qram-simulator/ThirdParty/googletest",
     "SparQ/test",
-    "Experiments",
-    "test",
-    "examples",
-    "docs",
-    ".gitea",
-    ".github",
+    # 根目录锚定（前导 /）：不带斜杠的 gitignore 风格模式会匹配任意层级，
+    # 曾误伤 PySparQ/pysparq/test（0.1.1 起随包发布的测试支撑模块，
+    # PySparQ/test 下的集成测试经 installed 包导入它）
+    "/Experiments",
+    "/test",
+    "/examples",
+    "/docs",
+    "/.gitea",
+    "/.github",
 ]
 
 [tool.setuptools]

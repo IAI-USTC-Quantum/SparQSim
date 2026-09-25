@@ -88,5 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PySparQ/pysparq/_core.pyi`，由 pre-commit 校验）
 
 ### Fixed
+- **sdist exclude 模式锚定根目录**（前导 `/`）：gitignore 风格的不带斜杠
+  模式匹配任意层级，`test` 曾误伤 `PySparQ/pysparq/test`（0.1.1 起随包
+  发布的测试支撑模块），致 wheel 缺 `pysparq.test`、QDA 集成测试收集失败
+- **关闭 pybind11 默认 lto**（显式 `CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF`）：
+  MSVC 链接期代码生成在 `_core`（单编译单元吸入全部 SparQ 头）上间歇性
+  触发编译器内部错误 C1001，牺牲少量链接期优化换取可构建性
+- JIT 测试（dynamic_operator / doc_examples）在无 g++ 环境整模块跳过
+  而非逐用例报错
 - 补声明 `typing_extensions`（Python 3.10）依赖
 - 移除孤儿构建目标 `PySparQ/src/`（重复的 `_core` 定义与 `QDAAlgo`）
