@@ -241,7 +241,7 @@ class TestSparseMatrixConstruction:
         assert mat.positive_only == False  # contains negative elements
 
     def test_from_dense_positive(self):
-        """测试正矩阵。"""
+        """Test a positive matrix."""
         A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=float)
         mat = SparseMatrix.from_dense(A, data_size=8)
 
@@ -256,19 +256,19 @@ class TestSparseMatrixConstruction:
 
 
 class TestQuantumWalkComponents:
-    """测试量子游走组件。"""
+    """Test quantum walk components."""
 
     def test_condrot_angle_function(self):
-        """测试条件旋转角度函数。"""
+        """Test the conditional rotation angle function."""
         mat_data_size = 8
         angle_func = make_walk_angle_func(mat_data_size, positive_only=True)
 
-        # 对于各种数据值
+        # For various data values
         for v in [0, 50, 100, 150, 200, 255]:
             mat = angle_func(v, 0, 0)
             assert len(mat) == 4
 
-            # 验证是有效的 2x2 酉矩阵
+            # Verify it is a valid 2x2 unitary matrix
             R = np.array([[mat[0], mat[1]], [mat[2], mat[3]]])
             assert np.allclose(R @ R.conj().T, np.eye(2), atol=1e-10)
 
@@ -279,11 +279,11 @@ class TestQuantumWalkComponents:
 
 
 class TestChebyshevQuantumState:
-    """测试 Chebyshev 量子态的正确性。"""
+    """Test the correctness of Chebyshev quantum states."""
 
     def test_chebyshev_n_polynomial(self):
-        """验证 chebyshev_n 函数的数学正确性。"""
-        # 使用简单的厄米矩阵
+        """Verify the mathematical correctness of the chebyshev_n function."""
+        # Use a simple Hermitian matrix
         A = np.array([[0.5, 0.2], [0.2, 0.5]])
         b = np.array([1.0, 0.0])
 
@@ -301,7 +301,7 @@ class TestChebyshevQuantumState:
         assert np.allclose(T2, expected_T2)
 
     def test_chebyshev_n_recursion(self):
-        """验证 Chebyshev 递推关系。"""
+        """Verify the Chebyshev recurrence relation."""
         A = np.array([[0.6, 0.3], [0.3, 0.6]])
         b = np.array([1.0, 1.0]) / np.sqrt(2)
 
@@ -314,12 +314,12 @@ class TestChebyshevQuantumState:
             assert np.allclose(Tn, expected, atol=1e-10), f"n={n} recursion failed"
 
     def test_chebyshev_eigenvalue_relation(self):
-        """验证 T_n(cos θ) = cos(nθ) 的关系。"""
-        # 对于标量，T_n(cos θ) = cos(nθ)
+        """Verify the relation T_n(cos θ) = cos(nθ)."""
+        # For scalars, T_n(cos θ) = cos(nθ)
         for theta in [0.1, 0.5, 1.0, 2.0]:
             x = math.cos(theta)
             for n in range(10):
-                # 使用 1x1 矩阵
+                # Use a 1x1 matrix
                 A = np.array([[x]])
                 b = np.array([1.0])
                 Tn = chebyshev_n(n, A, b)
@@ -333,22 +333,22 @@ class TestChebyshevQuantumState:
 
 
 class TestFidelityCalculation:
-    """测试 fidelity 计算。"""
+    """Test fidelity computation."""
 
     def test_fidelity_identical_states(self):
-        """归一化相同态的 fidelity 应该为 1。"""
-        # 归一化态
+        """The fidelity of identical normalized states should be 1."""
+        # Normalized state
         amps = {0: 1.0 / math.sqrt(2), 1: 1.0 / math.sqrt(2)}
         assert abs(get_fidelity(amps, amps) - 1.0) < 1e-10
 
     def test_fidelity_orthogonal_states(self):
-        """正交态的 fidelity 应该为 0。"""
+        """The fidelity of orthogonal states should be 0."""
         amps1 = {0: 1.0 + 0j}
         amps2 = {1: 1.0 + 0j}
         assert abs(get_fidelity(amps1, amps2)) < 1e-10
 
     def test_fidelity_superposition(self):
-        """叠加态的 fidelity 计算。"""
+        """Fidelity computation for superposition states."""
         # |ψ⟩ = (|0⟩ + |1⟩)/√2
         amps1 = {0: 1.0 / math.sqrt(2), 1: 1.0 / math.sqrt(2)}
         # |φ⟩ = (|0⟩ - |1⟩)/√2
@@ -359,7 +359,7 @@ class TestFidelityCalculation:
         assert abs(fidelity) < 1e-10
 
     def test_fidelity_partial_overlap(self):
-        """部分重叠态的 fidelity。"""
+        """Fidelity of partially overlapping states."""
         # |ψ⟩ = |0⟩
         amps1 = {0: 1.0}
         # |φ⟩ = (|0⟩ + |1⟩)/√2
@@ -383,17 +383,17 @@ class TestFidelityCalculation:
     )
 )
 class TestQuantumWalkFidelity:
-    """量子游走 fidelity 集成测试。
+    """Quantum walk fidelity integration tests.
 
-    这些测试需要完整的量子游走实现。
-    当 CKS 实现完成后，这些测试应该验证：
-    - 量子游走态与理论 Chebyshev 态的 fidelity >= 0.999
+    These tests require a complete quantum walk implementation.
+    Once the CKS implementation is complete, these tests should verify:
+    - The fidelity between the quantum walk state and the theoretical Chebyshev state is >= 0.999
     """
 
     def test_quantum_walk_chebyshev_fidelity(self, fresh_system):
-        """测试量子游走态与 Chebyshev 态的一致性。
+        """Test consistency between the quantum walk state and the Chebyshev state.
 
-        对应 C++ Chebyshev_test: fidelity >= 0.999
+        Corresponds to C++ Chebyshev_test: fidelity >= 0.999
 
         Uses the exact C++ reference matrix generate_simplest_sparse_matrix_signed_0()
         which produces elements=[1,-4,-4,3,7,-1,-1,1], sparsity=[0,1,0,1,2,3,2,3],
