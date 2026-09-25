@@ -5,6 +5,156 @@ All notable changes to pysparq (SparQSim repository) will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> **Repository split note**: this repository was split out of the former QRAM-Simulator
+> monorepo (git history fully preserved via filter-repo, including the v0.1.0 / v0.1.1
+> tags). For the complete change history prior to the split, see the
+> [QRAM-Simulator repository CHANGELOG](https://github.com/IAI-USTC-Quantum/QRAM-Simulator/blob/main/CHANGELOG.md).
+
+---
+
+## [Unreleased]
+
+## [0.2.1] - 2026-09-25
+
+### Fixed
+- **Co-installation compatibility with the `qram-simulator` package**: the
+  `QRAMCircuit_qutrit` binding now uses `py::module_local()` — the C++ type
+  `qram_qutrit::QRAMCircuit` is also registered by the qram-simulator package's
+  thin bindings (Python name `QRAMCircuitQutrit`), and pybind11's global
+  registration keyed on the C++ typeid caused
+  `generic_type: type "QRAMCircuit_qutrit" is already registered` when both
+  packages were imported into the same process. With the localized registration
+  the two packages can coexist (verified for both import orders); instances of
+  this type are only created/passed inside the pysparq module (as QRAMLoad
+  arguments) and never flow across modules.
+
+## [0.2.0] - 2026-09-25
+
+### Added
+- **`LICENSE`**: added the full Apache-2.0 text (pyproject and README had
+  already declared the license, so GitHub license detection now takes effect)
+- **Library-wide completion of Chinese Doxygen comments**: all 12 headers under
+  `SparQ_Algorithm/include/`
+  (grover/shor/qcnn/state_preparation/block_encoding/hamiltonian_simulation
+  + BlockEncoding/×3 + DiscreteAdiabatic/×3) received file banners and
+  class/member/function docstrings (@brief/@param/@return/@note, covering
+  mathematical semantics and register conventions); the 4 .cuh files under
+  `SparQ/include/cuda/` were completed; the PySparQ binding layer
+  (core.h/BindUtils.h/core.cpp) was completed; every .cpp/.cu implementation
+  file received a file-level banner; shor.h gained the missing `#pragma once`;
+  fixed the nested `/*` problem in a separator comment of qda_fundamental.h
+  and two `@param vec` parameter-name mismatches in rot.h
+- **Sphinx documentation site rewritten around the SparQ framework as a whole
+  and integrated with the C++ API**:
+  - Added `docs/doxygen/Doxyfile` (extracts doc comments from the
+    SparQ/SparQ_Algorithm/PySparQ headers into XML), rendered into Sphinx via
+    Breathe (11 new `cpp_api/` pages organizing the C++ API reference by
+    module)
+  - `conf.py`: project renamed to SparQ, version now read dynamically
+    (importlib.metadata + dev fallback), source_repository points to SparQSim,
+    stale templates_path removed
+  - `index.rst` badges/quick links updated to the SparQSim repository and the
+    new Pages site; `guide/architecture.md` rewritten for the post-split
+    layout (the previous description was outdated)
+  - Build chain: requirements.txt gained breathe and numpy; the Makefile html
+    target gained a prerequisite doxygen step; docs.yml CI installs doxygen
+    and its trigger paths gained `SparQ/**`, `SparQ_Algorithm/**`
+  - README gained a documentation-site badge
+- Full local verification: zero Doxygen warnings; Sphinx build succeeds
+  (spot checks of the C++/Python API and Chinese rendering passed)
+
+### Changed
+- **Second split round: the SparQ C++ framework moved into this repository as
+  a whole**. `SparQ/` (sparse-state simulator), `SparQ_Algorithm/` (algorithm
+  library), `bindings/python/` (`qram_simulator` thin bindings, moved in from
+  the core repository), the `examples/` C++ examples, the algorithm-class
+  experiments (QDA/Grover/
+  StatePreparation/QCNN/QFT/CKS/Shor/GHZ/ErrorFiltration/GPUTime) and the QRAM
+  experiments that depend on SparQ operators (QRAMFidelity v1, QRAM_Qubit)
+  all moved into this repository; the full CommonTest suite (including the
+  algorithm blocks) moved as well. The dependency direction is now fixed as
+  **SparQSim → QRAM-Simulator** (the base repository keeps only Common + QRAM
+  + QRAM experiments)
+- The umbrella `SparQ` CMake target is now defined in the **root CMakeLists**
+  (interface aggregation: SparQ_Algorithm + SparQ_Simulator + the submodule's
+  SparQ_QRAMSimulator + SparQ_Common + fmt); it was previously defined in the
+  monorepo's SparQ_Algorithm/src
+- Added the development switches `SPARQ_BUILD_TESTS` / `SPARQ_BUILD_EXPERIMENTS` /
+  `SPARQ_BUILD_EXAMPLES` (default OFF; googletest is taken from the core
+  submodule's ThirdParty)
+- The root CMakeLists installs `SparQ/include` and `SparQ_Algorithm/include`
+  into a flat `include/` (the wheel's JIT header layout)
+- `dynamic_operator/compiler.py` JIT include paths adapted: SparQ headers are
+  now repository-local, while QRAM/Common/ThirdParty remain under
+  `extern/qram-simulator/`
+- sdist gained `SparQ/*` and `SparQ_Algorithm/*` and excludes development
+  directories (Experiments/, test/, examples/, docs/, etc.)
+- The thin-binding module target was renamed to `qram_simulator_core` (to
+  avoid clashing with pysparq's `_core`); the output file name stays
+  `_core.pyd`; releasing the `qram-simulator` wheel is left for later
+
+### Round One: splitting from the QRAM-Simulator monorepo into the standalone SparQSim repository
+- **The pysparq package (PySparQ rich bindings + pure-Python framework) moved
+  in as a whole**; the C++ core moved to the QRAM-Simulator repository, which
+  this repository references and compiles via a git submodule (relative URL
+  `../QRAM-Simulator.git`, path `extern/qram-simulator`)
+- New root CMakeLists: `add_subdirectory(extern/qram-simulator)` (the core's
+  tests/experiments/thin bindings all disabled) + `add_subdirectory(PySparQ)`,
+  driven by scikit-build-core, with the build behaving the same as in the
+  original monorepo
+- `dynamic_operator/compiler.py` source-tree root detection adapted to the
+  `extern/qram-simulator/` layout (the wheel install layout is unchanged:
+  `include/` sits next to `pysparq/`)
+- sdist embeds the `extern/qram-simulator` source (`sdist.include`),
+  satisfying PyPI's self-contained sdist requirement
+
+### Removed
+- **The legacy thin bindings `bindings/python/` were removed entirely** (the
+  release story is now final: the `qram-simulator` package is built and
+  released independently from the QRAM-Simulator core repository, and this
+  repository releases only `pysparq`). That directory was a leftover of the
+  old early-split-era plan to "publish a second package from this
+  repository"; its pybind11 module output name was also `_core`, identical to
+  the PySparQ rich bindings, so the two overwrote each other at build time —
+  the wheel ended up with `pysparq._core` replaced by the thin bindings,
+  `import pysparq` raised a `SparseMatrix` ImportError, and the wheel carried
+  a broken extra top-level `qram_simulator` package (installing it conflicts
+  with the independently released `qram-simulator` PyPI package) — after the
+  removal the wheel converged to the single `pysparq` package and imports and
+  tests recovered
+- `.cibuildwheel-hooks/` (cibuildwheel 2.x does not support Linux after-build;
+  the post-hook/inject_stubs had long been dead code; the stub is now the
+  committed in-repo `PySparQ/pysparq/_core.pyi`, validated by pre-commit)
+
+### Fixed
+- **sdist exclude patterns are now anchored to the root directory** (leading
+  `/`): gitignore-style patterns without a slash match at any level, so `test`
+  had inadvertently hit `PySparQ/pysparq/test` (a test-support module shipped
+  with the package since 0.1.1), leaving the wheel without `pysparq.test` and
+  breaking QDA integration-test collection
+- **Disabled pybind11's default LTO** (explicit
+  `CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF`): MSVC link-time code generation
+  intermittently hit internal compiler error C1001 on `_core` (a single
+  translation unit ingesting all SparQ headers); a little link-time
+  optimization is sacrificed for buildability
+- JIT tests (dynamic_operator / doc_examples) now skip as whole modules in
+  environments without g++ instead of failing case by case
+- Declared the previously missing `typing_extensions` (Python 3.10)
+  dependency
+- Removed the orphaned build targets `PySparQ/src/` (a duplicate `_core`
+  definition and `QDAAlgo`)
+
+---
+
+## 中文版
+
+# Changelog
+
+All notable changes to pysparq (SparQSim repository) will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 > **仓库拆分说明**：本仓库由原 QRAM-Simulator monorepo 拆分而来（git 历史经
 > filter-repo 完整保留，含 v0.1.0 / v0.1.1 标签）。拆分前的完整变更历史见
 > [QRAM-Simulator 仓库 CHANGELOG](https://github.com/IAI-USTC-Quantum/QRAM-Simulator/blob/main/CHANGELOG.md)。

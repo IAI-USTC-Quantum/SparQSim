@@ -1,3 +1,46 @@
+# Contributing Guide — SparQSim (pysparq)
+
+First of all, thank you for considering contributing to the SparQSim project! 🎉
+
+## Repository Relationship
+
+- This repository: the pysparq Python package (rich bindings + pure-Python framework)
+- C++ core: [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator),
+  referenced as a submodule (`extern/qram-simulator`, relative URL `../QRAM-Simulator.git`)
+
+## Development Environment
+
+```bash
+git clone --recurse-submodules <repo-url>
+cd SparQSim
+
+python -m venv .venv && source .venv/bin/activate  # or: uv venv
+pip install . pytest
+pytest PySparQ/test -v
+```
+
+Note: `test_dynamic_operator.py` requires a working `g++`.
+
+## Core Change Workflow
+
+- C++ core changes → open a PR in the QRAM-Simulator repository; after a release
+  tag is published, run `git submodule update --remote` back in this repository
+  and commit the pin
+- Binding/Python-layer changes → make them directly in this repository
+- When changing the C++ API, mind the dual binding surface: this repository's
+  `PySparQ/core.cpp` (rich bindings) and QRAM-Simulator's `bindings/python/`
+  (thin bindings)
+
+## Coding Standards
+
+- **Python**: black (line-length=100), isort (profile=black), flake8
+- **C++** (binding layer): clang-format (LLVM style, 4-space indent, 120 columns)
+- Run `pre-commit run --all-files` before committing
+
+---
+
+## 中文版
+
 # 贡献指南 — SparQSim (pysparq)
 
 首先，感谢你考虑为 SparQSim 项目做出贡献！🎉
