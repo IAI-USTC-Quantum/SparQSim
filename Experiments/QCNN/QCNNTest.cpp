@@ -155,7 +155,7 @@ std::vector<std::vector<double>> reshape_khan(const std::vector<double>& input, 
 }
 void check_nan_khan(double value) {
 	if (std::isnan(value)) {
-		throw std::runtime_error("����ֵ��NaN");
+		throw std::runtime_error("Value is NaN");
 	}
 }
 std::vector<double> vector_mul_double(std::vector<double> input, double m) {
@@ -347,9 +347,9 @@ double cal_gen(std::vector<double> vector_i_, std::vector<double> kernel_) {
 	qram1.set_memory(cover(vector_i));
 	qram2.set_memory(cover(kernel));
 
-	auto r = System::add_register("q", UnsignedInteger, qram_simulator::log2(vector_i.size()));//pic�ڲ�����
-	auto data = System::add_register("data", UnsignedInteger, 64);//���QRAM����
-	auto anc = System::add_register("anc", Boolean, 1);//��QRAMLoadʱ����Ϊ���Ʊ���
+	auto r = System::add_register("q", UnsignedInteger, qram_simulator::log2(vector_i.size()));//internal data of pic
+	auto data = System::add_register("data", UnsignedInteger, 64);//stores the QRAM data
+	auto anc = System::add_register("anc", Boolean, 1);//used as the control flag during QRAMLoad
 	auto anc_cr = System::add_register("anc_cr", Boolean, 1);
 	(Hadamard_Int_Full("q"))(state);
 	(Hadamard_Int_Full("anc"))(state);
@@ -390,7 +390,7 @@ double cal_class(std::vector<double> vector_i_, std::vector<double> kernel_) {
 	int sz = vector_i_.size();
 	if (vector_i_.size() != kernel_.size()) {
 		std::cout<< "A = " << vector_i_.size() << " " << "B = " << kernel_.size() << std::endl;
-		throw std::runtime_error("����֮��ά�Ȳ����");
+		throw std::runtime_error("Matrix dimensions do not match");
 	}
 	double answer = 0.0;
 	for (int i = 0; i < sz; i++) {
@@ -610,7 +610,7 @@ void printvector_(std::vector<int> vec) {
 }
 std::vector<std::vector<double>> reshape_to_square(const std::vector<double>& input) {
 	int size = input.size();
-	int dim = std::sqrt(size); // ��������������
+	int dim = std::sqrt(size); // used to compute the matrix width
 	std::vector<std::vector<double>> output(dim, std::vector<double>(dim));
 	for (int i = 0; i < dim; ++i) {
 		for (int j = 0; j < dim; ++j) {
@@ -660,7 +660,7 @@ public:
 		kernel.resize(kernel_size * kernel_size);
 		for (int i = 0; i < kernel.size(); i++) {
 			double value = distribution(generator);
-			// ��ֵ���ŵ�-1��1�ķ�Χ
+			// Scale the values to the range -1 to 1
 			value = std::max(-1.0, std::min(1.0, value));
 			kernel[i] = value;
 		}
@@ -799,13 +799,13 @@ public:
 		weight.resize(input_weight * output_weight);
 		for (int i = 0; i < weight.size(); i++) {
 			double value = distribution(generator);
-			// ��ֵ���ŵ�-1��1�ķ�Χ
+			// Scale the values to the range -1 to 1
 			value = std::max(-1.0, std::min(1.0, value));
 			weight[i] = value;
 		}
 		for (int j = 0; j < biase.size(); j++) {
 			double value = distribution(generator);
-			// ��ֵ���ŵ�-1��1�ķ�Χ
+			// Scale the values to the range -1 to 1
 			value = std::max(-1.0, std::min(1.0, value));
 			biase[j] = value;
 		}
@@ -919,14 +919,14 @@ public:
 		for(int i = 0;i<input_weight;i++)
 			for (int j = 0; j < output_weight; j++) {
 				double value = distribution(generator);
-				// ��ֵ���ŵ�-1��1�ķ�Χ
+				// Scale the values to the range -1 to 1
 				value = std::max(-1.0, std::min(1.0, value));
 				weight.setElement(i,j,value);
 			}
 		
 		for (int j = 0; j < biase.size(); j++) {
 			double value = distribution(generator);
-			// ��ֵ���ŵ�-1��1�ķ�Χ
+			// Scale the values to the range -1 to 1
 			value = std::max(-1.0, std::min(1.0, value));
 			biase[j] = value;
 		}
@@ -944,10 +944,10 @@ public:
 
 	khan_Matrix backward(khan_Matrix input,
 		khan_Matrix grad, double learning_rate) {
-		// ���㷴�򴫲���ǰһ���Loss
+		// Compute the backpropagation to get the previous layer's Loss
 		khan_Matrix loss(1,input_weight);
 		loss = grad.multiply(weight.transpose());
-		// ������һ���weight������
+		// Update according to the weight of the previous layer
 		khan_Matrix gra(input_weight,output_weight);
 		gra = input.transpose().multiply(grad);
 		this->weight = weight.subtract(gra.scale(learning_rate));
@@ -1028,8 +1028,8 @@ void QRAMLoad_Amptitude::operator()(std::vector<System>& state) {
 	}
 }
 struct Image {
-	char label;  // ͼ��ı�ǩ��0-9��
-	std::vector<double> data;  // ͼ�����ݣ�784��������ÿ��������ֵ��0-255֮�䣩
+	char label;  // label of the image (0-9)
+	std::vector<double> data;  // image data (784 components, each value between 0 and 255)
 };
 std::vector<Image> get_pic_with_index() {
 	int kSize = 28;
@@ -1129,7 +1129,7 @@ void check_back() {
 
 		std::cout << "=========================================================" << std::endl;
 
-		std::cout << "ȫ���Ӳ�ĸ��º����Ϊ��" << std::endl;
+		std::cout << "After the fully-connected layer update, the changes are:" << std::endl;
 		compareAndPrintVectors(original_weight1, operate_weight1);
 		compareAndPrintVectors(original_weight2, operate_weight2);
 	}
@@ -1153,7 +1153,7 @@ void check_back() {
 			counter++;
 		}
 	}
-	std::cout << "׼ȷ�ʣ�" << counter / 100.0 << std::endl;
+	std::cout << "Accuracy: " << counter / 100.0 << std::endl;
 
 }
 
@@ -1190,10 +1190,10 @@ void check_fclayer() {
 
 		std::cout << "=========================================================" << std::endl;
 		std::cout << i << "/1000" << std::endl;
-		std::cout << "ȫ���Ӳ�ĸ��º����Ϊ��" << std::endl;
-		std::cout << "��һ��ı仯����" << std::endl;
+		std::cout << "After the fully-connected layer update, the changes are:" << std::endl;
+		std::cout << "Change matrix of the first layer:" << std::endl;
 		compareAndPrintVectors(operate_weight1, original_weight1);
-		std::cout << "�ڶ���ı仯����" << std::endl;
+		std::cout << "Change matrix of the second layer:" << std::endl;
 		compareAndPrintVectors(operate_weight2, original_weight2);
 	}
 
@@ -1215,7 +1215,7 @@ void check_fclayer() {
 			counter++;
 		}
 	}
-	std::cout << "׼ȷ�ʣ�" << counter / 100.0 << std::endl;
+	std::cout << "Accuracy: " << counter / 100.0 << std::endl;
 
 }
 
@@ -1248,8 +1248,8 @@ void onelayer_test() {
 
 		std::cout << "=========================================================" << std::endl;
 		std::cout << i << "/1000" << std::endl;
-		std::cout << "ȫ���Ӳ�ĸ��º����Ϊ��" << std::endl;
-		std::cout << "��һ��ı仯����" << std::endl;
+		std::cout << "After the fully-connected layer update, the changes are:" << std::endl;
+		std::cout << "Change matrix of the first layer:" << std::endl;
 		compareAndPrintVectors(operate_weight1, original_weight1);
 
 	}
@@ -1271,7 +1271,7 @@ void onelayer_test() {
 			counter++;
 		}
 	}
-	std::cout << "׼ȷ�ʣ�" << counter / 100.0 << std::endl;
+	std::cout << "Accuracy: " << counter / 100.0 << std::endl;
 
 }
 void khan_CNN_new() {
@@ -1306,7 +1306,7 @@ void khan_CNN_new() {
 		std::string a = "conv";
 		std::string b = "fc1";
 		std::string c = "fc2";
-		// ��a��������
+		// Append to a
 		std::string in = std::to_string(i);
 		a.append(in);
 		b.append(in);

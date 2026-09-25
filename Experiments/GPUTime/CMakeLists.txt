@@ -1,6 +1,6 @@
 project(Experiment_GPUTime)
 
-# 目标配置统一由子模块 cmake/CUDA.cmake 的 sparq_setup_cuda_target 提供。
+# Target configuration is provided uniformly by sparq_setup_cuda_target in the submodule's cmake/CUDA.cmake.
 include(${QRAM_CORE_DIR}/cmake/CUDA.cmake)
 
 foreach(_t parallel_test block_encoding_test cks_test qda_test)

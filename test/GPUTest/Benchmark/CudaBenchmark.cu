@@ -1,16 +1,19 @@
 ﻿// CUDA-vs-CPU pipeline benchmark (correctness first, timing second).
 //
-// 同一流水线分别在 CPU 路径（std::vector<System>）与 GPU 路径（CuSparseState）
-// 上执行，逐基态对比最终振幅（键完全一致 + 复振幅容差比较），并对小规模
-// 场景做解析值抽查。计时为预热后的单次运行（GPU 每算子后同步）。
+// The same pipeline runs on both the CPU path (std::vector<System>) and the GPU
+// path (CuSparseState); final amplitudes are compared basis state by basis state
+// (exact key match + complex-amplitude tolerance), with analytic spot-checks for
+// small scenarios. Timing is a single post-warmup run (GPU synchronized after
+// every operator).
 //
 // Pipeline: Hadamard_Int(addr,n) → Add_UInt_UInt(addr,addr,sum) →
 //           Sqrt_UInt(addr,sq) → X_Bool(b) → Rot_Bool(b, R(π/3)) →
 //           GlobalPhase(e^{iπ/5}) → Normalize
 //
-// 解析期望：Hadamard 后每基态振幅 1/√2^n；X→b=1；R(π/3) 把 |1⟩ 分支振幅
-// 变为 c=cos(π/3)=1/2，并分裂出 b=0 分支振幅 -s=-√3/2；GlobalPhase 乘
-// e^{iπ/5}；Normalize 数值上不变。即：
+// Analytic expectation: after Hadamard every basis state has amplitude 1/sqrt(2^n);
+// X maps b to 1; R(pi/3) turns the |1> branch amplitude into c=cos(pi/3)=1/2 and
+// splits off a b=0 branch with amplitude -s=-sqrt(3)/2; GlobalPhase multiplies by
+// e^{i*pi/5}; Normalize is a numerical no-op. That is:
 //   amp(addr=k, sum=2k, sq=isqrt(k), b=1) = (1/2)·e^{iπ/5}/√(2^n)
 //   amp(addr=k, sum=2k, sq=isqrt(k), b=0) = -(√3/2)·e^{iπ/5}/√(2^n)
 #include <algorithm>
@@ -31,8 +34,9 @@ namespace
 		return std::chrono::duration<double, std::milli>(t1 - t0).count();
 	}
 
-	// —— 状态比较：按寄存器键排序后逐基态比较复振幅 ——
-	// 返回 0 键个数不一致；否则返回最大振幅偏差。
+	// ---- State comparison: sort by register key, then compare complex amplitudes
+	// basis state by basis state. Returns 0 if key counts differ (mismatch);
+	// otherwise returns the maximum amplitude deviation.
 	double compare_states(std::vector<System>& cpu, std::vector<System>& gpu,
 		size_t nregs, std::string& detail)
 	{
@@ -69,7 +73,7 @@ namespace
 		return max_diff;
 	}
 
-	// 由 (addr, b) 查最终振幅（用于解析抽查）
+	// Look up the final amplitude by (addr, b); used for analytic spot-checks.
 	complex_t find_amp(const std::vector<System>& s, size_t addr_id,
 		size_t b_id, uint64_t addr, uint64_t b)
 	{
@@ -80,7 +84,7 @@ namespace
 	}
 }
 
-// 单个场景：寄存器宽 n 比特。返回是否通过。
+// One scenario: registers n bits wide. Returns whether it passed.
 bool run_scenario(const char* name, size_t n, bool analytic_check)
 {
 	System::clear();
@@ -96,7 +100,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 		complex_t(std::sin(theta), 0), complex_t(std::cos(theta), 0));
 	const complex_t phase(std::cos(pi / 5.0), std::sin(pi / 5.0));
 
-	// —— 构造流水线（两侧共享同一组算子对象与参数）——
+	// ---- Build the pipeline (both sides share the same operator objects and parameters) ----
 	auto build_init_state = [&](auto& state) {
 		Init_Unsafe(addr, 0)(state);
 		Init_Unsafe(sum, 0)(state);
@@ -107,7 +111,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 	auto run_pipeline = [&](auto& state) {
 		Add_UInt_UInt(addr, addr, sum)(state);
 		Sqrt_UInt(addr, sq)(state);
-		X_Bool{b}(state);            // 单实参临时对象 + 调用须用花括号，避免 most-vexing-parse
+		X_Bool{b}(state);            // single-argument temporary + invocation must use braces to avoid most-vexing-parse
 		Rot_Bool{b, rot}(state);
 		GlobalPhase{phase}(state);
 		Normalize()(state);
@@ -116,9 +120,10 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 	fmt::print("\n===== scenario {} (addr {} bits, {} basis states) =====\n",
 		name, n, pow2(n));
 
-	// —— CPU 路径：warmup + 计时 ——
-	// 注意：CPU 路径的算子（如 Hadamard_Int）假定状态非空——
-	// 须先播种一个基态（GPU 路径的 Init_Unsafe 会自行创建，行为不对称）。
+	// ---- CPU path: warmup + timing ----
+	// Note: CPU-path operators (e.g. Hadamard_Int) assume a non-empty state --
+	// a basis state must be seeded first (the GPU path's Init_Unsafe creates one
+	// itself; the two paths behave asymmetrically here).
 	std::vector<System> cpu_state;
 	{
 		cpu_state.emplace_back();
@@ -126,7 +131,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 		run_pipeline(cpu_state);                      // warmup
 		cpu_state.clear();
 		cpu_state.emplace_back();
-		build_init_state(cpu_state);                  // 重建初始态
+		build_init_state(cpu_state);                  // rebuild the initial state
 		auto t0 = clock_t_::now();
 		run_pipeline(cpu_state);
 		auto t1 = clock_t_::now();
@@ -134,18 +139,18 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 			elapsed_ms(t0, t1), cpu_state.size());
 	}
 
-	// —— GPU 路径：warmup + 计时（含 H2D/D2H）——
+	// ---- GPU path: warmup + timing (includes H2D/D2H transfers) ----
 	std::vector<System> gpu_state;
 	{
 		CuSparseState warm;
 		build_init_state(warm);
-		run_pipeline(warm);                           // warmup（含上下文初始化）
+		run_pipeline(warm);                           // warmup (includes context initialization)
 	}
 	double gpu_total_ms = 0.0, gpu_ops_ms = 0.0;
 	{
 		CuSparseState s;
 		auto t0 = clock_t_::now();
-		build_init_state(s);                          // CPU 驻留初始化，流水线自行迁移上 GPU
+		build_init_state(s);                          // CPU-resident initialization; the pipeline migrates it to the GPU itself
 		auto t_ops0 = clock_t_::now();
 		run_pipeline(s);
 		CUDA_CHECK(cudaDeviceSynchronize());
@@ -159,7 +164,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 			gpu_total_ms, gpu_ops_ms, gpu_state.size());
 	}
 
-	// —— 结果对比 ——
+	// ---- Result comparison ----
 	std::string detail;
 	double max_diff = compare_states(cpu_state, gpu_state, nregs, detail);
 	bool ok = (max_diff >= 0.0) && (max_diff < 1e-9);
@@ -167,7 +172,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 		ok ? "PASS" : "FAIL", max_diff < 0 ? -1 : max_diff,
 		detail.empty() ? "" : "  [" + detail + "]");
 
-	// —— 概率归一性（两侧）——
+	// ---- Probability normalization (both sides) ----
 	auto prob_sum = [](const std::vector<System>& s) {
 		double p = 0;
 		for (const auto& st : s) p += std::norm(st.amplitude);
@@ -179,7 +184,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 		norm_ok ? "PASS" : "FAIL", p_cpu, p_gpu);
 	ok = ok && norm_ok;
 
-	// —— 解析值抽查（小规模）——
+	// ---- Analytic spot-checks (small scale) ----
 	if (analytic_check)
 	{
 		const double inv_sqrt = 1.0 / std::sqrt((double)pow2(n));
@@ -196,7 +201,7 @@ bool run_scenario(const char* name, size_t n, bool analytic_check)
 				fmt::print("analytic mismatch at addr={}: b1=({}, {}) expect=({}, {})\n",
 					k, a1.real(), a1.imag(), expect_b1.real(), expect_b1.imag());
 			}
-			// sum = 2·addr, sq = isqrt(addr) 键校验
+			// key check: sum = 2*addr, sq = isqrt(addr)
 			for (const auto& st : cpu_state)
 			{
 				if (st.get(addr).value == k)
@@ -225,7 +230,7 @@ int main()
 		ok = run_scenario("small", 8, /*analytic_check=*/true) && ok;
 		std::fflush(stdout);
 		ok = run_scenario("large", 14, /*analytic_check=*/false) && ok;
-		fmt::print("\n== {}: {} ==\n", ok ? "ALL PASS" : "FAILURES DETECTED", ok ? "CPU 与 GPU 计算结果一致" : "结果不一致，请检查");
+		fmt::print("\n== {}: {} ==\n", ok ? "ALL PASS" : "FAILURES DETECTED", ok ? "CPU and GPU results agree" : "results disagree, please investigate");
 		return ok ? 0 : 1;
 	}
 	catch (const std::exception& e)

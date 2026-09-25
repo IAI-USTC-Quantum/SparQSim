@@ -1,61 +1,61 @@
 #!/usr/bin/env python3
 """
-动态算子量子电路示例
+Dynamic Operator Quantum Circuit Example
 
-演示如何定义和编译用于量子计算的动态算子。
+Demonstrates how to define and compile dynamic operators for quantum computing.
 
-运行前请确保：
-1. QRAM-Simulator 已正确构建
-2. PySparQ 模块可导入
-3. g++ 编译器可用
+Before running, make sure:
+1. QRAM-Simulator has been built correctly
+2. The PySparQ module can be imported
+3. A g++ compiler is available
 
-使用方法：
+Usage:
     python examples/dynamic_operator_quantum.py
 
-注意：
-    本示例演示算子的编译和实例创建。
-    实际应用于量子态需要确保 ABI 兼容性。
+Note:
+    This example demonstrates operator compilation and instance creation.
+    Applying the operators to actual quantum states requires ABI compatibility.
 """
 
 import sys
 import os
 import math
 
-# 添加项目根目录到路径
+# Add the project root directory to the path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(project_root, "PySparQ"))  # 源码树导入;已安装时走 site-packages
+sys.path.insert(0, os.path.join(project_root, "PySparQ"))  # Source-tree import; uses site-packages when installed
 
 print("=" * 70)
-print("PySparQ 动态算子量子电路示例")
+print("PySparQ Dynamic Operator Quantum Circuit Example")
 print("=" * 70)
 print()
 
-# 导入 PySparQ
+# Import PySparQ
 try:
     import pysparq as ps
     from pysparq.dynamic_operator import compile_operator, get_cache_info, clear_cache
-    print("成功导入 pysparq 和 compile_operator")
+    print("Successfully imported pysparq and compile_operator")
 except ImportError as e:
-    print(f"导入失败: {e}")
-    print("请确保 PySparQ 已正确安装: pip install .")
+    print(f"Import failed: {e}")
+    print("Make sure PySparQ is installed correctly: pip install .")
     sys.exit(1)
 
 print()
 
-# 清除缓存以演示完整流程
-print("清除编译缓存...")
+# Clear the cache to demonstrate the full workflow
+print("Clearing compilation cache...")
 clear_cache()
 print()
 
 # ============================================================================
-# 示例 1: 受控相位门 (CU(1))
+# Example 1: Controlled phase gate (CU(1))
 # ============================================================================
 print("-" * 70)
-print("示例 1: 受控相位门 (CU(1))")
+print("Example 1: Controlled phase gate (CU(1))")
 print("-" * 70)
 print()
-print("受控相位门在控制位和目标位都为 |1> 时应用相位旋转。")
-print("这是量子计算中常用的受控门之一。")
+print("The controlled phase gate applies a phase rotation when both the control and target qubits are |1>.")
+print("It is one of the commonly used controlled gates in quantum computing.")
 print()
 
 controlled_phase_code = """
@@ -69,7 +69,7 @@ public:
 
     void operator()(std::vector<System>& state) const override {
         for (auto& s : state) {
-            // 当控制位和目标位都为 |1> 时应用相位
+            // Apply the phase when both the control and target qubits are |1>
             if (s.get(control_reg).value && s.get(target_reg).value) {
                 s.amplitude *= std::exp(std::complex<double>(0, phase));
             }
@@ -86,7 +86,7 @@ public:
 };
 """
 
-print("编译受控相位门...")
+print("Compiling the controlled phase gate...")
 try:
     ControlledPhase = compile_operator(
         name="ControlledPhase",
@@ -100,27 +100,27 @@ try:
         verbose=True
     )
     print()
-    print("编译成功!")
-    print(f"  类名: {ControlledPhase.__name__}")
-    print(f"  基类: {ControlledPhase._base_class}")
+    print("Compilation successful!")
+    print(f"  Class name: {ControlledPhase.__name__}")
+    print(f"  Base class: {ControlledPhase._base_class}")
 
-    # 创建实例
+    # Create an instance
     op = ControlledPhase(control_reg=0, target_reg=1, phase=math.pi/4)
-    print(f"  实例: {repr(op)}")
+    print(f"  Instance: {repr(op)}")
     print()
 except Exception as e:
-    print(f"编译失败: {e}")
+    print(f"Compilation failed: {e}")
     print()
     ControlledPhase = None
 
 # ============================================================================
-# 示例 2: 多寄存器纠缠门
+# Example 2: Multi-register entanglement gate
 # ============================================================================
 print("-" * 70)
-print("示例 2: 多寄存器纠缠门")
+print("Example 2: Multi-register entanglement gate")
 print("-" * 70)
 print()
-print("三重 XOR 纠缠门，用于创建多寄存器纠缠态。")
+print("A triple-XOR entanglement gate, used to create multi-register entangled states.")
 print()
 
 entangle_code = """
@@ -134,7 +134,7 @@ public:
 
     void operator()(std::vector<System>& state) const override {
         for (auto& s : state) {
-            // 三重 XOR：纠缠三个寄存器
+            // Triple XOR: entangle three registers
             uint64_t val = s.get(reg_a).value ^ s.get(reg_b).value ^ s.get(reg_c).value;
             s.get(reg_a).value = val;
         }
@@ -142,7 +142,7 @@ public:
 };
 """
 
-print("编译多寄存器纠缠门...")
+print("Compiling the multi-register entanglement gate...")
 try:
     MultiEntangleOp = compile_operator(
         name="MultiEntangleOp",
@@ -156,27 +156,27 @@ try:
         verbose=True
     )
     print()
-    print("编译成功!")
-    print(f"  类名: {MultiEntangleOp.__name__}")
-    print(f"  基类: {MultiEntangleOp._base_class}")
+    print("Compilation successful!")
+    print(f"  Class name: {MultiEntangleOp.__name__}")
+    print(f"  Base class: {MultiEntangleOp._base_class}")
 
     op = MultiEntangleOp(reg_a=0, reg_b=1, reg_c=2)
-    print(f"  实例: {repr(op)}")
+    print(f"  Instance: {repr(op)}")
     print()
 except Exception as e:
-    print(f"编译失败: {e}")
+    print(f"Compilation failed: {e}")
     print()
     MultiEntangleOp = None
 
 # ============================================================================
-# 示例 3: Grover 搜索 Oracle
+# Example 3: Grover search oracle
 # ============================================================================
 print("-" * 70)
-print("示例 3: Grover 搜索 Oracle")
+print("Example 3: Grover search oracle")
 print("-" * 70)
 print()
-print("标记 Oracle 是 Grover 搜索算法的核心组件。")
-print("它通过相位翻转标记目标状态。")
+print("The marking oracle is a core component of Grover's search algorithm.")
+print("It marks the target state by flipping its phase.")
 print()
 
 oracle_code = """
@@ -187,7 +187,7 @@ public:
     MarkOracle(size_t d, uint64_t t) : data_reg(d), target_value(t) {}
 
     void operator()(std::vector<System>& state) const override {
-        // 标记目标状态：当数据寄存器等于目标值时，振幅乘以 -1
+        // Mark the target state: when the data register equals the target value, multiply the amplitude by -1
         for (auto& s : state) {
             if (s.get(data_reg).value == target_value) {
                 s.amplitude *= -1.0;
@@ -197,7 +197,7 @@ public:
 };
 """
 
-print("编译标记 Oracle...")
+print("Compiling the marking oracle...")
 try:
     MarkOracle = compile_operator(
         name="MarkOracle",
@@ -210,26 +210,26 @@ try:
         verbose=True
     )
     print()
-    print("编译成功!")
-    print(f"  类名: {MarkOracle.__name__}")
-    print(f"  基类: {MarkOracle._base_class}")
+    print("Compilation successful!")
+    print(f"  Class name: {MarkOracle.__name__}")
+    print(f"  Base class: {MarkOracle._base_class}")
 
     op = MarkOracle(data_reg=0, target_value=5)
-    print(f"  实例: {repr(op)}")
+    print(f"  Instance: {repr(op)}")
     print()
 except Exception as e:
-    print(f"编译失败: {e}")
+    print(f"Compilation failed: {e}")
     print()
     MarkOracle = None
 
 # ============================================================================
-# 示例 4: 哈密顿量演化
+# Example 4: Hamiltonian evolution
 # ============================================================================
 print("-" * 70)
-print("示例 4: 哈密顿量演化")
+print("Example 4: Hamiltonian evolution")
 print("-" * 70)
 print()
-print("哈密顿量演化算子用于模拟量子系统的时间演化。")
+print("The Hamiltonian evolution operator is used to simulate the time evolution of quantum systems.")
 print()
 
 hamiltonian_code = """
@@ -244,7 +244,7 @@ public:
     void operator()(std::vector<System>& state) const override {
         double phase = coupling_strength * time;
         for (auto& s : state) {
-            // 根据寄存器值应用相位旋转
+            // Apply a phase rotation based on the register value
             double value_phase = phase * s.get(reg_id).value;
             s.amplitude *= std::exp(std::complex<double>(0, value_phase));
         }
@@ -260,7 +260,7 @@ public:
 };
 """
 
-print("编译哈密顿量演化算子...")
+print("Compiling the Hamiltonian evolution operator...")
 try:
     HamiltonianEvolution = compile_operator(
         name="HamiltonianEvolution",
@@ -274,27 +274,27 @@ try:
         verbose=True
     )
     print()
-    print("编译成功!")
-    print(f"  类名: {HamiltonianEvolution.__name__}")
-    print(f"  基类: {HamiltonianEvolution._base_class}")
+    print("Compilation successful!")
+    print(f"  Class name: {HamiltonianEvolution.__name__}")
+    print(f"  Base class: {HamiltonianEvolution._base_class}")
 
     op = HamiltonianEvolution(reg_id=0, coupling_strength=0.5, time=1.0)
-    print(f"  实例: {repr(op)}")
+    print(f"  Instance: {repr(op)}")
     print()
 except Exception as e:
-    print(f"编译失败: {e}")
+    print(f"Compilation failed: {e}")
     print()
     HamiltonianEvolution = None
 
 # ============================================================================
-# 示例 5: 量子游走算子
+# Example 5: Quantum walk operator
 # ============================================================================
 print("-" * 70)
-print("示例 5: 量子游走步进算子")
+print("Example 5: Quantum walk step operator")
 print("-" * 70)
 print()
-print("量子游走是经典随机游走的量子类比。")
-print("步进算子根据硬币状态移动位置。")
+print("A quantum walk is the quantum analogue of a classical random walk.")
+print("The step operator moves the position according to the coin state.")
 print()
 
 quantum_walk_code = """
@@ -311,7 +311,7 @@ public:
             size_t coin_val = s.get(coin_reg).value;
             size_t pos = s.get(position_reg).value;
 
-            // 硬币为 0 向右移动，为 1 向左移动
+            // Coin 0 moves right, coin 1 moves left
             if (coin_val == 0 && pos < n_positions - 1) {
                 s.get(position_reg).value = pos + 1;
             } else if (coin_val == 1 && pos > 0) {
@@ -322,7 +322,7 @@ public:
 };
 """
 
-print("编译量子游走步进算子...")
+print("Compiling the quantum walk step operator...")
 try:
     QuantumWalkStep = compile_operator(
         name="QuantumWalkStep",
@@ -336,72 +336,72 @@ try:
         verbose=True
     )
     print()
-    print("编译成功!")
-    print(f"  类名: {QuantumWalkStep.__name__}")
-    print(f"  基类: {QuantumWalkStep._base_class}")
+    print("Compilation successful!")
+    print(f"  Class name: {QuantumWalkStep.__name__}")
+    print(f"  Base class: {QuantumWalkStep._base_class}")
 
     op = QuantumWalkStep(position_reg=0, coin_reg=1, n_positions=8)
-    print(f"  实例: {repr(op)}")
+    print(f"  Instance: {repr(op)}")
     print()
 except Exception as e:
-    print(f"编译失败: {e}")
+    print(f"Compilation failed: {e}")
     print()
     QuantumWalkStep = None
 
 # ============================================================================
-# 缓存信息
+# Cache information
 # ============================================================================
 print("-" * 70)
-print("缓存信息")
+print("Cache information")
 print("-" * 70)
 print()
 
 info = get_cache_info()
-print(f"缓存目录: {info['cache_dir']}")
-print(f"缓存文件数: {info['so_count']}")
-print(f"缓存大小: {info['total_size_mb']:.2f} MB")
+print(f"Cache directory: {info['cache_dir']}")
+print(f"Number of cache files: {info['so_count']}")
+print(f"Cache size: {info['total_size_mb']:.2f} MB")
 print()
 
 # ============================================================================
-# 总结
+# Summary
 # ============================================================================
 print("=" * 70)
-print("示例完成")
+print("Example completed")
 print("=" * 70)
 print()
 
 print("""
-总结:
+Summary:
 -----
-本示例演示了以下量子计算相关的动态算子:
+This example demonstrated the following quantum-computing-related dynamic operators:
 
-1. 受控相位门 (ControlledPhase):
-   - 使用 BaseOperator 实现 dagger
-   - 当控制位和目标位都为 |1> 时应用相位
-   - 可用于受控酉门序列
+1. Controlled phase gate (ControlledPhase):
+   - Uses BaseOperator to implement dagger
+   - Applies a phase when both the control and target qubits are |1>
+   - Can be used in controlled unitary gate sequences
 
-2. 多寄存器纠缠门 (MultiEntangleOp):
-   - 使用 SelfAdjointOperator
-   - 通过三重 XOR 创建纠缠
-   - dagger 自动等于自身
+2. Multi-register entanglement gate (MultiEntangleOp):
+   - Uses SelfAdjointOperator
+   - Creates entanglement via a triple XOR
+   - dagger automatically equals the operator itself
 
-3. Grover 搜索 Oracle (MarkOracle):
-   - 使用 SelfAdjointOperator
-   - 通过相位翻转标记目标状态
-   - 是 Grover 算法的核心组件
+3. Grover search oracle (MarkOracle):
+   - Uses SelfAdjointOperator
+   - Marks the target state by flipping its phase
+   - Is a core component of Grover's algorithm
 
-4. 哈密顿量演化 (HamiltonianEvolution):
-   - 使用 BaseOperator 实现可逆演化
-   - 支持自定义耦合强度和时间
-   - 可用于量子模拟
+4. Hamiltonian evolution (HamiltonianEvolution):
+   - Uses BaseOperator to implement reversible evolution
+   - Supports custom coupling strength and time
+   - Can be used for quantum simulation
 
-5. 量子游走步进 (QuantumWalkStep):
-   - 使用 SelfAdjointOperator
-   - 根据硬币状态移动位置
-   - 是量子游走算法的基础
+5. Quantum walk step (QuantumWalkStep):
+   - Uses SelfAdjointOperator
+   - Moves the position according to the coin state
+   - Is the foundation of quantum walk algorithms
 
-更多信息请参考:
-- docs/sphinx/source/guide/dynamic_operators.rst (完整用户指南)
-- docs/sphinx/source/api/dynamic_operator.rst (API 参考)
-- PySparQ/test/test_dynamic_operator.py (单元测试)
+For more information, refer to:
+- docs/sphinx/source/guide/dynamic_operators.rst (full user guide)
+- docs/sphinx/source/api/dynamic_operator.rst (API reference)
+- PySparQ/test/test_dynamic_operator.py (unit tests)
 """)

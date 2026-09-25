@@ -5,42 +5,42 @@ using namespace qram_simulator;
 int example_1() {
     /***********    
     * Example 1
-     * 包括量子态的申请，量子寄存器的申请，以及对量子态施加量子门操作。
-     * 
-     * 1. 首先，需要创建一个SparseState对象，这个对象是用来表示量子态的。
-     * 2. 然后，需要申请你所需要的量子寄存器，并对它们进行初始化。
-     * 3. 在调用量子门操作时，需要构造一个可调用对象（Callable），这个对象是一个对SparseState对象进行操作的函数。
-     * 
-     * 具体的操作可以参考README中的定义。
+     * Covers allocating a quantum state, allocating quantum registers, and applying quantum gate operations to the quantum state.
+     *
+     * 1. First, create a SparseState object, which is used to represent the quantum state.
+     * 2. Then, allocate the quantum registers you need and initialize them.
+     * 3. When calling a quantum gate operation, you need to construct a Callable, which is a function object that operates on the SparseState object.
+     *
+     * Refer to the README for the definitions of the specific operations.
      **********/
 
-    // 创建空的量子态
+    // Create an empty quantum state
     SparseState s;
 
-    // 1. 开始申请你所需要的量子寄存器
-    // 1) 申请一个2个比特，类型为UnsignedInteger的寄存器
+    // 1. Start by allocating the quantum registers you need
+    // 1) Allocate a register with 2 bits of type UnsignedInteger
     auto reg0 = AddRegister("reg0", UnsignedInteger, 2)(s);
-    // 2) 申请一个1个比特，类型为Boolean的寄存器
+    // 2) Allocate a register with 1 bit of type Boolean
     auto reg1 = AddRegister("reg1", Boolean, 1)(s);
-    // 3) 打印它的目前的状态
+    // 3) Print its current state
     (StatePrint(Detail))(s);
 
-    // 输出如下：
+    // The output is as follows:
     // StatePrint (mode=Detail)
-    // |(0)reg0 : UInt2 | |(1)reg1 : Bool1 |   （这一行表示寄存器信息）
-    // 1.000000+0.000000i  reg0=|0> reg1=|false> （这一行开始枚举了每个量子态分量）
+    // |(0)reg0 : UInt2 | |(1)reg1 : Bool1 |   (this line shows the register information)
+    // 1.000000+0.000000i  reg0=|0> reg1=|false> (from this line on, each quantum state component is enumerated)
 
-    // 2. 开始对寄存器进行操作
-    // 1) 使用Hadamard门对reg0作用: 首先通过参数列表创建一个Hadamard_Int_Full的对象，这个对象是一个可调用对象（Callable），可以对SparseState对象进行操作。
+    // 2. Start applying operations to the registers
+    // 1) Apply a Hadamard gate to reg0: first create a Hadamard_Int_Full object via the argument list; this object is a Callable that can operate on the SparseState object.
     (Hadamard_Int_Full(reg0))(s);
 
-    // 2) 使用Pauli-X门对reg1作用: 同样，创建一个X_Bool对象，并对reg2作用。
+    // 2) Apply a Pauli-X gate to reg1: likewise, create an X_Bool object and apply it to reg2.
     (X_Bool(reg1))(s);
 
-    // 3. 打印它目前的状态
+    // 3. Print its current state
     (StatePrint(Detail))(s);
 
-    // 输出如下：
+    // The output is as follows:
     // StatePrint (mode=Detail)
     // | (0)reg0 : UInt2 | |(1)reg1 : Bool1 |
     // 0.500000 + 0.000000i  reg0 = | 0 > reg1 = | true >
@@ -48,7 +48,7 @@ int example_1() {
     // 0.500000 + 0.000000i  reg0 = | 2 > reg1 = | true >
     // 0.500000 + 0.000000i  reg0 = | 3 > reg1 = | true >
     
-    // reg0的量子态已经被Hadamard门作用，reg1的量子态已经被Pauli-X门作用。
+    // reg0's quantum state has been acted on by the Hadamard gate, and reg1's quantum state has been acted on by the Pauli-X gate.
 
     return 0;
 }
@@ -57,21 +57,21 @@ int example_2() {
     /***********
      * Example 2
      *
-     * 展示如何对量子操作增加控制操作。
-     * 总的来说，一共有4种控制操作
-     * conditioned_by_all_ones : 寄存器所有比特都为1的控制
-     * conditioned_by_bit : 寄存器指定比特为1的控制
-     * conditioned_by_nonzeros : 寄存器只要有一个比特不为0的控制
-     * conditioned_by_value : 寄存器指定比特的值的控制，例如对3个比特寄存器，可以控制它为0~7中的任意值
+     * Shows how to add control operations to quantum operations.
+     * In total, there are 4 kinds of control operations
+     * conditioned_by_all_ones : control on all bits of the register being 1
+     * conditioned_by_bit : control on a specified bit of the register being 1
+     * conditioned_by_nonzeros : control on the register having at least one non-zero bit
+     * conditioned_by_value : control on the value of specified bits of the register; e.g., for a 3-bit register, it can be controlled to be any value from 0 to 7
      *
     **********/
 
     {
         /* Example 2.1 */
-        // 创建空的量子态
+        // Create an empty quantum state
         SparseState s;
 
-        /* 申请两个 General 类型的寄存器，分别有2个和1个比特。 */
+        /* Allocate two registers of type General, with 2 and 1 bits respectively. */
         auto reg0 = AddRegister("reg0", General, 2)(s);
         auto reg1 = AddRegister("reg1", General, 1)(s);
 
@@ -81,29 +81,29 @@ int example_2() {
         reg1 (0) ------- X --
         */
 
-        // 对 reg0的第0个比特施加X门，并对reg1的第0个比特施加CCX (Toffoli) 门
+        // Apply an X gate to bit 0 of reg0, and a CCX (Toffoli) gate to bit 0 of reg1
         (X_Bool(reg0, 0))(s);
         (X_Bool(reg1).conditioned_by_all_ones(reg0))(s);
 
-        // 打印量子态
+        // Print the quantum state
         (StatePrint(Detail))(s);
 
-        // 输出如下：
+        // The output is as follows:
         // StatePrint (mode=Detail)
         // | (0)reg0 : Reg2 | |(1)reg1 : Reg1 |
         // 1.000000 + 0.000000i  reg0 = | 01 > reg1 = | 0 >
-        // 这代表reg1上的X门收到reg0上的所有比特为1的控制，但是reg0为|01>，所以reg1上的X门没有作用。
+        // This means the X gate on reg1 is controlled on all bits of reg0 being 1; since reg0 is |01>, the X gate on reg1 did not act.
     }
 
-    /* 通过System::clear()函数，可以清除系统中所有量子寄存器信息。*/
+    /* The System::clear() function can be used to clear all quantum register information in the system.*/
     System::clear();
 
     {
         /* Example 2.2 */
-        // 创建空的量子态
+        // Create an empty quantum state
         SparseState s;
 
-        /* 申请两个 General 类型的寄存器，分别有3个和1个比特。 */
+        /* Allocate two registers of type General, with 3 and 1 bits respectively. */
         auto reg0 = AddRegister("reg0", General, 3)(s);
         auto reg1 = AddRegister("reg1", General, 1)(s);
 
@@ -114,19 +114,19 @@ int example_2() {
         reg1 (0) ------- X --
         */
 
-        // 对 reg0的第0个比特施加X门，并对reg1的第0个比特施加CCX (Toffoli) 门
+        // Apply an X gate to bit 0 of reg0, and a CCX (Toffoli) gate to bit 0 of reg1
         (X_Bool(reg0, 0))(s);
         (X_Bool(reg0, 2))(s);
         (X_Bool(reg1).conditioned_by_bit({ {reg0, 0}, {reg0, 2} }))(s);
 
-        // 打印量子态
+        // Print the quantum state
         (StatePrint(Detail))(s);
 
-        // 输出如下：
+        // The output is as follows:
         // StatePrint (mode=Detail)
         // | (0)reg0 : Reg3 | |(1)reg1 : Reg1 |
         // 1.000000 + 0.000000i  reg0 = | 101 > reg1 = | 1 >
-        // 这表示reg1上的X门收到reg0的第0和2个比特为1的控制，因为reg0为|101>，所以reg1上的X门作用了。
+        // This means the X gate on reg1 is controlled on bits 0 and 2 of reg0 being 1; since reg0 is |101>, the X gate on reg1 acted.
     }
     return 0;
 }

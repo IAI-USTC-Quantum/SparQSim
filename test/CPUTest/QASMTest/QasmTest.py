@@ -7,29 +7,29 @@ def run_command(row, timeout=600.0):
     try:
         # Run the command, capturing stdout and stderr
         result = subprocess.run(
-            row['cmd'],                  # 命令行
-            shell=True,                  # 允许 shell 特性，例如重定向和管道
-            text=True,                   # 以文本模式处理输出
-            stdout=subprocess.PIPE,      # 捕获标准输出
-            stderr=subprocess.PIPE,      # 捕获标准错误
-            cwd=row.get('cwd', None),    # 指定工作目录
-            timeout=timeout              # 设置超时时间
+            row['cmd'],                  # command line
+            shell=True,                  # allow shell features such as redirection and pipes
+            text=True,                   # process output in text mode
+            stdout=subprocess.PIPE,      # capture standard output
+            stderr=subprocess.PIPE,      # capture standard error
+            cwd=row.get('cwd', None),    # specify the working directory
+            timeout=timeout              # set the timeout
         )
 
-        # 将输出信息和返回码存入字典中
+        # Store the output and the return code in the dictionary
         row['stdout'] = result.stdout
         row['stderr'] = result.stderr
         row['returncode'] = result.returncode
         row['elapsed'] = timeout if result.returncode != 0 else None
 
     except subprocess.TimeoutExpired:
-        # 处理命令超时
+        # Handle command timeout
         row['stdout'] = ''
         row['stderr'] = 'Process timed out'
         row['returncode'] = -1
         row['elapsed'] = timeout
     except Exception as e:
-        # 处理其他可能的异常
+        # Handle other possible exceptions
         row['stdout'] = ''
         row['stderr'] = f'Error: {e}'
         row['returncode'] = -1
@@ -39,12 +39,12 @@ def run_command(row, timeout=600.0):
 
 def save_row_to_file(row, filename):
     try:
-        # 检查文件是否存在，如果存在则追加数据，否则创建文件
+        # Check whether the file exists; if it exists, append data, otherwise create the file
         if os.path.exists(filename):
             print(f"File already exists: {filename}")
             
         else:
-            # 如果文件不存在，创建新的文件并写入数据
+            # If the file does not exist, create a new file and write the data
             with open(filename, 'w', encoding='utf-8') as file:
                 json.dump([row], file, ensure_ascii=False, indent=4)
     except Exception as e:

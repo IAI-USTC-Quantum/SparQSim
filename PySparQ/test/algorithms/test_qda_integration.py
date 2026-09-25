@@ -1,14 +1,14 @@
 """
-QDA 集成测试和 Fidelity 验证。
+QDA integration tests and fidelity verification.
 
-测试内容：
-- 插值参数 f(s) 正确性
-- 旋转矩阵 R_s 正确性
-- Dolph-Chebyshev 滤波器正确性
-- WalkS 算子正确性
-- 端到端 fidelity 测试
+Tested content:
+- Interpolation parameter f(s) correctness
+- Rotation matrix R_s correctness
+- Dolph-Chebyshev filter correctness
+- WalkS operator correctness
+- End-to-end fidelity tests
 
-参考: test/CPUTest/CommonTest/CorrectnessTest_QDA_CompareList.inl
+Reference: test/CPUTest/CommonTest/CorrectnessTest_QDA_CompareList.inl
 """
 
 import pytest
@@ -46,7 +46,7 @@ from pysparq.test.conftest import state_to_amplitude_dict
 def get_fidelity(
     state_amps: dict[int, complex], target_amps: dict[int, complex]
 ) -> float:
-    """计算两个量子态之间的 fidelity。
+    """Compute the fidelity between two quantum states.
 
     Fidelity = |<ψ|φ>|² = |Σᵢ ψᵢ* φᵢ|²
     """
@@ -62,9 +62,9 @@ def get_fidelity(
 
 
 def generate_poiseuille_matrix(n: int, alpha: float = 1.0, beta: float = 1.0) -> np.ndarray:
-    """生成 Poiseuille 流的三对角矩阵。
+    """Generate the tridiagonal matrix for Poiseuille flow.
 
-    对应 C++ ``generate_Poiseuille_mat`` (matrix.h:1054)::
+    Corresponds to C++ ``generate_Poiseuille_mat`` (matrix.h:1054)::
 
         A[i,i]   = alpha
         A[i,i-1] = beta   (i > 0)         # NOTE: +beta (NOT -beta)
@@ -84,7 +84,7 @@ def generate_poiseuille_matrix(n: int, alpha: float = 1.0, beta: float = 1.0) ->
 
 
 def normalize_matrix(A: np.ndarray) -> np.ndarray:
-    """归一化矩阵使其 Frobenius 范数为 1。"""
+    """Normalize a matrix so its Frobenius norm is 1."""
     norm = np.linalg.norm(A, "fro")
     if norm > 1e-10:
         return A / norm
@@ -92,7 +92,7 @@ def normalize_matrix(A: np.ndarray) -> np.ndarray:
 
 
 def compute_kappa(A: np.ndarray) -> float:
-    """计算矩阵的条件数。"""
+    """Compute the condition number of a matrix."""
     try:
         eigvals = np.linalg.eigvalsh(A)
         min_eig = max(np.min(np.abs(eigvals)), 1e-10)
@@ -149,8 +149,8 @@ def assert_unitary_roundtrip(
 # ==============================================================================
 # C++ Reference Fidelity Values
 # ==============================================================================
-# 从 CorrectnessTest_QDA_CompareList.inl 提取的参考值
-# 格式: nqubit=4, step_rate=1.0, p=0.5, alpha=1, beta=1
+# Reference values extracted from CorrectnessTest_QDA_CompareList.inl
+# Format: nqubit=4, step_rate=1.0, p=0.5, alpha=1, beta=1
 
 QDA_FIDELITY_REFERENCE_TRI_NEG = [
     0.9999998025428056, 0.9999999999615321, 0.9999992164840841, 0.9999997924887332,
@@ -173,24 +173,24 @@ QDA_FIDELITY_REFERENCE_TRI_POS = [
 
 
 class TestComputeFsCorrectness:
-    """测试插值参数 f(s) 的正确性。"""
+    """Test the correctness of the interpolation parameter f(s)."""
 
     def test_fs_at_zero(self):
-        """f(0) = 0。"""
+        """f(0) = 0."""
         for kappa in [2.0, 5.0, 10.0, 100.0]:
             for p in [0.3, 0.5, 0.7]:
                 fs = compute_fs(0.0, kappa, p)
                 assert abs(fs) < 1e-10, f"kappa={kappa}, p={p}: f(0) should be 0"
 
     def test_fs_at_one(self):
-        """f(1) = 1。"""
+        """f(1) = 1."""
         for kappa in [2.0, 5.0, 10.0, 100.0]:
             for p in [0.3, 0.5, 0.7]:
                 fs = compute_fs(1.0, kappa, p)
                 assert abs(fs - 1.0) < 1e-10, f"kappa={kappa}, p={p}: f(1) should be 1"
 
     def test_fs_kappa_one_identity(self):
-        """当 kappa=1 时，f(s) = s。"""
+        """When kappa=1, f(s) = s."""
         kappa = 1.0
         p = 0.5
 
@@ -199,7 +199,7 @@ class TestComputeFsCorrectness:
             assert abs(fs - s) < 1e-10, f"s={s}: f(s) should equal s when kappa=1"
 
     def test_fs_monotonicity(self):
-        """f(s) 应该单调递增。"""
+        """f(s) should be monotonically increasing."""
         kappa = 10.0
         p = 0.5
 
@@ -210,7 +210,7 @@ class TestComputeFsCorrectness:
             prev_fs = fs
 
     def test_fs_bounded(self):
-        """f(s) 应该在 [0, 1] 范围内。"""
+        """f(s) should be within the range [0, 1]."""
         for kappa in [2.0, 10.0, 100.0]:
             for p in [0.1, 0.5, 0.9]:
                 for s in np.linspace(0, 1, 20):
@@ -218,13 +218,13 @@ class TestComputeFsCorrectness:
                     assert 0.0 <= fs <= 1.0, f"kappa={kappa}, p={p}, s={s}: f(s)={fs} out of bounds"
 
     def test_fs_different_p(self):
-        """测试不同调度参数 p 的影响。"""
+        """Test the effect of different schedule parameters p."""
         kappa = 10.0
         s = 0.5
 
-        # 不同的 p 值应该给出不同的 f(s)
+        # Different p values should give different f(s)
         fs_values = [compute_fs(s, kappa, p) for p in [0.2, 0.5, 0.8]]
-        # 它们应该都在合理范围内
+        # They should all be within a reasonable range
         for fs in fs_values:
             assert 0.0 <= fs <= 1.0
 
@@ -235,10 +235,10 @@ class TestComputeFsCorrectness:
 
 
 class TestRotationMatrixCorrectness:
-    """测试旋转矩阵 R_s 的正确性。"""
+    """Test the correctness of the rotation matrix R_s."""
 
     def test_rotation_matrix_unitary(self):
-        """旋转矩阵应该是酉矩阵。"""
+        """The rotation matrix should be unitary."""
         for fs in [0.0, 0.2, 0.5, 0.8, 1.0]:
             R = compute_rotation_matrix(fs)
             R_mat = np.array([[R[0], R[1]], [R[2], R[3]]])
@@ -248,14 +248,14 @@ class TestRotationMatrixCorrectness:
             assert np.allclose(identity, np.eye(2), atol=1e-10), f"fs={fs}: not unitary"
 
     def test_rotation_matrix_determinant(self):
-        """旋转矩阵行列式应该为 -1。"""
+        """The rotation matrix determinant should be -1."""
         for fs in [0.0, 0.2, 0.5, 0.8, 1.0]:
             R = compute_rotation_matrix(fs)
             det = R[0] * R[3] - R[1] * R[2]
             assert abs(det + 1) < 1e-10, f"fs={fs}: det should be -1, got {det}"
 
     def test_rotation_matrix_fs_zero(self):
-        """fs=0 时的旋转矩阵应该是 [[1, 0], [0, -1]]。"""
+        """When fs=0 the rotation matrix should be [[1, 0], [0, -1]]."""
         R = compute_rotation_matrix(0.0)
         assert abs(R[0] - 1) < 1e-10
         assert abs(R[1]) < 1e-10
@@ -263,7 +263,7 @@ class TestRotationMatrixCorrectness:
         assert abs(R[3] + 1) < 1e-10
 
     def test_rotation_matrix_fs_one(self):
-        """fs=1 时的旋转矩阵应该是 [[0, 1], [1, 0]]。"""
+        """When fs=1 the rotation matrix should be [[0, 1], [1, 0]]."""
         R = compute_rotation_matrix(1.0)
         assert abs(R[0]) < 1e-10
         assert abs(R[1] - 1) < 1e-10
@@ -271,7 +271,7 @@ class TestRotationMatrixCorrectness:
         assert abs(R[3]) < 1e-10
 
     def test_rotation_matrix_structure(self):
-        """验证旋转矩阵的结构：R = N * [[1-fs, fs], [fs, fs-1]]。"""
+        """Verify the rotation matrix structure: R = N * [[1-fs, fs], [fs, fs-1]]."""
         for fs in [0.1, 0.3, 0.5, 0.7, 0.9]:
             R = compute_rotation_matrix(fs)
 
@@ -294,10 +294,10 @@ class TestRotationMatrixCorrectness:
 
 
 class TestChebyshevPolynomial:
-    """测试 Chebyshev 多项式的正确性。"""
+    """Test the correctness of Chebyshev polynomials."""
 
     def test_chebyshev_T_values(self):
-        """验证 Chebyshev 多项式的已知值。"""
+        """Verify known values of the Chebyshev polynomials."""
         # T_0(x) = 1
         assert chebyshev_T(0, 0.5) == 1.0
 
@@ -311,7 +311,7 @@ class TestChebyshevPolynomial:
         assert abs(chebyshev_T(3, 0.5) - (-1.0)) < 1e-10
 
     def test_chebyshev_recursion(self):
-        """验证递推关系 T_n(x) = 2x T_{n-1}(x) - T_{n-2}(x)。"""
+        """Verify the recurrence relation T_n(x) = 2x T_{n-1}(x) - T_{n-2}(x)."""
         x = 0.7
 
         for n in range(2, 20):
@@ -323,19 +323,19 @@ class TestChebyshevPolynomial:
             assert abs(Tn - expected) < 1e-10, f"n={n}: recursion failed"
 
     def test_chebyshev_at_one(self):
-        """T_n(1) = 1 对所有 n。"""
+        """T_n(1) = 1 for all n."""
         for n in range(20):
             assert chebyshev_T(n, 1.0) == 1.0, f"n={n}: T_n(1) should be 1"
 
     def test_chebyshev_at_minus_one(self):
-        """T_n(-1) = (-1)^n。"""
+        """T_n(-1) = (-1)^n."""
         for n in range(20):
             result = chebyshev_T(n, -1.0)
             expected = (-1) ** n
             assert abs(result - expected) < 1e-10, f"n={n}: T_n(-1) should be {expected}"
 
     def test_chebyshev_cosine_relation(self):
-        """验证 T_n(cos θ) = cos(nθ)。"""
+        """Verify T_n(cos θ) = cos(nθ)."""
         for theta in [0.1, 0.5, 1.0, 2.0]:
             x = math.cos(theta)
 
@@ -352,30 +352,30 @@ class TestChebyshevPolynomial:
 
 
 class TestDolphChebyshevFilter:
-    """测试 Dolph-Chebyshev 滤波器。"""
+    """Test the Dolph-Chebyshev filter."""
 
     def test_fourier_coeffs_length(self):
-        """Fourier 系数列表长度应该为 ceil((l+1)/2)（只保留偶数索引）。"""
+        """The Fourier coefficient list length should be ceil((l+1)/2) (only even indices kept)."""
         for l in [3, 5, 10, 20]:
             for epsilon in [0.01, 0.1, 0.5]:
                 coeffs = compute_fourier_coeffs(epsilon, l)
-                # 实现只保留偶数索引的系数
+                # The implementation only keeps even-indexed coefficients
                 expected_len = (l + 2) // 2
                 assert len(coeffs) == expected_len, f"l={l}: expected {expected_len} coeffs, got {len(coeffs)}"
 
     def test_fourier_coeffs_positive(self):
-        """Fourier 系数应该非负（大部分）。"""
+        """Fourier coefficients should be non-negative (mostly)."""
         epsilon = 0.1
         l = 10
 
         coeffs = compute_fourier_coeffs(epsilon, l)
 
-        # 系数可能有小的负值（数值误差），但主要应该为正
+        # Coefficients may have small negative values (numerical error), but should mostly be positive
         positive_count = sum(1 for c in coeffs if c > -0.1)
         assert positive_count >= len(coeffs) * 0.8, "Most coefficients should be positive"
 
     def test_dolph_chebyshev_at_zero(self):
-        """phi=0 时的值应该有效。"""
+        """The value at phi=0 should be valid."""
         epsilon = 0.1
         l = 5
 
@@ -389,55 +389,55 @@ class TestDolphChebyshevFilter:
 
 
 class TestPoiseuilleMatrix:
-    """测试 Poiseuille 流矩阵。"""
+    """Test the Poiseuille flow matrix."""
 
     def test_matrix_structure(self):
-        """验证 Poiseuille 矩阵结构。"""
+        """Verify the Poiseuille matrix structure."""
         n = 4
         alpha, beta = 1.0, 1.0
 
         A = generate_poiseuille_matrix(n, alpha, beta)
 
-        # 对角线元素
+        # Diagonal elements
         for i in range(n):
             assert A[i, i] == alpha, f"Diagonal element mismatch at ({i},{i})"
 
-        # 下对角线 (C++ generate_Poiseuille_mat: +beta)
+        # Lower diagonal (C++ generate_Poiseuille_mat: +beta)
         for i in range(1, n):
             assert A[i, i - 1] == beta, f"Lower diagonal mismatch at ({i},{i-1})"
 
-        # 上对角线
+        # Upper diagonal
         for i in range(n - 1):
             assert A[i, i + 1] == beta, f"Upper diagonal mismatch at ({i},{i+1})"
 
     def test_matrix_hermitian(self):
-        """Poiseuille 矩阵应该是厄米的。"""
+        """The Poiseuille matrix should be Hermitian."""
         for n in [4, 8, 16]:
             A = generate_poiseuille_matrix(n)
             assert np.allclose(A, A.T), f"n={n}: matrix should be symmetric"
 
     def test_matrix_condition_number(self):
-        """测试矩阵条件数。"""
+        """Test the matrix condition number."""
         for n in [4, 8, 16]:
             A = generate_poiseuille_matrix(n)
             A_norm = normalize_matrix(A)
             kappa = compute_kappa(A_norm)
 
-            # Poiseuille 矩阵条件数应该随着 n 增加
+            # The condition number of the Poiseuille matrix should increase with n
             assert kappa > 1.0, f"n={n}: condition number should be > 1"
 
     def test_matrix_eigenvalues(self):
-        """测试矩阵特征值。"""
+        """Test the matrix eigenvalues."""
         n = 4
         A = generate_poiseuille_matrix(n)
 
         eigvals = np.linalg.eigvalsh(A)
 
-        # Poiseuille 矩阵（alpha=1, beta=1）有正和负特征值
-        # 确保特征值是实数（对称矩阵）
+        # The Poiseuille matrix (alpha=1, beta=1) has positive and negative eigenvalues
+        # Ensure the eigenvalues are real (symmetric matrix)
         assert np.all(np.isreal(eigvals)), "Eigenvalues should be real"
 
-        # 归一化后的矩阵特征值应该在合理范围
+        # Eigenvalues of the normalized matrix should be within a reasonable range
         A_norm = normalize_matrix(A)
         eigvals_norm = np.linalg.eigvalsh(A_norm)
         assert np.all(np.abs(eigvals_norm) <= 2.0), "Normalized eigenvalues should be bounded"
@@ -449,23 +449,23 @@ class TestPoiseuilleMatrix:
 
 
 class TestInterpolationSequence:
-    """测试插值序列的性质。"""
+    """Test properties of the interpolation sequence."""
 
     def test_interpolation_sequence_continuous(self):
-        """插值序列应该连续变化。"""
+        """The interpolation sequence should change continuously."""
         kappa = 10.0
         p = 0.5
         steps = 100
 
         fs_values = [compute_fs(s, kappa, p) for s in np.linspace(0, 1, steps)]
 
-        # 验证连续性：相邻值差异应该很小
+        # Verify continuity: differences between adjacent values should be small
         for i in range(1, len(fs_values)):
             diff = abs(fs_values[i] - fs_values[i - 1])
             assert diff < 0.1, f"Jump at step {i}: {diff}"
 
     def test_rotation_matrix_sequence_unitary(self):
-        """所有旋转矩阵应该都是酉的。"""
+        """All rotation matrices should be unitary."""
         for fs in np.linspace(0, 1, 20):
             R = compute_rotation_matrix(fs)
             R_mat = np.array([[R[0], R[1]], [R[2], R[3]]])
@@ -480,20 +480,20 @@ class TestInterpolationSequence:
 
 
 class TestQDAFidelityAgainstReference:
-    """与 C++ 参考值对比的 fidelity 测试。"""
+    """Fidelity tests compared against C++ reference values."""
 
     def test_fidelity_reference_values_valid(self):
-        """验证参考有效性。"""
-        # Tridiagonal 版本的参考值
+        """Verify reference validity."""
+        # Reference values for the tridiagonal version
         assert len(QDA_FIDELITY_REFERENCE_TRI_NEG) > 0
         assert len(QDA_FIDELITY_REFERENCE_TRI_POS) > 0
 
-        # 所有值应该接近 1
+        # All values should be close to 1
         for i, f in enumerate(QDA_FIDELITY_REFERENCE_TRI_NEG):
             assert 0.99 < f < 1.001, f"Reference neg value {i} = {f} out of range"
 
         for i, f in enumerate(QDA_FIDELITY_REFERENCE_TRI_POS):
-            # pos 版本精度稍低
+            # The pos version has slightly lower precision
             assert 0.99 < f < 1.001, f"Reference pos value {i} = {f} out of range"
 
     def test_walks_fidelity_tridiagonal(self, fresh_system):
@@ -734,10 +734,10 @@ class TestQDAFidelityAgainstReference:
 
 
 class TestQDAEndToEnd:
-    """端到端 QDA 测试。"""
+    """End-to-end QDA tests."""
 
     def test_classical_preprocessing(self):
-        """测试经典预处理步骤。"""
+        """Test the classical preprocessing steps."""
         from pysparq.algorithms.qda_solver import classical_to_quantum
 
         A = np.array([[2, 1], [1, 2]], dtype=float)
@@ -745,25 +745,25 @@ class TestQDAEndToEnd:
 
         A_q, b_q, recover = classical_to_quantum(A, b)
 
-        # A_q 应该是厄米的
+        # A_q should be Hermitian
         assert np.allclose(A_q, A_q.T), "Quantum matrix should be Hermitian"
 
-        # b_q 应该归一化
+        # b_q should be normalized
         b_norm = np.linalg.norm(b_q)
         assert abs(b_norm - 1.0) < 0.1, "Quantum vector should be approximately normalized"
 
     def test_small_system_consistency(self):
-        """小规模系统的一致性测试。"""
-        # 对于小系统，量子和经典结果应该一致
+        """Consistency test on a small system."""
+        # For small systems, quantum and classical results should agree
         A = np.array([[2, 1], [1, 2]], dtype=float)
         b = np.array([1, 1], dtype=float)
 
-        # 经典解
+        # Classical solution
         x_classical = np.linalg.solve(A, b)
 
-        # 验证解的正确性
+        # Verify the correctness of the solution
         assert np.allclose(A @ x_classical, b), "Classical solution verification failed"
 
-        # 解的范数
+        # Norm of the solution
         x_norm = np.linalg.norm(x_classical)
         assert x_norm > 0, "Solution should be non-zero"

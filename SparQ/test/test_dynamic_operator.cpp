@@ -1,43 +1,45 @@
 /**
  * @file test_dynamic_operator.cpp
- * @brief 动态算子加载器单元测试
+ * @brief Unit tests for the dynamic operator loader
  *
- * @section design_rationale 设计背景
+ * @section design_rationale Design Background
  *
- * 本测试文件用于验证动态编译 C++ 算子的底层机制。动态算子功能允许用户在运行时
- * 编写自定义 C++ 代码，编译为共享库并在模拟器中加载执行。
+ * This test file verifies the low-level mechanism for dynamically compiling C++ operators.
+ * The dynamic operator feature allows users to write custom C++ code at runtime,
+ * compile it into a shared library, and load and execute it in the simulator.
  *
- * @section why_cpp_tests 为什么需要 C++ 测试
+ * @section why_cpp_tests Why C++ Tests Are Needed
  *
- * 虽然动态算子功能主要服务于 Python 用户（通过 pysparq.dynamic_operator 模块），
- * 但保留 C++ 测试有以下原因：
+ * Although the dynamic operator feature primarily serves Python users (via the pysparq.dynamic_operator module),
+ * C++ tests are retained for the following reasons:
  *
- * 1. **单元测试分层原则**：Python 测试 (test_dynamic_operator.py) 测试完整功能链，
- *    而 C++ 测试聚焦于底层编译/加载机制，便于问题定位。
+ * 1. **Unit test layering principle**: The Python tests (test_dynamic_operator.py) test the complete feature chain,
+ *    while the C++ tests focus on the low-level compile/load mechanism, which makes issue localization easier.
  *
- * 2. **开发调试工具**：当 Python 层出现问题时，可以用 C++ 测试验证底层是否正常。
+ * 2. **Development debugging tool**: When a problem appears at the Python layer, the C++ tests can verify
+ *    whether the low level works correctly.
  *
- * @section why_disabled 为什么默认禁用
+ * @section why_disabled Why Disabled by Default
  *
- * 这些测试默认禁用（需要设置环境变量 ENABLE_DYNAMIC_OPERATOR_TEST=1 才能运行），
- * 原因如下：
+ * These tests are disabled by default (the environment variable ENABLE_DYNAMIC_OPERATOR_TEST=1 must be set to run them),
+ * for the following reasons:
  *
- * 1. **Windows ABI 不兼容**：主程序由 MSVC 编译，而动态编译使用 MinGW g++，
- *    两者 C++ ABI 不兼容，会导致运行时崩溃 (SEGFAULT)。
+ * 1. **Windows ABI incompatibility**: The main program is compiled with MSVC, while dynamic compilation uses MinGW g++,
+ *    and the two C++ ABIs are incompatible, which leads to runtime crashes (SEGFAULT).
  *
- * 2. **CI 环境差异**：不同 CI 环境的编译器版本、标准库版本可能不同，
- *    导致编译产物与主程序不兼容。
+ * 2. **CI environment differences**: Compiler versions and standard library versions may differ across CI environments,
+ *    causing compiled artifacts to be incompatible with the main program.
  *
- * 3. **功能已由 Python 测试覆盖**：Python 测试 test_dynamic_operator.py
- *    已完整验证用户层面的功能，C++ 测试主要用于底层调试。
+ * 3. **Functionality already covered by Python tests**: The Python test test_dynamic_operator.py
+ *    already fully verifies user-level functionality; the C++ tests are mainly for low-level debugging.
  *
- * @section test_cases 测试内容
+ * @section test_cases Test Contents
  *
- * - 简单 SelfAdjointOperator 扩展
- * - 带参数的 BaseOperator 扩展
- * - 编译错误处理
- * - 缓存机制
- * - dagger 操作正确性
+ * - Simple SelfAdjointOperator extension
+ * - BaseOperator extension with parameters
+ * - Compilation error handling
+ * - Cache mechanism
+ * - dagger operation correctness
  */
 
 // Windows compatibility
@@ -51,7 +53,7 @@
 #include <cstdlib>
 #include <cstring>
 
-// 平台相关的动态库头文件
+// Platform-specific dynamic library headers
 #ifndef _WIN32
 #include <dlfcn.h>
 #define POPEN popen
@@ -62,20 +64,20 @@
 #define PCLOSE _pclose
 #endif
 
-// 我们直接测试 dynamic_operator_loader 的实现
+// We directly test the dynamic_operator_loader implementation
 #include "basic_components.h"
 #include "basic_gates.h"
 using namespace qram_simulator;
 
-// ============ 辅助函数 ============
+// ============ Helper functions ============
 
 /**
- * @brief 创建临时 C++ 源文件
- * @details 使用进程 ID 作为前缀避免并行测试文件名冲突
+ * @brief Create a temporary C++ source file
+ * @details Uses the process ID as a prefix to avoid file name conflicts in parallel tests
  */
 std::string create_temp_source_file(const std::string& code, const std::string& filename) {
     std::string temp_dir = std::filesystem::temp_directory_path().string();
-    // 使用进程 ID 作为前缀避免并行测试冲突
+    // Use the process ID as a prefix to avoid conflicts between parallel tests
     static std::string pid_prefix;
     if (pid_prefix.empty()) {
 #ifndef _WIN32
@@ -92,12 +94,12 @@ std::string create_temp_source_file(const std::string& code, const std::string& 
 }
 
 /**
- * @brief 查找项目根目录
- * @details 在 CI 环境中，测试可执行文件可能在 build/ 目录中运行，
- *          需要向上查找直到找到项目根目录
+ * @brief Find the project root directory
+ * @details In CI environments, the test executable may run inside the build/ directory,
+ *          so we need to search upward until the project root directory is found
  */
 std::string find_project_root() {
-    // 方法1: 检查环境变量 (最高优先级)
+    // Method 1: check the environment variable (highest priority)
     const char* env_root = std::getenv("PROJECT_ROOT");
     if (env_root) {
         std::string root(env_root);
@@ -107,7 +109,7 @@ std::string find_project_root() {
         }
     }
 
-    // 方法2: 检查 GITHUB_WORKSPACE 环境变量 (CI 环境)
+    // Method 2: check the GITHUB_WORKSPACE environment variable (CI environment)
     const char* github_workspace = std::getenv("GITHUB_WORKSPACE");
     if (github_workspace) {
         std::string root(github_workspace);
@@ -117,7 +119,7 @@ std::string find_project_root() {
         }
     }
     
-    // 方法2b: 检查 CI 环境中的源码目录 (github.workspace)
+    // Method 2b: check the source directory in the CI environment (github.workspace)
     const char* ci_workspace = std::getenv("CI_WORKSPACE");
     if (ci_workspace) {
         std::string root(ci_workspace);
@@ -127,22 +129,22 @@ std::string find_project_root() {
         }
     }
 
-    // 方法3: 从当前可执行文件路径向上查找
+    // Method 3: search upward from the current executable path
     std::filesystem::path current = std::filesystem::current_path();
     
-    // 尝试从当前目录向上查找最多5层
+    // Try searching upward from the current directory for at most 5 levels
     for (int i = 0; i < 5; ++i) {
-        // 检查是否是项目根目录（包含 SparQ/include 和 Common/include）
+        // Check whether this is the project root directory (contains SparQ/include and Common/include)
         if (std::filesystem::exists(current / "SparQ" / "include") &&
             std::filesystem::exists(current / "Common" / "include")) {
             return current.string();
         }
         
-        // 检查是否是构建目录（在 build/ 或 build/Release/ 等子目录中）
-        // 向上查找直到找到包含 SparQ/CMakeLists.txt 或 pyproject.toml 的目录
+        // Check whether this is a build directory (inside a subdirectory such as build/ or build/Release/)
+        // Search upward until we find a directory containing SparQ/CMakeLists.txt or pyproject.toml
         if (std::filesystem::exists(current / "SparQ" / "CMakeLists.txt") ||
             std::filesystem::exists(current / "CMakeLists.txt")) {
-            // 再向上找一层，可能是从 build/ 到项目根目录
+            // Go up one more level; this may go from build/ to the project root directory
             if (current.has_parent_path()) {
                 auto parent = current.parent_path();
                 if (std::filesystem::exists(parent / "SparQ" / "include")) {
@@ -151,28 +153,28 @@ std::string find_project_root() {
             }
         }
         
-        // 检查源码目录特征文件
+        // Check for source-directory signature files
         if (std::filesystem::exists(current / "pyproject.toml") &&
             std::filesystem::exists(current / "SparQ")) {
             return current.string();
         }
         
-        // 向上移动一层
+        // Move up one level
         if (!current.has_parent_path()) {
             break;
         }
         current = current.parent_path();
     }
 
-    // 方法4: 尝试从源码目录特征反向查找
-    // 检查是否在 build/SparQ/test/ 这样的结构中
+    // Method 4: try a reverse lookup based on source-directory signatures
+    // Check whether we are in a structure like build/SparQ/test/
     current = std::filesystem::current_path();
     std::filesystem::path candidate = current;
     
-    // 移除已知的构建目录层次
+    // Strip the known build-directory levels
     while (candidate.has_parent_path()) {
         std::string filename = candidate.filename().string();
-        // 如果是已知的构建目录，检查父目录
+        // If this is a known build directory, check the parent directory
         if (filename == "test" || filename == "SparQ" || filename == "build" ||
             filename == "Release" || filename == "Debug") {
             candidate = candidate.parent_path();
@@ -184,13 +186,13 @@ std::string find_project_root() {
         break;
     }
 
-    // 默认: 返回当前目录，但记录警告
+    // Default: return the current directory, but log a warning
     std::cerr << "[find_project_root] Warning: Could not find project root!" << std::endl;
     std::cerr << "[find_project_root] Current directory: " << std::filesystem::current_path() << std::endl;
     std::cerr << "[find_project_root] Checking for SparQ/include: " 
               << std::filesystem::exists(std::filesystem::current_path() / "SparQ" / "include") << std::endl;
     
-    // 列出当前目录内容以便调试
+    // List the current directory contents for debugging
     std::cerr << "[find_project_root] Directory contents:" << std::endl;
     for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::current_path())) {
         std::cerr << "  - " << entry.path().filename().string() << std::endl;
@@ -200,7 +202,7 @@ std::string find_project_root() {
 }
 
 /**
- * @brief 检查编译器是否可用
+ * @brief Check whether a compiler is available
  */
 bool is_compiler_available() {
 #ifdef _WIN32
@@ -223,17 +225,17 @@ bool is_compiler_available() {
 }
 
 /**
- * @brief 编译 C++ 代码为共享库
- * @details 使用进程 ID 作为前缀避免并行测试文件名冲突
+ * @brief Compile C++ code into a shared library
+ * @details Uses the process ID as a prefix to avoid file name conflicts in parallel tests
  */
 std::string compile_to_shared_lib(const std::string& source_path, const std::string& lib_name) {
-    // 首先检查编译器是否可用
+    // First check whether a compiler is available
     if (!is_compiler_available()) {
         std::cerr << "No suitable C++ compiler found for dynamic operator test" << std::endl;
         return "";
     }
 
-    // 使用进程 ID 作为前缀避免并行测试冲突
+    // Use the process ID as a prefix to avoid conflicts between parallel tests
     static std::string pid_prefix;
     if (pid_prefix.empty()) {
 #ifndef _WIN32
@@ -246,10 +248,10 @@ std::string compile_to_shared_lib(const std::string& source_path, const std::str
     std::string temp_dir = std::filesystem::temp_directory_path().string();
     std::string lib_path = temp_dir + "/" + pid_prefix + lib_name;
 
-    // 查找项目根目录
+    // Find the project root directory
     std::string project_root = find_project_root();
 
-    // 构建编译命令
+    // Build the compilation command
     std::string cmd;
 #ifdef _WIN32
     // Windows (MinGW): need .dll extension and different flags
@@ -272,7 +274,7 @@ std::string compile_to_shared_lib(const std::string& source_path, const std::str
     cmd += "-o " + lib_path + " " + source_path + " 2>&1";
 #endif
 
-    // 执行编译
+    // Execute the compilation
     FILE* pipe = POPEN(cmd.c_str(), "r");
     if (!pipe) {
         return "";
@@ -293,7 +295,7 @@ std::string compile_to_shared_lib(const std::string& source_path, const std::str
     return lib_path;
 }
 
-// 跨平台的动态库加载
+// Cross-platform dynamic library loading
 class TestDynamicLoader {
 public:
     void* handle_ = nullptr;
@@ -331,11 +333,11 @@ public:
     }
 };
 
-// ============ 测试固件 ============
+// ============ Test fixture ============
 
 class DynamicOperatorTest : public ::testing::Test {
 protected:
-    // 获取当前进程的 PID 前缀（只清理本进程创建的文件）
+    // Get the PID prefix of the current process (only clean up files created by this process)
     static std::string get_pid_prefix() {
         static std::string prefix;
         if (prefix.empty()) {
@@ -349,36 +351,36 @@ protected:
     }
 
     /**
-     * @brief 检查是否可以运行动态编译测试
+     * @brief Check whether the dynamic compilation tests can run
      *
-     * @return true 如果环境变量 ENABLE_DYNAMIC_OPERATOR_TEST=1 且编译器可用
-     * @return false 默认返回 false（测试被跳过）
+     * @return true if the environment variable ENABLE_DYNAMIC_OPERATOR_TEST=1 is set and a compiler is available
+     * @return false returned by default (the tests are skipped)
      *
-     * @section skip_reason 跳过原因
+     * @section skip_reason Skip Reasons
      *
-     * 动态编译测试在不同环境中有严重的兼容性问题：
+     * Dynamic compilation tests have serious compatibility problems in different environments:
      *
-     * 1. **Windows ABI 不兼容**：
-     *    - 主程序由 MSVC 编译（CI 中的 Windows 构建任务）
-     *    - 动态编译使用 MinGW g++（系统上可用的编译器）
-     *    - MSVC 和 MinGW 的 C++ ABI 不兼容，会导致：
-     *      - 内存布局不匹配
-     *      - 异常处理机制不同
-     *      - 运行时类型信息 (RTTI) 格式不同
-     *    - 结果：加载 DLL 后调用函数时发生 SEGFAULT
+     * 1. **Windows ABI incompatibility**:
+     *    - The main program is compiled with MSVC (the Windows build job in CI)
+     *    - Dynamic compilation uses MinGW g++ (the compiler available on the system)
+     *    - The MSVC and MinGW C++ ABIs are incompatible, which causes:
+     *      - Mismatched memory layouts
+     *      - Different exception handling mechanisms
+     *      - Different run-time type information (RTTI) formats
+     *    - Result: a SEGFAULT occurs when calling functions after loading the DLL
      *
-     * 2. **Linux/Unix 环境差异**：
-     *    - CI 环境中的 g++ 版本可能与编译主程序时不同
-     *    - libstdc++ 版本差异可能导致符号解析失败
+     * 2. **Linux/Unix environment differences**:
+     *    - The g++ version in the CI environment may differ from the one used to compile the main program
+     *    - libstdc++ version differences may cause symbol resolution failures
      *
-     * 3. **解决方案**：
-     *    - 默认跳过这些测试，避免 CI 不稳定
-     *    - Python 测试 (test_dynamic_operator.py) 已覆盖用户功能
-     *    - 开发者可在本地显式启用进行调试
+     * 3. **Solution**:
+     *    - Skip these tests by default to keep CI stable
+     *    - Python tests (test_dynamic_operator.py) already cover user-facing functionality
+     *    - Developers can explicitly enable them locally for debugging
      *
-     * @section usage 本地启用方法
+     * @section usage How to Enable Locally
      *
-     * 在 Linux 环境中本地调试时，可设置环境变量启用：
+     * When debugging locally in a Linux environment, set the environment variable to enable them:
      * @code
      * export ENABLE_DYNAMIC_OPERATOR_TEST=1
      * ctest -R DynamicOperator
@@ -398,7 +400,7 @@ protected:
 
     void TearDown() override {
         System::clear();
-        // 只清理当前进程创建的临时文件，避免干扰并行测试
+        // Only clean up temporary files created by the current process to avoid interfering with parallel tests
         cleanup_temp_files();
     }
 
@@ -408,32 +410,32 @@ protected:
         try {
             for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
                 std::string name = entry.path().filename().string();
-                // 只清理以当前进程 PID 为前缀的文件
+                // Only clean up files prefixed with the current process PID
                 if (name.find(pid_prefix + "test_op_") == 0 ||
                     name.find(pid_prefix + "test_dynamic_") == 0) {
                     std::error_code ec;
                     std::filesystem::remove(entry.path(), ec);
-                    // 忽略删除失败（Windows 上文件可能被锁定）
+                    // Ignore removal failures (files may be locked on Windows)
                 }
             }
         } catch (const std::exception& e) {
-            // 忽略清理异常
+            // Ignore cleanup exceptions
         }
     }
 };
 
-// ============ 测试用例 ============
+// ============ Test cases ============
 
 /**
- * @brief 测试简单的 SelfAdjointOperator 扩展
+ * @brief Test a simple SelfAdjointOperator extension
  */
 TEST_F(DynamicOperatorTest, SelfAdjointOperatorExtension) {
-    // Windows MSVC 与 MinGW ABI 不兼容，跳过测试
+    // Windows: MSVC and MinGW ABIs are incompatible; skip the test
     if (!can_run_dynamic_compile_test()) {
         GTEST_SKIP() << "Skipped: Dynamic compilation tests disabled by default (set ENABLE_DYNAMIC_OPERATOR_TEST=1 to enable)";
     }
 
-    // 创建一个简单的翻转算子
+    // Create a simple flip operator
     std::string cpp_code = R"(
 #include "basic_components.h"
 #include <vector>
@@ -475,11 +477,11 @@ extern "C" const char* get_base_class() {
     ASSERT_FALSE(lib_path.empty()) << "Failed to compile dynamic operator";
     ASSERT_TRUE(std::filesystem::exists(lib_path));
     
-    // 测试动态加载
+    // Test dynamic loading
     TestDynamicLoader loader(lib_path);
     EXPECT_TRUE(loader.is_valid());
     
-    // 测试符号获取
+    // Test symbol retrieval
     auto* create_func = reinterpret_cast<BaseOperator* (*)(size_t)>(loader.get_symbol("create_operator"));
     auto* destroy_func = reinterpret_cast<void (*)(BaseOperator*)>(loader.get_symbol("destroy_operator"));
     auto* get_name_func = reinterpret_cast<const char* (*)()>(loader.get_symbol("get_operator_name"));
@@ -488,27 +490,27 @@ extern "C" const char* get_base_class() {
     ASSERT_NE(destroy_func, nullptr);
     ASSERT_NE(get_name_func, nullptr);
     
-    // 验证算子名称
+    // Verify the operator name
     EXPECT_STREQ(get_name_func(), "TestFlipOp");
     
-    // 创建寄存器并测试算子
+    // Create a register and test the operator
     auto q = System::add_register("q", Boolean, 1);
     std::vector<System> state;
     state.emplace_back();  // |0>
     
-    // 创建算子实例
+    // Create an operator instance
     BaseOperator* op = create_func(q);
     ASSERT_NE(op, nullptr);
     
-    // 测试算子功能：翻转 |0> -> |1>
+    // Test the operator functionality: flip |0> -> |1>
     (*op)(state);
     EXPECT_EQ(state[0].get(q).value, 1);
     
-    // 再次翻转 |1> -> |0>
+    // Flip again: |1> -> |0>
     (*op)(state);
     EXPECT_EQ(state[0].get(q).value, 0);
     
-    // 测试 dagger（SelfAdjointOperator 应该和自身相同）
+    // Test dagger (for a SelfAdjointOperator it should be the same as itself)
     state[0].get(q).value = 1;
     op->dag(state);
     EXPECT_EQ(state[0].get(q).value, 0);
@@ -517,15 +519,15 @@ extern "C" const char* get_base_class() {
 }
 
 /**
- * @brief 测试带参数的 BaseOperator 扩展
+ * @brief Test a BaseOperator extension with parameters
  */
 TEST_F(DynamicOperatorTest, BaseOperatorWithParams) {
-    // Windows MSVC 与 MinGW ABI 不兼容，跳过测试
+    // Windows: MSVC and MinGW ABIs are incompatible; skip the test
     if (!can_run_dynamic_compile_test()) {
         GTEST_SKIP() << "Skipped: Dynamic compilation tests disabled by default (set ENABLE_DYNAMIC_OPERATOR_TEST=1 to enable)";
     }
 
-    // 创建带参数的相位算子
+    // Create a parameterized phase operator
     std::string cpp_code = R"(
 #include "basic_components.h"
 #include <vector>
@@ -586,30 +588,30 @@ extern "C" const char* get_operator_name() {
     state.emplace_back();
     Init_Unsafe("q", 1)(state);  // |1>
     
-    // 创建相位算子（π/2 相位）
+    // Create a phase operator (π/2 phase)
     BaseOperator* op = create_func(q, M_PI / 2);
     ASSERT_NE(op, nullptr);
     
-    // 应用算子
+    // Apply the operator
     (*op)(state);
     
-    // 检查相位：|1> 应该获得 i 的相位
+    // Check the phase: |1> should acquire a phase of i
     EXPECT_NEAR(state[0].amplitude.real(), 0.0, 1e-10);
     EXPECT_NEAR(state[0].amplitude.imag(), 1.0, 1e-10);
 }
 
 /**
- * @brief 测试编译错误处理
+ * @brief Test compilation error handling
  */
 TEST_F(DynamicOperatorTest, CompilationError) {
-    // 创建有语法错误的代码
+    // Create code with a syntax error
     std::string bad_cpp_code = R"(
 #include "basic_components.h"
 using namespace qram_simulator;
 
-class BadOp : public BaseOperator {  // 缺少分号
+class BadOp : public BaseOperator {  // missing semicolon
     void operator()(std::vector<System>& state) const override {
-        // 语法错误：未定义的变量
+        // Syntax error: undefined variable
         undefined_variable = 42;
     }
 };
@@ -618,20 +620,20 @@ class BadOp : public BaseOperator {  // 缺少分号
     std::string source_path = create_temp_source_file(bad_cpp_code, "test_op_bad.cpp");
     std::string lib_path = compile_to_shared_lib(source_path, "test_op_bad.so");
     
-    // 编译应该失败，库文件不应存在
+    // Compilation should fail and the library file should not exist
     EXPECT_TRUE(lib_path.empty() || !std::filesystem::exists(lib_path));
 }
 
 /**
- * @brief 测试缓存机制
+ * @brief Test the cache mechanism
  */
 TEST_F(DynamicOperatorTest, CacheMechanism) {
-    // Windows MSVC 与 MinGW ABI 不兼容，跳过测试
+    // Windows: MSVC and MinGW ABIs are incompatible; skip the test
     if (!can_run_dynamic_compile_test()) {
         GTEST_SKIP() << "Skipped: Dynamic compilation tests disabled by default (set ENABLE_DYNAMIC_OPERATOR_TEST=1 to enable)";
     }
 
-    // 相同的代码应该产生相同的库
+    // The same code should produce the same library
     std::string cpp_code = R"(
 #include "basic_components.h"
 #include <vector>
@@ -655,12 +657,12 @@ extern "C" BaseOperator* create_operator(size_t reg_id) {
 extern "C" void destroy_operator(BaseOperator* op) { delete op; }
 )";
 
-    // 清除可能存在的旧缓存文件（只清理当前进程的 .so 文件）
+    // Remove stale cache files if any (only clean up this process's .so files)
     std::string temp_dir = std::filesystem::temp_directory_path().string();
     std::string pid_prefix = get_pid_prefix();
     for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
         std::string name = entry.path().filename().string();
-        // 只清理编译产物 (.so/.dll)，不清理源文件
+        // Only clean up compiled artifacts (.so/.dll), not source files
         if (name.find(pid_prefix + "test_op_cache") == 0 &&
             (name.find(".so") != std::string::npos || name.find(".dll") != std::string::npos)) {
             std::error_code ec;
@@ -668,19 +670,19 @@ extern "C" void destroy_operator(BaseOperator* op) { delete op; }
         }
     }
 
-    // 创建源文件（放在清理之后）
+    // Create the source files (after the cleanup)
     std::string source_path1 = create_temp_source_file(cpp_code, "test_op_cache1.cpp");
     std::string source_path2 = create_temp_source_file(cpp_code, "test_op_cache2.cpp");
     
-    // 第一次编译
+    // First compilation
     std::string lib_path1 = compile_to_shared_lib(source_path1, "test_op_cache_a.so");
     ASSERT_FALSE(lib_path1.empty());
     
-    // 第二次编译相同代码
+    // Second compilation of the same code
     std::string lib_path2 = compile_to_shared_lib(source_path2, "test_op_cache_b.so");
     ASSERT_FALSE(lib_path2.empty());
     
-    // 两个库都应该存在且可以加载
+    // Both libraries should exist and be loadable
     TestDynamicLoader loader1(lib_path1);
     TestDynamicLoader loader2(lib_path2);
     
@@ -689,15 +691,15 @@ extern "C" void destroy_operator(BaseOperator* op) { delete op; }
 }
 
 /**
- * @brief 测试 dagger 操作正确性
+ * @brief Test dagger operation correctness
  */
 TEST_F(DynamicOperatorTest, DaggerOperation) {
-    // Windows MSVC 与 MinGW ABI 不兼容，跳过测试
+    // Windows: MSVC and MinGW ABIs are incompatible; skip the test
     if (!can_run_dynamic_compile_test()) {
         GTEST_SKIP() << "Skipped: Dynamic compilation tests disabled by default (set ENABLE_DYNAMIC_OPERATOR_TEST=1 to enable)";
     }
 
-    // SelfAdjointOperator: dagger 应该等于自身
+    // SelfAdjointOperator: dagger should equal itself
     std::string self_adjoint_code = R"(
 #include "basic_components.h"
 #include <vector>
@@ -710,7 +712,7 @@ public:
     TestSelfAdjointOp(size_t r) : reg_id(r) {}
     void operator()(std::vector<System>& state) const override {
         for (auto& s : state) {
-            s.amplitude *= -1.0;  // 乘以 -1
+            s.amplitude *= -1.0;  // multiply by -1
         }
     }
 };
@@ -737,20 +739,20 @@ extern "C" void destroy_operator(BaseOperator* op) { delete op; }
     BaseOperator* op = create_func(q);
     ASSERT_NE(op, nullptr);
     
-    // 初始振幅为 1
+    // Initial amplitude is 1
     EXPECT_NEAR(std::abs(state[0].amplitude - complex_t(1.0, 0)), 0.0, 1e-10);
     
-    // 应用算子: 1 -> -1
+    // Apply the operator: 1 -> -1
     (*op)(state);
     EXPECT_NEAR(std::abs(state[0].amplitude - complex_t(-1.0, 0)), 0.0, 1e-10);
     
-    // 应用 dagger（对于 SelfAdjointOperator，应该和自身相同）: -1 -> 1
+    // Apply dagger (for a SelfAdjointOperator it should be the same as itself): -1 -> 1
     op->dag(state);
     EXPECT_NEAR(std::abs(state[0].amplitude - complex_t(1.0, 0)), 0.0, 1e-10);
 }
 
 /**
- * @brief 测试动态库加载失败的情况
+ * @brief Test dynamic library load failure
  */
 TEST_F(DynamicOperatorTest, InvalidLibraryLoad) {
     TestDynamicLoader loader("/nonexistent/path/to/library.so");
@@ -758,10 +760,10 @@ TEST_F(DynamicOperatorTest, InvalidLibraryLoad) {
 }
 
 /**
- * @brief 测试动态库中的符号获取
+ * @brief Test symbol retrieval from a dynamic library
  */
 TEST_F(DynamicOperatorTest, SymbolRetrieval) {
-    // Windows MSVC 与 MinGW ABI 不兼容，跳过测试
+    // Windows: MSVC and MinGW ABIs are incompatible; skip the test
     if (!can_run_dynamic_compile_test()) {
         GTEST_SKIP() << "Skipped: Dynamic compilation tests disabled by default (set ENABLE_DYNAMIC_OPERATOR_TEST=1 to enable)";
     }
@@ -796,19 +798,19 @@ extern "C" int test_function() { return 42; }
     TestDynamicLoader loader(lib_path);
     ASSERT_TRUE(loader.is_valid());
     
-    // 测试存在的符号
+    // Test symbols that exist
     EXPECT_NE(loader.get_symbol("create_operator"), nullptr);
     EXPECT_NE(loader.get_symbol("destroy_operator"), nullptr);
     EXPECT_NE(loader.get_symbol("get_operator_name"), nullptr);
     EXPECT_NE(loader.get_symbol("get_base_class"), nullptr);
     EXPECT_NE(loader.get_symbol("test_function"), nullptr);
     
-    // 测试不存在的符号
+    // Test symbols that do not exist
     EXPECT_EQ(loader.get_symbol("nonexistent_symbol"), nullptr);
     EXPECT_EQ(loader.get_symbol(""), nullptr);
 }
 
-// ============ 主函数 ============
+// ============ Main function ============
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

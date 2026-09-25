@@ -1,4 +1,4 @@
-// CUDA-side arithmetic operator tests (docs/operators.md《宽度与截断约定》).
+// CUDA-side arithmetic operator tests (docs/operators.md, "Width and Truncation Conventions").
 // Expected values are hardcoded (hand-derived) so this test never links or
 // runs the CPU operator implementations.
 #include <array>

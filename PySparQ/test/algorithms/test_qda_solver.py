@@ -82,27 +82,27 @@ class TestComputeFs:
 
 
 class TestRotationMatrix:
-    """测试旋转矩阵计算。"""
+    """Test rotation matrix computation."""
 
     def test_rotation_matrix_unitary(self):
-        """旋转矩阵应该是酉矩阵。"""
+        """The rotation matrix should be unitary."""
         for fs in [0.2, 0.5, 0.8]:
             R = compute_rotation_matrix(fs)
             R_matrix = np.array([[R[0], R[1]], [R[2], R[3]]])
 
-            # 检查酉性：R * R^dagger = I
+            # Check unitarity: R * R^dagger = I
             identity = R_matrix @ R_matrix.conj().T
             assert np.allclose(identity, np.eye(2), atol=1e-10)
 
     def test_rotation_matrix_determinant(self):
-        """旋转矩阵行列式应该为 -1。"""
+        """The rotation matrix determinant should be -1."""
         for fs in [0.2, 0.5, 0.8]:
             R = compute_rotation_matrix(fs)
             det = R[0] * R[3] - R[1] * R[2]
             assert abs(det + 1) < 1e-10  # det = -1
 
     def test_rotation_matrix_structure(self):
-        """验证旋转矩阵结构。"""
+        """Verify the rotation matrix structure."""
         fs = 0.5
         R = compute_rotation_matrix(fs)
 
@@ -119,9 +119,9 @@ class TestRotationMatrix:
         assert abs(R[3] - expected_u11) < 1e-10
 
     def test_rotation_matrix_fs_zero(self):
-        """fs=0 时的旋转矩阵。"""
+        """Rotation matrix when fs=0."""
         R = compute_rotation_matrix(0.0)
-        # fs=0 时，sqrt_N = 1
+        # When fs=0, sqrt_N = 1
         # R = [[1, 0], [0, -1]]
         assert abs(R[0] - 1) < 1e-10
         assert abs(R[1]) < 1e-10
@@ -129,9 +129,9 @@ class TestRotationMatrix:
         assert abs(R[3] + 1) < 1e-10
 
     def test_rotation_matrix_fs_one(self):
-        """fs=1 时的旋转矩阵。"""
+        """Rotation matrix when fs=1."""
         R = compute_rotation_matrix(1.0)
-        # fs=1 时，sqrt_N = 1
+        # When fs=1, sqrt_N = 1
         # R = [[0, 1], [1, 0]]
         assert abs(R[0]) < 1e-10
         assert abs(R[1] - 1) < 1e-10
@@ -140,7 +140,7 @@ class TestRotationMatrix:
 
 
 class TestChebyshevPolynomial:
-    """测试 Chebyshev 多项式。"""
+    """Test Chebyshev polynomials."""
 
     @pytest.mark.parametrize("n,x,expected", [
         (0, 0.5, 1.0),
@@ -152,12 +152,12 @@ class TestChebyshevPolynomial:
         (2, 1.0, 1.0),
     ])
     def test_chebyshev_T_values(self, n, x, expected):
-        """测试 Chebyshev 多项式值。"""
+        """Test Chebyshev polynomial values."""
         result = chebyshev_T(n, x)
         assert abs(result - expected) < 1e-10
 
     def test_chebyshev_recursion(self):
-        """验证递推关系 T_n(x) = 2x T_{n-1}(x) - T_{n-2}(x)。"""
+        """Verify the recurrence relation T_n(x) = 2x T_{n-1}(x) - T_{n-2}(x)."""
         x = 0.7
         for n in range(2, 10):
             Tn = chebyshev_T(n, x)
@@ -167,19 +167,19 @@ class TestChebyshevPolynomial:
             assert abs(Tn - expected) < 1e-10
 
     def test_chebyshev_at_one(self):
-        """T_n(1) = 1 对所有 n。"""
+        """T_n(1) = 1 for all n."""
         for n in range(10):
             assert chebyshev_T(n, 1.0) == 1.0
 
     def test_chebyshev_at_minus_one(self):
-        """T_n(-1) = (-1)^n。"""
+        """T_n(-1) = (-1)^n."""
         for n in range(10):
             result = chebyshev_T(n, -1.0)
             expected = (-1) ** n
             assert abs(result - expected) < 1e-10
 
     def test_chebyshev_cosine_relation(self):
-        """验证 T_n(cos(theta)) = cos(n*theta)。"""
+        """Verify T_n(cos(theta)) = cos(n*theta)."""
         for theta in [0.1, 0.5, 1.0, 2.0]:
             x = math.cos(theta)
             for n in range(5):
@@ -189,10 +189,10 @@ class TestChebyshevPolynomial:
 
 
 class TestDolphChebyshev:
-    """测试 Dolph-Chebyshev 滤波器。"""
+    """Test the Dolph-Chebyshev filter."""
 
     def test_dolph_chebyshev_basic(self):
-        """基本 Dolph-Chebyshev 计算。"""
+        """Basic Dolph-Chebyshev computation."""
         epsilon = 0.1
         l = 5
         phi = 0.5
@@ -201,7 +201,7 @@ class TestDolphChebyshev:
         assert isinstance(result, float)
 
     def test_dolph_chebyshev_positive(self):
-        """Dolph-Chebyshev 值在多数情况下应为正值。"""
+        """Dolph-Chebyshev values should be positive in most cases."""
         epsilon = 0.1
         l = 5
 
@@ -211,114 +211,114 @@ class TestDolphChebyshev:
             if result > -epsilon:
                 positive_count += 1
 
-        # 大多数值应该为正或接近零
+        # Most values should be positive or near zero
         assert positive_count >= 15, "Most values should be positive or near zero"
 
     def test_dolph_chebyshev_at_zero(self):
-        """phi=0 时的值。"""
+        """Value at phi=0."""
         epsilon = 0.1
         l = 5
 
         result = dolph_chebyshev(epsilon, l, 0.0)
-        # phi=0 时，cos(phi)=1
-        # 应该接近某个正值
+        # When phi=0, cos(phi)=1
+        # Should be close to some positive value
         assert result >= 0
 
 
 class TestFourierCoefficients:
-    """测试 Fourier 系数计算。"""
+    """Test Fourier coefficient computation."""
 
     def test_fourier_coeffs_length(self):
-        """Fourier 系数列表长度正确（偶数索引系数）。"""
+        """The Fourier coefficient list has the correct length (even-indexed coefficients)."""
         epsilon = 0.1
         l = 5
 
         coeffs = compute_fourier_coeffs(epsilon, l)
-        # 实现只保留偶数索引系数: ceil((l+1)/2) = 3
+        # The implementation only keeps even-indexed coefficients: ceil((l+1)/2) = 3
         expected_len = (l + 2) // 2
         assert len(coeffs) == expected_len
 
     def test_fourier_coeffs_positive(self):
-        """Fourier 系数应该非负。"""
+        """Fourier coefficients should be non-negative."""
         epsilon = 0.1
         l = 5
 
         coeffs = compute_fourier_coeffs(epsilon, l)
         for coeff in coeffs:
-            assert coeff >= -0.1  # 允许小的数值误差
+            assert coeff >= -0.1  # allow small numerical error
 
     def test_fourier_coeffs_symmetry(self):
-        """Fourier 系数的对称性。"""
+        """Symmetry of Fourier coefficients."""
         epsilon = 0.1
         l = 4
 
         coeffs = compute_fourier_coeffs(epsilon, l)
-        # 实对称函数的 Fourier 系数应该是对称的
+        # Fourier coefficients of a real symmetric function should be symmetric
         for i in range(len(coeffs)):
             for j in range(len(coeffs)):
                 if i + j == l:
-                    # 对称位置
-                    pass  # 关系依赖于具体实现
+                    # Symmetric positions
+                    pass  # the relation depends on the specific implementation
 
 
 class TestQDAIntegration:
-    """QDA 集成测试。"""
+    """QDA integration tests."""
 
     def test_interpolation_sequence(self):
-        """测试插值序列的连续性。"""
+        """Test continuity of the interpolation sequence."""
         kappa = 10.0
         p = 0.5
         steps = 100
 
         fs_values = [compute_fs(s, kappa, p) for s in np.linspace(0, 1, steps)]
 
-        # 验证单调性
+        # Verify monotonicity
         for i in range(1, len(fs_values)):
             assert fs_values[i] >= fs_values[i - 1] - 1e-10
 
     def test_rotation_matrix_sequence(self):
-        """测试旋转矩阵序列。"""
+        """Test the rotation matrix sequence."""
         fs_values = [0.0, 0.25, 0.5, 0.75, 1.0]
 
         matrices = [compute_rotation_matrix(fs) for fs in fs_values]
 
-        # 验证所有矩阵都是酉的
+        # Verify all matrices are unitary
         for R in matrices:
             R_mat = np.array([[R[0], R[1]], [R[2], R[3]]])
             identity = R_mat @ R_mat.conj().T
             assert np.allclose(identity, np.eye(2), atol=1e-10)
 
     def test_filter_construction(self):
-        """测试滤波器构造。"""
+        """Test filter construction."""
         epsilon = 0.1
         l = 5
 
         coeffs = compute_fourier_coeffs(epsilon, l)
 
-        # 构造滤波器函数
+        # Construct the filter function
         def filter_func(x):
             result = 0.0
             for j, coeff in enumerate(coeffs):
                 result += coeff * chebyshev_T(j, x)
             return result
 
-        # 测试滤波器
+        # Test the filter
         for x in [-0.5, 0.0, 0.5, 1.0]:
             result = filter_func(x)
             assert isinstance(result, float)
 
 
 class TestQDAEdgeCases:
-    """QDA 边界情况测试。"""
+    """QDA edge case tests."""
 
     def test_kappa_one(self):
-        """测试 kappa=1 的特殊情况。"""
+        """Test the special case kappa=1."""
         for s in np.linspace(0, 1, 10):
             fs = compute_fs(s, kappa=1.0, p=0.5)
             assert abs(fs - s) < 1e-10
 
     def test_large_kappa(self):
-        """测试大条件数。"""
+        """Test a large condition number."""
         kappa = 1000.0
         p = 0.5
 
@@ -327,17 +327,17 @@ class TestQDAEdgeCases:
             assert 0.0 <= fs <= 1.0
 
     def test_small_epsilon(self):
-        """测试小误差容限。"""
+        """Test a small error tolerance."""
         epsilon = 1e-6
         l = 10
 
         coeffs = compute_fourier_coeffs(epsilon, l)
-        # 偶数索引系数长度
+        # Length of even-indexed coefficients
         expected_len = (l + 2) // 2
         assert len(coeffs) == expected_len
 
     def test_p_near_zero(self):
-        """测试 p 接近 0。"""
+        """Test p close to 0."""
         kappa = 10.0
         p = 0.01
 
@@ -346,7 +346,7 @@ class TestQDAEdgeCases:
             assert 0.0 <= fs <= 1.0
 
     def test_p_near_one(self):
-        """测试 p 接近 1。"""
+        """Test p close to 1."""
         kappa = 10.0
         p = 0.99
 

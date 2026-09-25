@@ -1,7 +1,7 @@
 /**
  * @file quantum_interfere_basic.cpp
- * @brief 干涉基组件实现
- * @details 实现 quantum_interfere_basic.h 中声明的稀疏态排序、去重、按位分组等干涉基础操作
+ * @brief Interference basic components implementation
+ * @details Implements the sparse-state sorting, deduplication, and bit-wise grouping primitives declared in quantum_interfere_basic.h
  */
 #include "quantum_interfere_basic.h"
 

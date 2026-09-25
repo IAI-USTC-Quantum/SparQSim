@@ -1,47 +1,47 @@
 #!/usr/bin/env python3
 """
-动态算子扩展示例
+Dynamic Operator Extension Example
 
-演示如何使用 compile_operator 功能在运行时创建自定义 C++ 算子。
+Demonstrates how to use the compile_operator feature to create custom C++ operators at runtime.
 
-运行前请确保：
-1. QRAM-Simulator 已正确构建
-2. PySparQ 模块可导入
+Before running, make sure:
+1. QRAM-Simulator has been built correctly
+2. The PySparQ module can be imported
 
-使用方法：
+Usage:
     python examples/dynamic_operator_example.py
 """
 
 import sys
 import os
 
-# 将项目根目录添加到路径
+# Add the project root directory to the path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(project_root, "PySparQ"))  # 源码树导入;已安装时走 site-packages
+sys.path.insert(0, os.path.join(project_root, "PySparQ"))  # Source-tree import; uses site-packages when installed
 
 print("=" * 70)
-print("PySparQ 动态算子扩展示例")
+print("PySparQ Dynamic Operator Extension Example")
 print("=" * 70)
 print()
 
-# 尝试从 PySparQ 导入
+# Try importing from PySparQ
 try:
     from pysparq import compile_operator
-    print("✓ 成功从 pysparq 导入 compile_operator")
+    print("✓ Successfully imported compile_operator from pysparq")
 except ImportError:
-    print("! pysparq 未完全安装，尝试直接导入 dynamic_operator...")
+    print("! pysparq not fully installed, trying to import dynamic_operator directly...")
     from pysparq.dynamic_operator import compile_operator
-    print("✓ 成功从 pysparq.dynamic_operator 导入")
+    print("✓ Successfully imported from pysparq.dynamic_operator")
 
 print()
 
-# ============ 示例 1: SelfAdjointOperator ============
+# ============ Example 1: SelfAdjointOperator ============
 print("-" * 70)
-print("示例 1: SelfAdjointOperator (自伴算子)")
+print("Example 1: SelfAdjointOperator (self-adjoint operator)")
 print("-" * 70)
 print()
-print("SelfAdjointOperator 用于厄米算子，其 dagger 操作自动等于自身。")
-print("典型应用：Pauli 门（X、Z）、控制非门（CNOT）等。")
+print("SelfAdjointOperator is used for Hermitian operators, whose dagger operation automatically equals the operator itself.")
+print("Typical applications: Pauli gates (X, Z), the controlled-NOT gate (CNOT), etc.")
 print()
 
 cpp_code_1 = """
@@ -51,7 +51,7 @@ public:
     MyFlipOp(size_t r) : reg_id(r) {}
     void operator()(std::vector<System>& state) const override {
         for (auto& s : state) {
-            s.get(reg_id).value ^= 1;  // XOR 翻转
+            s.get(reg_id).value ^= 1;  // XOR flip
         }
     }
 };
@@ -66,22 +66,22 @@ try:
         verbose=True,
     )
     print()
-    print("✓ SelfAdjointOperator 创建成功")
-    print(f"  类名: {MyFlipOp.__name__}")
-    print(f"  基类: {MyFlipOp._base_class}")
-    print(f"  说明: dagger() 自动等于 operator()")
+    print("✓ SelfAdjointOperator created successfully")
+    print(f"  Class name: {MyFlipOp.__name__}")
+    print(f"  Base class: {MyFlipOp._base_class}")
+    print(f"  Note: dagger() automatically equals operator()")
     print()
 except Exception as e:
-    print(f"✗ 创建失败: {e}")
+    print(f"✗ Creation failed: {e}")
     print()
 
-# ============ 示例 2: BaseOperator with dagger ============
+# ============ Example 2: BaseOperator with dagger ============
 print("-" * 70)
-print("示例 2: BaseOperator (带 dagger 实现)")
+print("Example 2: BaseOperator (with dagger implementation)")
 print("-" * 70)
 print()
-print("BaseOperator 需要手动实现 dag() 方法，用于非厄米算子。")
-print("典型应用：相位门、受控相位门、一般酉门等。")
+print("BaseOperator requires manually implementing the dag() method, for non-Hermitian operators.")
+print("Typical applications: phase gates, controlled phase gates, general unitary gates, etc.")
 print()
 
 cpp_code_2 = """
@@ -116,21 +116,21 @@ try:
         verbose=True,
     )
     print()
-    print("✓ BaseOperator 创建成功")
-    print(f"  类名: {MyPhaseOp.__name__}")
-    print(f"  基类: {MyPhaseOp._base_class}")
-    print(f"  说明: 需要实现 dag() 方法，用于逆操作")
+    print("✓ BaseOperator created successfully")
+    print(f"  Class name: {MyPhaseOp.__name__}")
+    print(f"  Base class: {MyPhaseOp._base_class}")
+    print(f"  Note: the dag() method must be implemented for the inverse operation")
     print()
 except Exception as e:
-    print(f"✗ 创建失败: {e}")
+    print(f"✗ Creation failed: {e}")
     print()
 
-# ============ 示例 3: 多参数算子 ============
+# ============ Example 3: Multi-parameter operator ============
 print("-" * 70)
-print("示例 3: 多参数复杂算子")
+print("Example 3: Complex multi-parameter operator")
 print("-" * 70)
 print()
-print("动态算子支持多个构造函数参数，可用于复杂量子操作。")
+print("Dynamic operators support multiple constructor arguments, which can be used for complex quantum operations.")
 print()
 
 cpp_code_3 = """
@@ -164,50 +164,50 @@ try:
         verbose=True,
     )
     print()
-    print("✓ 多参数算子创建成功")
-    print(f"  类名: {MyControlledOp.__name__}")
-    print(f"  参数列表:")
-    print(f"    - control_reg (size_t): 控制寄存器 ID")
-    print(f"    - target_reg (size_t): 目标寄存器 ID")
-    print(f"    - angle (double): 相位角度（弧度）")
+    print("✓ Multi-parameter operator created successfully")
+    print(f"  Class name: {MyControlledOp.__name__}")
+    print(f"  Parameter list:")
+    print(f"    - control_reg (size_t): control register ID")
+    print(f"    - target_reg (size_t): target register ID")
+    print(f"    - angle (double): phase angle (in radians)")
     print()
 except Exception as e:
-    print(f"✗ 创建失败: {e}")
+    print(f"✗ Creation failed: {e}")
     print()
 
-# ============ 示例 4: 创建实例和使用 ============
+# ============ Example 4: Creating and using instances ============
 print("-" * 70)
-print("示例 4: 创建算子实例")
+print("Example 4: Creating operator instances")
 print("-" * 70)
 print()
 
 try:
-    # 使用前面定义的算子类创建实例
+    # Create instances using the operator classes defined above
     if 'MyFlipOp' in dir():
         flip_op = MyFlipOp(reg_id=0)
-        print(f"MyFlipOp 实例: {repr(flip_op)}")
+        print(f"MyFlipOp instance: {repr(flip_op)}")
 
     if 'MyPhaseOp' in dir():
         import math
         phase_op = MyPhaseOp(reg_id=0, phase=math.pi/4)
-        print(f"MyPhaseOp 实例: {repr(phase_op)}")
+        print(f"MyPhaseOp instance: {repr(phase_op)}")
 
     if 'MyControlledOp' in dir():
         ctrl_op = MyControlledOp(control_reg=0, target_reg=1, angle=math.pi/2)
-        print(f"MyControlledOp 实例: {repr(ctrl_op)}")
+        print(f"MyControlledOp instance: {repr(ctrl_op)}")
 
     print()
-    print("注意: 实际应用于量子态需要编译完整的 PySparQ 模块。")
-    print("编译后可使用: op(state) 或 op.dag(state)")
+    print("Note: applying operators to an actual quantum state requires the fully compiled PySparQ module.")
+    print("Once compiled, you can use: op(state) or op.dag(state)")
 
 except Exception as e:
-    print(f"✗ 创建实例失败: {e}")
+    print(f"✗ Failed to create instance: {e}")
 
 print()
 
-# ============ 示例 5: 缓存管理 ============
+# ============ Example 5: Cache management ============
 print("-" * 70)
-print("示例 5: 编译缓存管理")
+print("Example 5: Compilation cache management")
 print("-" * 70)
 print()
 
@@ -215,46 +215,46 @@ try:
     from pysparq.dynamic_operator import get_cache_info, clear_cache
 
     info = get_cache_info()
-    print(f"缓存目录: {info['cache_dir']}")
-    print(f"缓存文件数: {info['so_count']}")
-    print(f"缓存大小: {info['total_size_mb']:.2f} MB")
+    print(f"Cache directory: {info['cache_dir']}")
+    print(f"Number of cache files: {info['so_count']}")
+    print(f"Cache size: {info['total_size_mb']:.2f} MB")
     print()
-    print("编译结果会自动缓存，避免重复编译相同代码。")
-    print("如需清除缓存，可调用: clear_cache()")
+    print("Compilation results are cached automatically, avoiding repeated compilation of identical code.")
+    print("To clear the cache, call: clear_cache()")
 
 except ImportError:
-    print("无法导入缓存管理函数")
+    print("Could not import the cache management functions")
 
 print()
 
-# ============ 总结 ============
+# ============ Summary ============
 print("=" * 70)
-print("示例完成")
+print("Example completed")
 print("=" * 70)
 
 print("""
-总结:
+Summary:
 -----
-本示例演示了动态算子的三种基本用法:
+This example demonstrated three basic ways to use dynamic operators:
 
-1. SelfAdjointOperator (自伴算子):
-   - dagger() 自动等于 operator()
-   - 适用于 Pauli 门、CNOT 等厄米算子
-   - 实现更简单，只需写一个 operator() 方法
+1. SelfAdjointOperator (self-adjoint operator):
+   - dagger() automatically equals operator()
+   - Suitable for Hermitian operators such as Pauli gates and CNOT
+   - Simpler to implement: only a single operator() method is needed
 
-2. BaseOperator (一般算子):
-   - 需要手动实现 dag() 方法
-   - 适用于相位门、一般酉门等非厄米算子
-   - 支持自定义逆操作
+2. BaseOperator (general operator):
+   - Requires manually implementing the dag() method
+   - Suitable for non-Hermitian operators such as phase gates and general unitary gates
+   - Supports custom inverse operations
 
-3. 多参数算子:
-   - 支持多种参数类型: size_t, int, double, float, bool, uint64_t
-   - 使用 constructor_args 指定参数列表
-   - 创建实例时使用关键字参数
+3. Multi-parameter operators:
+   - Support multiple parameter types: size_t, int, double, float, bool, uint64_t
+   - Specify the parameter list via constructor_args
+   - Use keyword arguments when creating instances
 
-更多信息请参考:
-- docs/sphinx/source/guide/dynamic_operators.rst (完整用户指南)
-- docs/sphinx/source/api/dynamic_operator.rst (API 参考)
-- examples/dynamic_operator_quantum.py (端到端量子电路示例)
-- PySparQ/test/test_dynamic_operator.py (单元测试)
+For more information, refer to:
+- docs/sphinx/source/guide/dynamic_operators.rst (full user guide)
+- docs/sphinx/source/api/dynamic_operator.rst (API reference)
+- examples/dynamic_operator_quantum.py (end-to-end quantum circuit example)
+- PySparQ/test/test_dynamic_operator.py (unit tests)
 """)

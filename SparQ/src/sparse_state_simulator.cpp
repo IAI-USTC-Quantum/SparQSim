@@ -1,7 +1,7 @@
 /**
  * @file sparse_state_simulator.cpp
- * @brief 稀疏态模拟器公共实现
- * @details 实现 sparse_state_simulator.h 声明的公共包含入口与相关辅助逻辑
+ * @brief Common implementation of the sparse-state simulator
+ * @details Implements the common include entry and related helper logic declared in sparse_state_simulator.h
  */
 #include "sparse_state_simulator.h"
 #include "debugger.h"
