@@ -3,9 +3,10 @@
 # The QRAM C++ core (Common + QRAM + ThirdParty) is consumed from the
 # QRAM-Simulator git submodule (relative URL ../QRAM-Simulator.git, resolves
 # on both Gitea and GitHub); the SparQ simulator, the algorithm library and
-# all Python bindings live HERE. scikit-build-core drives this file when
+# the pysparq bindings live HERE. scikit-build-core drives this file when
 # building the wheel; everything compiles in one CMake invocation, exactly
-# like the former monorepo build.
+# like the former monorepo build. The separate qram_simulator thin binding
+# is packaged in the QRAM-Simulator repo.
 cmake_minimum_required(VERSION 3.18)
 
 project(SparQSim LANGUAGES CXX)
@@ -111,12 +112,9 @@ install(DIRECTORY
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-# Full-featured pysparq bindings.
+# Full-featured pysparq bindings. (The thin qram_simulator binding is built
+# and published from the QRAM-Simulator core repo itself.)
 add_subdirectory(PySparQ)
-
-# Thin qram_simulator bindings (moved from the core repo; publishing the
-# qram-simulator wheel from here is a follow-up — for now it builds in-tree).
-add_subdirectory(bindings/python)
 
 if(SPARQ_BUILD_TESTS)
     # Vendored googletest comes from the core submodule's ThirdParty.

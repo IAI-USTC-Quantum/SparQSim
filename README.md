@@ -5,6 +5,7 @@
 [![PyPI](https://img.shields.io/pypi/v/pysparq.svg)](https://pypi.org/project/pysparq/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub](https://img.shields.io/badge/GitHub-IAI--USTC--Quantum%2FSparQSim-181717?logo=github)](https://github.com/IAI-USTC-Quantum/SparQSim)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-4D6AE4)](https://iai-ustc-quantum.github.io/SparQSim/)
 
 > **pysparq —— 稀疏态量子电路模拟器的全功能 Python 框架（Register Level Programming、原生 QRAM、动态算子、RIR 解释器）**
 
@@ -19,8 +20,8 @@ QRAM 基座（Common + QRAM + ThirdParty）在
 
 | 仓库 | 内容 | PyPI 包 |
 |------|------|---------|
-| **SparQSim**（本仓库） | SparQ C++ 框架 + pysparq 全功能 Python 框架（core.cpp 富绑定 + 纯 Python 算法层）+ `qram_simulator` 薄绑定 | `pysparq`、`qram-simulator` |
-| [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) | 纯 C++ QRAM 基座（Common + QRAM 电路核心 + QRAM 论文实验） | 无（纯 C++） |
+| **SparQSim**（本仓库） | SparQ C++ 框架 + pysparq 全功能 Python 框架（core.cpp 富绑定 + 纯 Python 算法层） | `pysparq` |
+| [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) | 纯 C++ QRAM 基座（Common + QRAM 电路核心 + QRAM 论文实验 + pybind11 薄绑定） | `qram-simulator` |
 
 ## 安装
 
@@ -29,6 +30,14 @@ pip install pysparq
 ```
 
 **要求**：Python 3.10 – 3.13，NumPy。
+
+需要 QRAM 电路级 Python API（`QRAMCircuitQubit`/`QRAMCircuitQutrit` 噪声
+仿真工作流）时，另行安装 [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)
+仓库发布的独立包：
+
+```bash
+pip install qram-simulator
+```
 
 **GPU 支持**：CUDA/GPU 后端当前在 CMake 中临时屏蔽，默认只构建 CPU 路径。
 
@@ -109,7 +118,6 @@ dist = ps.Probability.distribution(state, reg)  # 单寄存器完整结果分布
 SparQSim/
 ├── SparQ/                  # SparQ C++ 稀疏态模拟器（伞形目标 SparQ 在根 CMake 定义）
 ├── SparQ_Algorithm/        # 高层算法 C++ 库（态制备、块编码、哈密顿模拟、QDA 等）
-├── bindings/python/        # qram_simulator 薄绑定（从核心仓迁入）
 ├── Experiments/            # 量子算法 C++ 实验（QDA/Grover/QFT/Shor/QCNN/CKS/GHZ 等）
 ├── test/                   # C++ 测试（SparQ 单测 + CommonTest 完整版；SPARQ_BUILD_TESTS 门控）
 ├── extern/qram-simulator/  # QRAM 基座 submodule（Common + QRAM + ThirdParty，相对 URL ../QRAM-Simulator.git）
