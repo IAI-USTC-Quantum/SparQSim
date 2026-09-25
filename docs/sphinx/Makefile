@@ -22,15 +22,18 @@ help:
 doxygen:
 	cd "$(DOXYGENDIR)" && doxygen Doxyfile
 
+# -b html, NOT -M html: make mode (-M) appends html/ + doctrees/ under the
+# given outdir, nesting the site one level too deep
+# (build/html/zh/html/... -> /SparQSim/en/index.html 404s)
 html: doxygen
-	$(SPHINXBUILD) -M html "$(SOURCEDIR)/zh" "$(BUILDDIR)/html/zh" $(SPHINXOPTS) $(O)
-	$(SPHINXBUILD) -M html "$(SOURCEDIR)/en" "$(BUILDDIR)/html/en" $(SPHINXOPTS) $(O)
+	$(SPHINXBUILD) -b html -d "$(BUILDDIR)/doctrees/zh" "$(SOURCEDIR)/zh" "$(BUILDDIR)/html/zh" $(SPHINXOPTS) $(O)
+	$(SPHINXBUILD) -b html -d "$(BUILDDIR)/doctrees/en" "$(SOURCEDIR)/en" "$(BUILDDIR)/html/en" $(SPHINXOPTS) $(O)
 
 zh: doxygen
-	$(SPHINXBUILD) -M html "$(SOURCEDIR)/zh" "$(BUILDDIR)/html/zh" $(SPHINXOPTS) $(O)
+	$(SPHINXBUILD) -b html -d "$(BUILDDIR)/doctrees/zh" "$(SOURCEDIR)/zh" "$(BUILDDIR)/html/zh" $(SPHINXOPTS) $(O)
 
 en: doxygen
-	$(SPHINXBUILD) -M html "$(SOURCEDIR)/en" "$(BUILDDIR)/html/en" $(SPHINXOPTS) $(O)
+	$(SPHINXBUILD) -b html -d "$(BUILDDIR)/doctrees/en" "$(SOURCEDIR)/en" "$(BUILDDIR)/html/en" $(SPHINXOPTS) $(O)
 
 livehtml:
 	sphinx-autobuild "$(SOURCEDIR)/zh" "$(BUILDDIR)/html/zh" $(SPHINXOPTS)
