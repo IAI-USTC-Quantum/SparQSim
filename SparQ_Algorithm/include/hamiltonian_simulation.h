@@ -802,39 +802,39 @@ namespace qram_simulator
 			void operator()(std::vector<System>& state) const;
 #ifdef USE_CUDA
 			/**
-			 * @brief CUDA 应用快速二分查找
-			 * @param state CUDA 稀疏状态
+			 * @brief CUDA: applies the fast binary search
+			 * @param state CUDA sparse state
 			 */
 			void operator()(CuSparseState& state) const;
 #endif
 		};
 
 		/**
-		 * @brief 行首地址计算算子（自伴）
-		 * @details 执行 row_offset ^= offset + row_sz * row，即行 row 在 QRAM
-		 *          行式定长存储中对应段的起始地址（每行固定 row_sz 个槽位）；
-		 *          两次调用相互抵消。
+		 * @brief Row-start address computation operator (self-adjoint)
+		 * @details Performs row_offset ^= offset + row_sz * row, i.e. the start address of the segment corresponding
+		 *          to row row in the QRAM row-wise fixed-length storage (each row occupies a fixed row_sz slots);
+		 *          two invocations cancel each other.
 		 */
 		struct GetRowAddr : SelfAdjointOperator
 		{
 			using SelfAdjointOperator::operator();
 			using SelfAdjointOperator::dag;
 
-			/** @brief 段起始偏移寄存器 ID */
+			/** @brief Register ID of the segment start offset */
 			size_t offset_id;
-			/** @brief 行号寄存器 ID */
+			/** @brief Register ID of the row index */
 			size_t row_id;
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_sz;
-			/** @brief 行首地址输出寄存器 ID（以 XOR 方式写入） */
+			/** @brief Register ID of the row-start address output (written by XOR) */
 			size_t row_offset_id;
 
 			/**
-			 * @brief 构造函数（寄存器名称版本）
-			 * @param reg_offset 段起始偏移寄存器名称
-			 * @param reg_row 行号寄存器名称
-			 * @param row_sz_ 每行的槽位数
-			 * @param reg_row_offset 行首地址输出寄存器名称
+			 * @brief Constructor (register-name version)
+			 * @param reg_offset Name of the segment start offset register
+			 * @param reg_row Name of the row-index register
+			 * @param row_sz_ Number of slots per row
+			 * @param reg_row_offset Name of the row-start address output register
 			 */
 			GetRowAddr(std::string_view reg_offset,
 				std::string_view reg_row,
@@ -848,11 +848,11 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版本）
-			 * @param reg_offset 段起始偏移寄存器 ID
-			 * @param reg_row 行号寄存器 ID
-			 * @param row_sz_ 每行的槽位数
-			 * @param reg_row_offset 行首地址输出寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param reg_offset Register ID of the segment start offset
+			 * @param reg_row Register ID of the row index
+			 * @param row_sz_ Number of slots per row
+			 * @param reg_row_offset Register ID of the row-start address output
 			 */
 			GetRowAddr(int reg_offset,
 				int reg_row,
@@ -866,14 +866,14 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 计算行首地址
-			 * @param state 系统状态向量
+			 * @brief Computes the row-start address
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 #ifdef USE_CUDA
 			/**
-			 * @brief CUDA 计算行首地址
-			 * @param state CUDA 稀疏状态
+			 * @brief CUDA: computes the row-start address
+			 * @param state CUDA sparse state
 			 */
 			void operator()(CuSparseState& state) const;
 #endif
