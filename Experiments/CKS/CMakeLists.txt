@@ -11,22 +11,9 @@ target_link_libraries(${PROJECT_NAME}_Noisy SparQ)
 
 if (CUDA_FOUND)
 	add_executable(${PROJECT_NAME}_cutest cks_cutest.cu)
-	target_link_libraries(${PROJECT_NAME}_cutest SparQ_cuda)
+	target_link_libraries(${PROJECT_NAME}_cutest PRIVATE SparQ_cuda)
 
-	set_target_properties(${PROJECT_NAME}_cutest
-	  PROPERTIES
-	  CUDA_STANDARD 17
-	  CUDA_STANDARD_REQUIRED ON
-	  CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES}  
-	  CUDA_SEPARABLE_COMPILATION ON  
-	  CUDA_RESOLVE_DEVICE_SYMBOLS ON
-	)
-
-	target_compile_options(${PROJECT_NAME}_cutest PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-	--generate-line-info
-	--use_fast_math
-	--relocatable-device-code=true
-	--extended-lambda
-	--expt-relaxed-constexpr
-	>)
+	# 目标配置统一由子模块 cmake/CUDA.cmake 的 sparq_setup_cuda_target 提供。
+	include(${QRAM_CORE_DIR}/cmake/CUDA.cmake)
+	sparq_setup_cuda_target(${PROJECT_NAME}_cutest)
 endif()
