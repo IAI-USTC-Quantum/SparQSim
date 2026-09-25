@@ -1,14 +1,14 @@
 """
-Grover 搜索算法测试。
+Grover search algorithm tests.
 
-测试内容：
-- GroverOracle: 相位翻转标记状态
-- DiffusionOperator: 关于均匀叠加态的反射
-- GroverOperator: Oracle + Diffusion 组合
-- grover_search: 端到端搜索功能
-- grover_count: 量子计数变体
+Tested content:
+- GroverOracle: phase-flip marking of states
+- DiffusionOperator: reflection about the uniform superposition
+- GroverOperator: Oracle + Diffusion combination
+- grover_search: end-to-end search functionality
+- grover_count: quantum counting variant
 
-参考: Experiments/Grover/GroverTest.cpp
+Reference: Experiments/Grover/GroverTest.cpp
 """
 
 import pytest
@@ -26,10 +26,10 @@ from pysparq.algorithms.grover import (
 
 
 class TestGroverOracle:
-    """测试 Grover Oracle 功能。"""
+    """Test Grover Oracle functionality."""
 
     def test_oracle_flips_marked_state_phase(self, fresh_system):
-        """Oracle 应该对匹配搜索值的状态应用 -1 相位。"""
+        """The oracle should apply a -1 phase to states matching the search value."""
         memory = [5, 12, 3, 8, 15, 7, 2, 9]
         target = 8
 
@@ -51,7 +51,7 @@ class TestGroverOracle:
         assert state.size() >= 1
 
     def test_oracle_self_adjoint(self, fresh_system):
-        """Oracle 应该是自伴的（应用两次 = 恒等）。"""
+        """The oracle should be self-adjoint (applying twice = identity)."""
         memory = [1, 2, 3, 4]
         n_bits = 2
 
@@ -71,7 +71,7 @@ class TestGroverOracle:
         ps.CheckNormalization(1e-6)(state)
 
     def test_oracle_with_condition(self, fresh_system):
-        """测试带条件的 Oracle 执行。"""
+        """Test conditional oracle execution."""
         memory = [1, 2, 3, 4]
         n_bits = 2
 
@@ -94,7 +94,7 @@ class TestGroverOracle:
 
 
 class TestDiffusionOperator:
-    """测试扩散算子功能。"""
+    """Test diffusion operator functionality."""
 
     def test_diffusion_on_zero_state(self, fresh_system):
         """D|0> should produce a superposition (not simply -|0>).
@@ -118,7 +118,7 @@ class TestDiffusionOperator:
         assert abs(total_prob - 1.0) < 1e-10
 
     def test_diffusion_on_uniform_superposition(self, fresh_system):
-        """均匀叠加态是 D 的本征向量，本征值为 -1。"""
+        """The uniform superposition is an eigenvector of D with eigenvalue -1."""
         n_bits = 2
         ps.System.add_register("addr", ps.UnsignedInteger, n_bits)
         state = ps.SparseState()
@@ -140,7 +140,7 @@ class TestDiffusionOperator:
             assert abs(basis.amplitude - expected) < 1e-10
 
     def test_diffusion_self_adjoint(self, fresh_system):
-        """扩散算子应该是自伴的。"""
+        """The diffusion operator should be self-adjoint."""
         n_bits = 2
         ps.System.add_register("addr", ps.UnsignedInteger, n_bits)
         state = ps.SparseState()
@@ -154,7 +154,7 @@ class TestDiffusionOperator:
         assert state.size() == 1
 
     def test_diffusion_with_condition(self, fresh_system):
-        """测试带条件的扩散。"""
+        """Test conditional diffusion."""
         n_bits = 2
         ps.System.add_register("addr", ps.UnsignedInteger, n_bits)
         ps.System.add_register("cond", ps.Boolean, 1)
@@ -170,10 +170,10 @@ class TestDiffusionOperator:
 
 
 class TestGroverOperator:
-    """测试组合 Grover 算子。"""
+    """Test the combined Grover operator."""
 
     def test_grover_operator_basic(self, fresh_system):
-        """测试基本 Grover 算子执行。"""
+        """Test basic Grover operator execution."""
         memory = [1, 2, 3, 4]
         n_bits = 2
 
@@ -193,7 +193,7 @@ class TestGroverOperator:
         assert state.size() >= 1
 
     def test_grover_operator_multiple_iterations(self, fresh_system):
-        """测试多次 Grover 迭代。"""
+        """Test multiple Grover iterations."""
         memory = [1, 2, 3, 4, 5, 6, 7, 8]
         n_bits = 3
         data_size = 8
@@ -217,10 +217,10 @@ class TestGroverOperator:
 
 
 class TestGroverSearch:
-    """测试端到端 Grover 搜索。"""
+    """Test end-to-end Grover search."""
 
     def test_single_target_search_small(self, fresh_system):
-        """小型数据库单目标搜索。"""
+        """Single-target search on a small database."""
         memory = [1, 2, 3, 4]
         target = 2
 
@@ -230,7 +230,7 @@ class TestGroverSearch:
         assert prob > 0
 
     def test_single_target_search_medium(self, fresh_system):
-        """中型数据库单目标搜索。"""
+        """Single-target search on a medium database."""
         memory = [5, 12, 3, 8, 15, 7, 2, 9]
         target = 8
 
@@ -240,7 +240,7 @@ class TestGroverSearch:
         assert prob > 0
 
     def test_auto_iterations(self, fresh_system):
-        """测试自动迭代次数计算。"""
+        """Test automatic iteration count computation."""
         memory = [1, 2, 3, 4, 5, 6, 7, 8]
         target = 5
 
@@ -250,7 +250,7 @@ class TestGroverSearch:
         assert prob > 0
 
     def test_search_returns_valid_index(self, fresh_system):
-        """验证搜索返回有效索引。"""
+        """Verify the search returns a valid index."""
         memory = [10, 20, 30, 40]
         target = 30
 
@@ -261,11 +261,11 @@ class TestGroverSearch:
 
 
 class TestGroverCount:
-    """测试量子计数变体。"""
+    """Test the quantum counting variant."""
 
     @pytest.mark.slow
     def test_count_single_marked_item(self, fresh_system):
-        """测试单标记项计数。"""
+        """Test counting with a single marked item."""
         memory = [5, 12, 3, 8, 15, 7, 2, 9]
         target = 8
 
@@ -275,7 +275,7 @@ class TestGroverCount:
 
     @pytest.mark.slow
     def test_count_multiple_marked_items(self, fresh_system):
-        """测试多标记项计数。"""
+        """Test counting with multiple marked items."""
         memory = [5, 5, 5, 8, 8, 7, 2, 9]  # three 5s
         target = 5
 
@@ -285,10 +285,10 @@ class TestGroverCount:
 
 
 class TestGroverAlgorithmProperties:
-    """测试 Grover 算法的数学性质。"""
+    """Test mathematical properties of the Grover algorithm."""
 
     def test_probability_amplitude_amplification(self, fresh_system):
-        """验证振幅放大效果。"""
+        """Verify the amplitude amplification effect."""
         memory = [1, 2, 3, 4, 5, 6, 7, 8]
         target = 5
 
@@ -298,7 +298,7 @@ class TestGroverAlgorithmProperties:
         assert prob2 > 0
 
     def test_measurement_collapse(self, fresh_system):
-        """验证测量后的状态坍缩。"""
+        """Verify state collapse after measurement."""
         memory = [1, 2, 3, 4]
         target = 2
 

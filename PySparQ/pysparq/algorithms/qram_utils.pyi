@@ -56,5 +56,5 @@ def make_func_inv(value: int, n_digit: int) -> list[complex]:
 
 
 def create_qram_utils_demo() -> str:
-    """返回展示本模块典型用法的演示脚本字符串。"""
+    """Return a demo script string showing typical usage of this module."""
     ...

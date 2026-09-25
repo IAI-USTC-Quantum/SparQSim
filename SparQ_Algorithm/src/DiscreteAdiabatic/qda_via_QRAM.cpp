@@ -1,7 +1,8 @@
 /**
  * @file qda_via_QRAM.cpp
- * @brief 基于 QRAM 的 QDA 求解器实现
- * @details 实现 qda_via_QRAM.h 中声明的 Walk_s_via_QRAM 系列与 WalkSequence_via_QRAM_Debug 求解序列
+ * @brief Implementation of the QRAM-based QDA solver
+ * @details Implements the Walk_s_via_QRAM family and the WalkSequence_via_QRAM_Debug
+ *          solving sequence declared in qda_via_QRAM.h
  */
 #include "DiscreteAdiabatic/qda_via_QRAM.h"
 

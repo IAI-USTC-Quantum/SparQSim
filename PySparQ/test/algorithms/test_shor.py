@@ -1,14 +1,14 @@
 """
-Shor 分解算法测试。
+Shor factoring algorithm tests.
 
-测试内容：
-- general_expmod: 模幂运算
-- find_best_fraction: Farey 序列分数近似
-- compute_period: 从测量结果计算周期
-- check_period: 周期有效性检查
-- factor: 端到端分解功能
+Tested content:
+- general_expmod: modular exponentiation
+- find_best_fraction: Farey sequence fraction approximation
+- compute_period: computing the period from measurement results
+- check_period: period validity check
+- factor: end-to-end factoring functionality
 
-参考: CPP examples 中的 Shor 模式
+Reference: the Shor pattern in the CPP examples
 """
 
 import pytest
@@ -29,7 +29,7 @@ from pysparq.algorithms.shor import (
 
 
 class TestGeneralExpmod:
-    """测试模幂运算。"""
+    """Test modular exponentiation."""
 
     @pytest.mark.parametrize(
         "a,x,N,expected",
@@ -57,7 +57,7 @@ class TestGeneralExpmod:
 
 
 class TestFindBestFraction:
-    """测试连分数分数近似。"""
+    """Test continued-fraction approximation."""
 
     def test_exact_fraction(self):
         # 64/256 = 1/4
@@ -97,7 +97,7 @@ class TestFindBestFraction:
 
 
 class TestComputePeriod:
-    """测试周期计算。"""
+    """Test period computation."""
 
     def test_valid_period_from_measurement(self):
         # For a=2, N=15, period r=4: measurement y = 64 (c=1)
@@ -124,7 +124,7 @@ class TestComputePeriod:
 
 
 class TestCheckPeriod:
-    """测试周期有效性检查。"""
+    """Test period validity check."""
 
     def test_valid_even_period(self):
         check_period(4, 2, 15)  # a=2, r=4 valid
@@ -144,7 +144,7 @@ class TestCheckPeriod:
 
 
 class TestShorPostprocess:
-    """测试经典后处理。"""
+    """Test classical post-processing."""
 
     def test_postprocess_returns_factors(self):
         p, q = shor_postprocess(64, 8, 2, 15)
@@ -155,10 +155,10 @@ class TestShorPostprocess:
 
 
 class TestShorFactorization:
-    """测试 Shor 分解算法。"""
+    """Test the Shor factoring algorithm."""
 
     def test_factor_15(self, fresh_system):
-        """分解 15 = 3 * 5。"""
+        """Factor 15 = 3 * 5."""
         # Semi-classical Shor result depends on quantum measurement
         p, q = factor(15, a=2)
         assert p * q == 15
@@ -185,7 +185,7 @@ class TestShorFactorization:
 
 
 class TestSemiClassicalShor:
-    """测试半经典 Shor 实现。"""
+    """Test the semi-classical Shor implementation."""
 
     def test_init(self, fresh_system):
         shor = SemiClassicalShor(a=2, N=15)
@@ -213,7 +213,7 @@ class TestSemiClassicalShor:
 
 
 class TestShorAlgorithmProperties:
-    """测试 Shor 算法的数学性质。"""
+    """Test mathematical properties of the Shor algorithm."""
 
     def test_period_finding_consistency(self):
         assert general_expmod(2, 4, 15) == 1

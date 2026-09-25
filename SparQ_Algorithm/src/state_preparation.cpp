@@ -1,7 +1,7 @@
 /**
  * @file state_preparation.cpp
- * @brief 态制备实现
- * @details 实现 state_preparation.h 中声明的 State_Prep_via_QRAM 与 state_preparation_demo 演示驱动
+ * @brief State preparation implementation
+ * @details Implements State_Prep_via_QRAM and the state_preparation_demo demo driver declared in state_preparation.h
  */
 #include "state_preparation.h"
 

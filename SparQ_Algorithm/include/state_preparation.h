@@ -1,12 +1,14 @@
 /**
  * @file state_preparation.h
- * @brief 基于 QRAM 的任意稀疏态制备
- * @details 通过二叉树逐层振幅分裂制备目标分布：每层从工作寄存器切出 1 位
- *          旋转比特，用 QRAM 读取父/子节点振幅并计算比例角，施加条件旋转
- *          （CondRot_Fixed_Bool）后卸载辅助寄存器。含算子版（State_Prep_via_QRAM）
- *          与演示驱动（state_preparation_demo 命名空间）。
- *          对应的 Python 实现见 pysparq.algorithms.state_preparation，
- *          C++ 实验入口见 Experiments/StatePreparation
+ * @brief QRAM-based arbitrary sparse state preparation
+ * @details Prepares the target distribution via layer-by-layer amplitude splitting over a binary
+ *          tree: each layer splits 1 rotation qubit off the working register, uses the QRAM to
+ *          read the parent/child node amplitudes and compute the ratio angle, applies the
+ *          conditional rotation (CondRot_Fixed_Bool) and then unloads the ancillary registers.
+ *          Contains the operator version (State_Prep_via_QRAM) and a demo driver (the
+ *          state_preparation_demo namespace). The corresponding Python implementation is in
+ *          pysparq.algorithms.state_preparation; the C++ experiment entry point is in
+ *          Experiments/StatePreparation
  */
 
 #pragma once
@@ -18,39 +20,40 @@
 namespace qram_simulator {
 	/**
 	 * @namespace qram_simulator::state_prep
-	 * @brief 态制备算子
+	 * @brief State preparation operators
 	 */
 	namespace state_prep {
 		/**
-		 * @brief 基于 QRAM 的态制备算子（复合算子）
-		 * @details 把存于 QRAM 的目标分布逐位制备到工作寄存器：第 k 层切出
-		 *          旋转比特，构造父/子地址（addr_parent/addr_child）与父/子数据
-		 *          （data_parent/data_child），QRAM 加载后用
-		 *          Div_Sqrt_Arccos_UInt_UInt / GetRotateAngle_Int_Int 计算旋转角，
-		 *          条件旋转写入振幅比例，再以 dagger 序列卸载全部辅助量。
-		 *          支持条件控制（ClassControllable）
+		 * @brief QRAM-based state preparation operator (composite operator)
+		 * @details Prepares the target distribution stored in the QRAM into the working register
+		 *          bit by bit: layer k splits off the rotation qubit, builds the parent/child
+		 *          addresses (addr_parent/addr_child) and parent/child data
+		 *          (data_parent/data_child); after the QRAM load, the rotation angle is computed
+		 *          with Div_Sqrt_Arccos_UInt_UInt / GetRotateAngle_Int_Int, the conditional
+		 *          rotation writes in the amplitude ratio, and then a dagger sequence unloads all
+		 *          ancillary quantities. Supports conditional control (ClassControllable)
 		 */
 		struct State_Prep_via_QRAM : BaseOperator
 		{
-			/** @brief 工作寄存器名称（制备结果所在，同时兼任地址前缀） */
+			/** @brief Working register name (holds the preparation result; also serves as the address prefix) */
 			std::string work_qubit;
-			/** @brief 地址位宽（= 工作寄存器位宽，二叉树层数） */
+			/** @brief Address bit width (= working register bit width, the number of binary-tree layers) */
 			size_t addr_size;
-			/** @brief 数据寄存器位宽（存放振幅分子/分母） */
+			/** @brief Data register bit width (holds amplitude numerators/denominators) */
 			size_t data_size;
-			/** @brief 有理数寄存器位宽（存放除法与反余弦中间结果） */
+			/** @brief Rational register bit width (holds intermediate division and arccosine results) */
 			size_t rational_size;
-			/** @brief 存放目标分布的 QRAM 电路指针 */
+			/** @brief QRAM circuit pointer holding the target distribution */
 			qram_qutrit::QRAMCircuit* qram;
 
 			ClassControllable
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ 存放目标分布的 QRAM 电路指针
-			 * @param work_qubit_ 工作寄存器名称
-			 * @param dsz 数据寄存器位宽
-			 * @param rsz 有理数寄存器位宽
+			 * @brief Constructor
+			 * @param qram_ QRAM circuit pointer holding the target distribution
+			 * @param work_qubit_ Working register name
+			 * @param dsz Data register bit width
+			 * @param rsz Rational register bit width
 			 */
 			State_Prep_via_QRAM(qram_qutrit::QRAMCircuit* qram_,
 				std::string_view work_qubit_,
@@ -61,12 +64,13 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief 正向制备实现
-			 * @details 逐层（k = 0 … addr_size-1）执行：切旋转比特 → 构造父/子
-			 *          地址与数据 → QRAM 加载 → 计算旋转角 → 条件旋转 → 卸载；
-			 *          最后一层用 GetRotateAngle_Int_Int 处理叶子节点角度
-			 * @tparam Ty 状态类型（std::vector<System> 或 SparseState）
-			 * @param state 系统状态
+			 * @brief Forward preparation implementation
+			 * @details Executes layer by layer (k = 0 … addr_size-1): split the rotation qubit →
+			 *          build parent/child addresses and data → QRAM load → compute the rotation
+			 *          angle → conditional rotation → unload; the last layer handles the leaf-node
+			 *          angle with GetRotateAngle_Int_Int
+			 * @tparam Ty State type (std::vector<System> or SparseState)
+			 * @param state System state
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const
@@ -139,12 +143,13 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 逆向（dagger）制备实现
-			 * @details impl 的严格逆序：层序倒转（k = addr_size-1 … 0），
-			 *          每层内部操作按相反顺序以 .dag() 执行，
-			 *          用于把制备好的态还原回初态
-			 * @tparam Ty 状态类型
-			 * @param state 系统状态
+			 * @brief Inverse (dagger) preparation implementation
+			 * @details Strict reverse order of impl: the layer order is reversed
+			 *          (k = addr_size-1 … 0), and within each layer the operations run in the
+			 *          opposite order via .dag(), used to restore a prepared state back to the
+			 *          initial state
+			 * @tparam Ty State type
+			 * @param state System state
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const
@@ -228,36 +233,37 @@ namespace qram_simulator {
 
 	/**
 	 * @namespace qram_simulator::state_preparation_demo
-	 * @brief 态制备演示驱动（实验用）
+	 * @brief State preparation demo driver (for experiments)
 	 */
 	namespace state_preparation_demo {
 
 		/**
-		 * @brief 稀疏态演示载体
-		 * @details 构造时注册父/子地址、父/子数据、临时位与有理数寄存器，
-		 *          持有初始 |0⟩ 态；提供清空、排序、打印与运行入口
+		 * @brief Sparse state demo carrier
+		 * @details Registers the parent/child addresses, parent/child data, temporary bit, and
+		 *          rational registers at construction, holds the initial |0⟩ state; provides
+		 *          clear, sort, print, and run entry points
 		 */
 		struct SparseStateDemo
 		{
-			/** @brief 地址位宽 */
+			/** @brief Address bit width */
 			size_t addr_size;
-			/** @brief 数据位宽 */
+			/** @brief Data bit width */
 			size_t data_size;
-			/** @brief 有理数位宽 */
+			/** @brief Rational bit width */
 			size_t rational_size;
-			/** @brief 稀疏态（基态向量） */
+			/** @brief Sparse state (vector of basis states) */
 			std::vector<System> system_states;
-			/** @brief QRAM 电路指针（make_qram 后由 set_qram 填充） */
+			/** @brief QRAM circuit pointer (filled by set_qram after make_qram) */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief QRAM 电路版本字符串 */
+			/** @brief QRAM circuit version string */
 			std::string qram_version;
 
 			/**
-			 * @brief 构造函数：注册全部寄存器并制备 |0⟩ 初态
-			 * @param asz 地址位宽
-			 * @param dsz 数据位宽
-			 * @param rsz 有理数位宽
-			 * @param qram_version_ QRAM 电路版本
+			 * @brief Constructor: registers all registers and prepares the |0⟩ initial state
+			 * @param asz Address bit width
+			 * @param dsz Data bit width
+			 * @param rsz Rational bit width
+			 * @param qram_version_ QRAM circuit version
 			 */
 			SparseStateDemo(size_t asz, size_t dsz, size_t rsz, std::string qram_version_)
 				: addr_size(asz), data_size(dsz), rational_size(rsz), qram_version(qram_version_)
@@ -273,51 +279,52 @@ namespace qram_simulator {
 				QRAMLoad::version = qram_version;
 			}
 
-			/** @brief 清空稀疏态（回到单分支 |0⟩） */
+			/** @brief Clear the sparse state (back to the single-branch |0⟩) */
 			void clear_state();
 
-			/** @brief 按基态键排序稀疏态 */
+			/** @brief Sort the sparse state by basis-state key */
 			void sort_state();
 
-			/** @brief 打印稀疏态为字符串 */
+			/** @brief Print the sparse state to a string */
 			std::string to_string() const;
 
-			/** @brief 执行态制备流程 */
+			/** @brief Execute the state preparation pipeline */
 			void run();
 		};
 
 		/**
-		 * @brief 态制备完整演示驱动
-		 * @details 组合经典侧（随机分布生成、二叉树构建、QRAM 构造）与量子侧
-		 *          （SparseStateDemo 载体上的制备执行），并支持噪声注入与
-		 *          保真度统计
+		 * @brief Full state preparation demo driver
+		 * @details Combines the classical side (random distribution generation, binary tree
+		 *          construction, QRAM construction) with the quantum side (preparation execution
+		 *          on the SparseStateDemo carrier), and supports noise injection and fidelity
+		 *          statistics
 		 */
 		class StatePreparation
 		{
 		public:
-			/** @brief 量子侧稀疏态载体 */
+			/** @brief Quantum-side sparse state carrier */
 			SparseStateDemo sparse_state;
-			/** @brief 工作寄存器比特数（= 二叉树层数） */
+			/** @brief Number of working-register qubits (= number of binary-tree layers) */
 			size_t qubit_number;
-			/** @brief 数据位宽 */
+			/** @brief Data bit width */
 			size_t data_size;
-			/** @brief 数据值域上限 */
+			/** @brief Data value range upper bound */
 			size_t data_range;
-			/** @brief 目标分布（经典侧，按地址索引） */
+			/** @brief Target distribution (classical side, indexed by address) */
 			std::vector<size_t> dist;
-			/** @brief 振幅二叉树（经典侧） */
+			/** @brief Amplitude binary tree (classical side) */
 			std::vector<size_t> tree;
-			/** @brief QRAM 电路指针 */
+			/** @brief QRAM circuit pointer */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief QRAM 电路版本字符串 */
+			/** @brief QRAM circuit version string */
 			std::string qram_version;
 
 			/**
-			 * @brief 构造函数
-			 * @param qn 工作寄存器比特数
-			 * @param data_sz 数据位宽
-			 * @param data_range_ 数据值域上限
-			 * @param qram_version_ QRAM 电路版本
+			 * @brief Constructor
+			 * @param qn Number of working-register qubits
+			 * @param data_sz Data bit width
+			 * @param data_range_ Data value range upper bound
+			 * @param qram_version_ QRAM circuit version
 			 */
 			StatePreparation(size_t qn, size_t data_sz, size_t data_range_, std::string qram_version_)
 				: qubit_number(qn), data_size(data_sz), data_range(data_range_),
@@ -326,48 +333,48 @@ namespace qram_simulator {
 			{
 			}
 
-			/** @brief 生成随机目标分布 */
+			/** @brief Generate a random target distribution */
 			void random_distribution();
 
-			/** @brief 打印目标分布 */
+			/** @brief Print the target distribution */
 			void show_distribution();
 
-			/** @brief 获取归一化后的实数目标分布 */
+			/** @brief Get the normalized real-valued target distribution */
 			std::vector<double> get_real_dist();
 
-			/** @brief 由目标分布构建振幅二叉树 */
+			/** @brief Build the amplitude binary tree from the target distribution */
 			void make_tree();
 
-			/** @brief 打印振幅二叉树 */
+			/** @brief Print the amplitude binary tree */
 			void show_tree();
 
-			/** @brief 由二叉树构造 QRAM 内存 */
+			/** @brief Construct the QRAM memory from the binary tree */
 			void make_qram();
 
-			/** @brief 将构造好的 QRAM 电路注入载体 */
+			/** @brief Inject the constructed QRAM circuit into the carrier */
 			void set_qram();
 
 			/**
-			 * @brief 设置 QRAM 噪声模型
-			 * @param noise 噪声参数（各操作类型的错误率）
+			 * @brief Set the QRAM noise model
+			 * @param noise Noise parameters (error rates per operation type)
 			 */
 			void set_noise(const noise_t& noise);
 
-			/** @brief 计算制备态与目标分布的保真度 */
+			/** @brief Compute the fidelity between the prepared state and the target distribution */
 			double get_fidelity() const;
 
-			/** @brief 计算并打印保真度 */
+			/** @brief Compute and print the fidelity */
 			double get_fidelity_show() const;
 
-			/** @brief 打印当前稀疏态（前 10 行，含细节） */
+			/** @brief Print the current sparse state (first 10 lines, with details) */
 			inline void print_state() {
 				StatePrint(0 | Detail)(sparse_state.system_states);
 			}
 
-			/** @brief 执行完整制备流程 */
+			/** @brief Execute the full preparation pipeline */
 			void run();
 
-			/** @brief 清空载体稀疏态 */
+			/** @brief Clear the carrier's sparse state */
 			inline void clear_state() { sparse_state.clear_state(); }
 		};
 

@@ -1,12 +1,12 @@
 /**
  * @file shor.h
- * @brief Shor 量子因数分解算法（标准版 + 半经典版）
- * @details 基于寄存器级编程实现 Shor 算法的量子部分：
- *          模幂算子 ExpMod（|x⟩|z⟩ → |x⟩|z·a^x mod N⟩）、相位估计式完整流程
- *          （Shor）与半经典（测量反馈式）变体 SemiClassicalShor，
- *          以及连分数收尾等经典后处理辅助函数。
- *          对应的 Python 实现见 pysparq.algorithms.shor，
- *          C++ 实验入口见 Experiments/Shor
+ * @brief Shor's quantum factoring algorithm (standard + semi-classical versions)
+ * @details Implements the quantum part of Shor's algorithm via register-level programming:
+ *          the modular exponentiation operator ExpMod (|x⟩|z⟩ → |x⟩|z·a^x mod N⟩), the full
+ *          phase-estimation-style pipeline (Shor) and the semi-classical (measurement-feedback)
+ *          variant SemiClassicalShor, plus classical postprocessing helpers such as the
+ *          continued-fractions finisher. The corresponding Python implementation is in
+ *          pysparq.algorithms.shor; the C++ experiment entry points are in Experiments/Shor
  */
 
 #pragma once
@@ -16,39 +16,40 @@
 namespace qram_simulator {
 	/**
 	 * @namespace qram_simulator::shor
-	 * @brief Shor 因数分解算法组件
+	 * @brief Shor's factoring algorithm components
 	 */
 	namespace shor {
-		/** @brief 模幂函数类型：x ↦ a^x mod N（由经典预计算封装） */
+		/** @brief Modular exponentiation function type: x ↦ a^x mod N (wrapped from classical precomputation) */
 		using ExpModFunc = std::function<size_t(size_t)>;
 
 		/**
-		 * @brief 计算大指数模幂 a^x mod N
-		 * @param a 底数
-		 * @param x 指数（任意大整数）
-		 * @param N 模数（待分解的奇合数）
+		 * @brief Compute the large-exponent modular power a^x mod N
+		 * @param a Base
+		 * @param x Exponent (arbitrarily large integer)
+		 * @param N Modulus (the odd composite to be factored)
 		 * @return a^x mod N
 		 */
 		/* compute a^x mod N for any large x */
 		size_t general_expmod(size_t a, size_t x, size_t N);
 
 		/**
-		 * @brief Shor 算法执行失败异常
-		 * @details 在测量结果无法导出有效周期（后处理失败）等场景抛出
+		 * @brief Shor execution failure exception
+		 * @details Thrown in scenarios such as when the measurement results cannot yield a valid
+		 *          period (postprocessing failure)
 		 */
 		class ShorExecutionFailed : public std::runtime_error
 		{
 		public:
 			/**
-			 * @brief 构造函数
-			 * @param message 异常描述信息
+			 * @brief Constructor
+			 * @param message Exception description
 			 */
 			ShorExecutionFailed(const std::string& message) : std::runtime_error(message) {}
 		};
 
 		/**
-		 * @brief 抛出 Shor 执行失败异常
-		 * @param message 异常描述信息
+		 * @brief Throw a Shor execution failure exception
+		 * @param message Exception description
 		 */
 		inline void throw_bad_shor_result(const std::string& message)
 		{
@@ -56,70 +57,73 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 模幂量子算子（自伴）
-		 * @details 实现 |x⟩|z⟩ → |x⟩|z · (a^x mod N)⟩；
-		 *          模幂函数由经典预计算的 ExpModFunc 提供
-		 *          （周期 r 内的 a^x mod N 查表），量子侧只做函数表查询式变换
+		 * @brief Modular exponentiation quantum operator (self-adjoint)
+		 * @details Implements |x⟩|z⟩ → |x⟩|z · (a^x mod N)⟩; the modular exponentiation function
+		 *          is supplied by the classically precomputed ExpModFunc (a lookup table of
+		 *          a^x mod N over one period r), so the quantum side only performs a
+		 *          function-table-lookup-style transform
 		 */
 		/* compute |x>|z> -> |x>|z ^ (a^x mod N)> */
 		struct ExpMod : SelfAdjointOperator
 		{
-			/** @brief 输入（指数）寄存器 ID */
+			/** @brief Input (exponent) register ID */
 			size_t reg_input;
-			/** @brief 输出（幂值）寄存器 ID */
+			/** @brief Output (power value) register ID */
 			size_t reg_output;
-			/** @brief 经典预计算的模幂函数 */
+			/** @brief Classically precomputed modular exponentiation function */
 			ExpModFunc anc_func;
 
 			/**
-			 * @brief 构造函数
-			 * @param reg_input_ 输入寄存器 ID
-			 * @param reg_output_ 输出寄存器 ID
-			 * @param func 模幂函数
+			 * @brief Constructor
+			 * @param reg_input_ Input register ID
+			 * @param reg_output_ Output register ID
+			 * @param func Modular exponentiation function
 			 */
 			ExpMod(size_t reg_input_, size_t reg_output_, ExpModFunc func)
 				:reg_input(reg_input_), reg_output(reg_output_), anc_func(func)
 			{}
 
 			/**
-			 * @brief 应用模幂操作
-			 * @param state 系统状态向量
+			 * @brief Apply the modular exponentiation operation
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 		};
 
 		/**
-		 * @brief 半经典 Shor 分解器（测量反馈式量子相位估计）
-		 * @details 以逐位测量 + 反馈旋转代替完整的逆 QFT：
-		 *          每测一位就根据已测结果对剩余叠加态施加条件相位旋转，
-		 *          显著减少所需量子比特。run() 执行量子部分并做部分迹读出，
-		 *          postprocess() 用连分数法恢复周期并给出分解结果
+		 * @brief Semi-classical Shor factorizer (measurement-feedback quantum phase estimation)
+		 * @details Replaces the full inverse QFT with bit-by-bit measurement + feedback rotation:
+		 *          after each measured bit, a conditional phase rotation is applied to the remaining
+		 *          superposition based on the bits measured so far, significantly reducing the number
+		 *          of qubits required. run() executes the quantum part and reads out via partial
+		 *          trace; postprocess() recovers the period via continued fractions and produces
+		 *          the factorization result
 		 */
 		/* Seems good */
 		struct SemiClassicalShor
 		{
-			/** @brief 随机底数 a（与 N 互素） */
+			/** @brief Random base a (coprime with N) */
 			size_t a;
-			/** @brief N 的二进制位数 */
+			/** @brief Number of binary digits of N */
 			size_t n;
-			/** @brief 待分解的奇合数 N */
+			/** @brief Odd composite N to be factored */
 			size_t N;
-			/** @brief 工作寄存器位宽（2n） */
+			/** @brief Working register bit width (2n) */
 			size_t size;
-			/** @brief 最终测量结果（run() 填充） */
+			/** @brief Final measurement result (filled by run()) */
 			size_t meas_result = 0;
-			/** @brief 恢复出的周期 r（postprocess() 填充，0 表示失败） */
+			/** @brief Recovered period r (filled by postprocess(), 0 means failure) */
 			size_t period = 0;
-			/** @brief 分解出的因子 p（postprocess() 填充） */
+			/** @brief Factor p (filled by postprocess()) */
 			size_t p = 0;
-			/** @brief 分解出的因子 q（postprocess() 填充） */
+			/** @brief Factor q (filled by postprocess()) */
 			size_t q = 0;
 
 			/**
-			 * @brief 构造函数
-			 * @param a_ 随机底数（与 N 互素）
-			 * @param N_ 待分解的奇合数
-			 * @param n_ N 的二进制位数
+			 * @brief Constructor
+			 * @param a_ Random base (coprime with N)
+			 * @param N_ Odd composite to be factored
+			 * @param n_ Number of binary digits of N
 			 */
 			SemiClassicalShor(size_t a_, size_t N_, size_t n_)
 				: a(a_), N(N_), n(n_), size(n_ * 2)
@@ -127,95 +131,99 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 执行量子部分（半经典相位估计 + 部分迹读出）
-			 * @return 测量结果整数值
+			 * @brief Execute the quantum part (semi-classical phase estimation + partial-trace readout)
+			 * @return Measured result as an integer value
 			 */
 			size_t run();
 
-			/** @brief 经典后处理：连分数恢复周期并计算因子 p、q */
+			/** @brief Classical postprocessing: recover the period via continued fractions and compute factors p, q */
 			void postprocess();
 		};
 
 		/**
-		 * @brief 标准 Shor 分解算子（相位估计式）
-		 * @details 工作寄存器制备叠加态后经 ExpMod 做模幂，
-		 *          再对工作寄存器做部分迹（等价逆 QFT 采样）读出相位信息，
-		 *          由经典后处理恢复周期
+		 * @brief Standard Shor factorization operator (phase-estimation style)
+		 * @details After the working register is prepared in superposition, ExpMod performs modular
+		 *          exponentiation, then a partial trace over the working register (equivalent to
+		 *          inverse-QFT sampling) reads out the phase information, from which the period is
+		 *          recovered by classical postprocessing
 		 */
 		/* Seems good */
 		struct Shor
 		{
-			/** @brief 工作寄存器 ID（存放叠加指数 x） */
+			/** @brief Working register ID (holds the superposed exponent x) */
 			size_t work_reg;
-			/** @brief 辅助寄存器 ID（存放 a^x mod N） */
+			/** @brief Ancillary register ID (holds a^x mod N) */
 			size_t ancilla_reg;
-			/** @brief 经典预计算的模幂函数 */
+			/** @brief Classically precomputed modular exponentiation function */
 			ExpModFunc anc_func;
 
 			/**
-			 * @brief 构造函数
-			 * @param work_register 工作寄存器 ID
-			 * @param ancilla_register 辅助寄存器 ID
-			 * @param a_ 底数 a（仅作语义记录，实际计算走 func）
-			 * @param N_ 模数 N（仅作语义记录）
-			 * @param func 模幂函数
+			 * @brief Constructor
+			 * @param work_register Working register ID
+			 * @param ancilla_register Ancillary register ID
+			 * @param a_ Base a (kept for semantics only; actual computation goes through func)
+			 * @param N_ Modulus N (kept for semantics only)
+			 * @param func Modular exponentiation function
 			 */
 			Shor(size_t work_register, size_t ancilla_register, size_t a_, size_t N_, ExpModFunc func)
 				: work_reg(work_register), ancilla_reg(ancilla_register), anc_func(func)
 			{}
 
 			/**
-			 * @brief 执行 Shor 量子部分
-			 * @param state 系统状态向量
+			 * @brief Execute the quantum part of Shor's algorithm
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 		};
 
 		/**
-		 * @brief 由测量值求最优连分数近似 y/Q 对应的分子分母
-		 * @param y 相位估计测量值
-		 * @param Q 分母上界（通常为 2^size）
-		 * @param N 待分解数（近似结果需分母小于 N）
-		 * @return 最优逼近的 (分子, 分母) 对
+		 * @brief Find the numerator and denominator of the best continued-fractions approximation y/Q
+		 *        for a measured value
+		 * @param y Phase-estimation measured value
+		 * @param Q Denominator upper bound (usually 2^size)
+		 * @param N Number to be factored (the approximation's denominator must be less than N)
+		 * @return (numerator, denominator) pair of the best approximation
 		 */
 		std::pair<size_t, size_t> find_best_fraction(size_t y, size_t Q, size_t N);
 
 		/**
-		 * @brief 由测量结果计算周期 r
-		 * @param meas_result 相位估计测量值
-		 * @param size 工作寄存器位宽
-		 * @param N 待分解数
-		 * @return 候选周期（0 表示失败）
+		 * @brief Compute the period r from a measurement result
+		 * @param meas_result Phase-estimation measured value
+		 * @param size Working register bit width
+		 * @param N Number to be factored
+		 * @return Candidate period (0 means failure)
 		 */
 		uint64_t compute_period(uint64_t meas_result, size_t size, size_t N);
 
 		/**
-		 * @brief 校验周期候选：r 须为偶且 a^{r/2} ≢ -1 (mod N)
-		 * @param period 周期候选
-		 * @param a 底数
-		 * @param N 待分解数
-		 * @throws ShorExecutionFailed 校验失败时抛出
+		 * @brief Validate a period candidate: r must be even and a^{r/2} ≢ -1 (mod N)
+		 * @param period Period candidate
+		 * @param a Base
+		 * @param N Number to be factored
+		 * @throws ShorExecutionFailed Thrown when validation fails
 		 */
 		void check_period(uint64_t period, uint64_t a, uint64_t N);
 
 		/**
-		 * @brief Shor 经典后处理：由测量值恢复周期并计算因子
-		 * @param meas 相位估计测量值
-		 * @param size 工作寄存器位宽
-		 * @param a 底数
-		 * @param N 待分解数
-		 * @return (p, q) 因子对（失败时返回无效值）
-		 * @throws ShorExecutionFailed 无法恢复有效周期时抛出
+		 * @brief Shor classical postprocessing: recover the period from a measured value and compute factors
+		 * @param meas Phase-estimation measured value
+		 * @param size Working register bit width
+		 * @param a Base
+		 * @param N Number to be factored
+		 * @return (p, q) factor pair (invalid values on failure)
+		 * @throws ShorExecutionFailed Thrown when no valid period can be recovered
 		 */
 		std::tuple<uint64_t, uint64_t> shor_postprocess(uint64_t meas, size_t size, uint64_t a, uint64_t N);
 
 		/**
-		 * @brief 标准 Shor 分解完整流程（C++ 实验入口）
-		 * @details 随机（或指定）底数 a → 预计算模幂表 → 量子相位估计 →
-		 *          部分迹读出 → 连分数后处理输出因子
-		 * @param N 待分解的奇合数
-		 * @param ainput 可选指定底数（缺省随机选取）
-		 * @return 0 表示流程完成；1 表示 a 与 N 不互素（此时 gcd(a,N) 即因子）
+		 * @brief Full standard Shor factorization pipeline (C++ experiment entry point)
+		 * @details Random (or specified) base a → precompute the modular exponentiation table →
+		 *          quantum phase estimation → partial-trace readout → continued-fractions
+		 *          postprocessing to output the factors
+		 * @param N Odd composite to be factored
+		 * @param ainput Optionally specified base (chosen at random by default)
+		 * @return 0 means the pipeline completed; 1 means a and N are not coprime (in that case
+		 *         gcd(a,N) is already a factor)
 		 */
 		inline int common_shor(size_t N, std::optional<size_t> ainput = std::nullopt)
 		{
@@ -273,12 +281,13 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 半经典 Shor 分解完整流程（C++ 实验入口）
-		 * @details 与 common_shor 相同的经典准备，量子部分改用
-		 *          SemiClassicalShor 的逐位测量反馈式相位估计
-		 * @param N 待分解的奇合数
-		 * @param ainput 可选指定底数（缺省随机选取）
-		 * @return 0 表示流程完成；1 表示 a 与 N 不互素（此时 gcd(a,N) 即因子）
+		 * @brief Full semi-classical Shor factorization pipeline (C++ experiment entry point)
+		 * @details Same classical preparation as common_shor, but the quantum part instead uses
+		 *          SemiClassicalShor's bit-by-bit measurement-feedback phase estimation
+		 * @param N Odd composite to be factored
+		 * @param ainput Optionally specified base (chosen at random by default)
+		 * @return 0 means the pipeline completed; 1 means a and N are not coprime (in that case
+		 *         gcd(a,N) is already a factor)
 		 */
 		inline auto semi_classical_shor(size_t N, std::optional<size_t> ainput = std::nullopt)
 		{

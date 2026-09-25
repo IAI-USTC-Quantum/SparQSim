@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-动态算子模块单元测试
+Dynamic operator module unit tests
 
-测试 compile_operator 功能：
-- 简单 SelfAdjointOperator 编译
-- 带构造函数参数的算子
-- BaseOperator 和 SelfAdjointOperator 区别
-- 编译错误处理
-- 编译缓存机制
+Tests compile_operator functionality:
+- Simple SelfAdjointOperator compilation
+- Operators with constructor arguments
+- Difference between BaseOperator and SelfAdjointOperator
+- Compilation error handling
+- Compilation caching mechanism
 """
 
 import pytest
@@ -15,13 +15,14 @@ import shutil
 import sys
 import os
 
-# JIT 编译依赖 g++（见 CONTRIBUTING）；无编译器环境（如无 MinGW 的
-# Windows runner）整模块跳过，而非逐用例报错
+# JIT compilation depends on g++ (see CONTRIBUTING); skip the whole module in
+# environments without a compiler (e.g. a Windows runner without MinGW),
+# rather than failing case by case
 if not shutil.which("g++"):
     pytest.skip("g++ not available — dynamic operator JIT tests skipped",
                 allow_module_level=True)
 
-# 添加项目根目录到路径
+# Add the project root directory to the path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
@@ -35,10 +36,10 @@ from pysparq.dynamic_operator import (
 
 
 class TestCompileOperator:
-    """测试 compile_operator 函数"""
+    """Test the compile_operator function"""
 
     def test_compile_simple_self_adjoint_operator(self):
-        """测试编译简单的 SelfAdjointOperator"""
+        """Test compiling a simple SelfAdjointOperator"""
         cpp_code = """
 class TestFlipOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -51,7 +52,7 @@ public:
     }
 };
 """
-        # 编译算子
+        # Compile the operator
         OpClass = compile_operator(
             name="TestFlipOp",
             cpp_code=cpp_code,
@@ -60,12 +61,12 @@ public:
             verbose=False,
         )
 
-        # 验证类创建成功
+        # Verify the class was created successfully
         assert OpClass is not None
         assert OpClass.__name__ == "TestFlipOp"
 
     def test_operator_with_constructor_args(self):
-        """测试带构造函数参数的算子"""
+        """Test an operator with constructor arguments"""
         cpp_code = """
 class TestMultiParamOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -94,14 +95,14 @@ public:
         assert OpClass is not None
         assert OpClass.__name__ == "TestMultiParamOp"
 
-        # 验证文档字符串包含参数信息
+        # Verify the docstring contains parameter information
         assert "reg_id" in OpClass.__doc__
         assert "factor" in OpClass.__doc__
         assert "offset" in OpClass.__doc__
 
     def test_base_vs_self_adjoint(self):
-        """测试 BaseOperator 和 SelfAdjointOperator 的区别"""
-        # SelfAdjointOperator 代码
+        """Test the difference between BaseOperator and SelfAdjointOperator"""
+        # SelfAdjointOperator code
         self_adjoint_code = """
 class TestSelfAdjoint : public SelfAdjointOperator {
     size_t reg_id;
@@ -114,7 +115,7 @@ public:
     }
 };
 """
-        # BaseOperator 代码（需要自定义 dagger）
+        # BaseOperator code (requires a custom dagger)
         base_code = """
 class TestBaseOp : public BaseOperator {
     size_t reg_id;
@@ -157,12 +158,12 @@ public:
         assert BaseOp._base_class == "BaseOperator"
 
     def test_compilation_error_handling(self):
-        """测试编译错误的友好提示"""
-        # 有语法错误的代码
+        """Test the friendly message for compilation errors"""
+        # Code with syntax errors
         bad_cpp_code = """
-class BadOp : public BaseOperator {  // 缺少分号
+class BadOp : public BaseOperator {  // missing semicolon
     void operator()(std::vector<System>& state) const override {
-        undefined_variable = 42;  // 未定义变量
+        undefined_variable = 42;  // undefined variable
     }
 };
 """
@@ -173,12 +174,12 @@ class BadOp : public BaseOperator {  // 缺少分号
                 base_class="BaseOperator",
             )
 
-        # 验证错误信息包含编译错误
+        # Verify the error message mentions the compilation failure
         error_msg = str(exc_info.value)
-        assert "编译失败" in error_msg or "error" in error_msg.lower()
+        assert "Compilation failed" in error_msg or "error" in error_msg.lower()
 
     def test_invalid_base_class(self):
-        """测试无效的基类参数"""
+        """Test an invalid base_class argument"""
         with pytest.raises(ValueError) as exc_info:
             compile_operator(
                 name="TestOp",
@@ -188,7 +189,7 @@ class BadOp : public BaseOperator {  // 缺少分号
         assert "base_class" in str(exc_info.value)
 
     def test_empty_name(self):
-        """测试空名称参数"""
+        """Test an empty name argument"""
         with pytest.raises(ValueError):
             compile_operator(
                 name="",
@@ -196,7 +197,7 @@ class BadOp : public BaseOperator {  // 缺少分号
             )
 
     def test_empty_cpp_code(self):
-        """测试空 C++ 代码参数"""
+        """Test an empty cpp_code argument"""
         with pytest.raises(ValueError):
             compile_operator(
                 name="TestOp",
@@ -205,18 +206,18 @@ class BadOp : public BaseOperator {  // 缺少分号
 
 
 class TestCaching:
-    """测试缓存机制"""
+    """Test the caching mechanism"""
 
     def setup_method(self):
-        """每个测试前清理缓存"""
+        """Clear the cache before each test"""
         clear_cache()
 
     def teardown_method(self):
-        """每个测试后清理缓存"""
+        """Clear the cache after each test"""
         clear_cache()
 
     def test_caching(self):
-        """测试编译缓存"""
+        """Test compilation caching"""
         cpp_code = """
 class TestCachedOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -229,7 +230,7 @@ public:
     }
 };
 """
-        # 第一次编译
+        # First compilation
         OpClass1 = compile_operator(
             name="TestCachedOp",
             cpp_code=cpp_code,
@@ -237,10 +238,10 @@ public:
             constructor_args=[("size_t", "reg_id")],
         )
 
-        # 获取第一次的库路径
+        # Get the library path from the first compilation
         lib_path1 = OpClass1._lib_path
 
-        # 第二次编译相同代码（应该使用缓存）
+        # Second compilation of the same code (should use the cache)
         OpClass2 = compile_operator(
             name="TestCachedOp",
             cpp_code=cpp_code,
@@ -250,17 +251,17 @@ public:
 
         lib_path2 = OpClass2._lib_path
 
-        # 验证两次使用相同的库文件
+        # Verify both compilations used the same library file
         assert lib_path1 == lib_path2
 
     def test_cache_info(self):
-        """测试缓存信息获取"""
-        # 清理后应该为空
+        """Test cache info retrieval"""
+        # Should be empty after clearing
         clear_cache()
         info = get_cache_info()
         assert info["exists"] == True
 
-        # 编译一个算子
+        # Compile an operator
         cpp_code = """
 class TestCacheInfoOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -276,14 +277,14 @@ public:
             constructor_args=[("size_t", "reg_id")],
         )
 
-        # 获取缓存信息
+        # Get cache info
         info = get_cache_info()
         assert info["exists"] == True
         assert info["file_count"] >= 1
 
     def test_clear_cache(self):
-        """测试清除缓存"""
-        # 先编译一个算子
+        """Test clearing the cache"""
+        # First compile an operator
         cpp_code = """
 class TestClearCacheOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -299,24 +300,24 @@ public:
             constructor_args=[("size_t", "reg_id")],
         )
 
-        # 确认有缓存
+        # Confirm the cache exists
         info_before = get_cache_info()
         assert info_before["file_count"] > 0
 
-        # 清除缓存
+        # Clear the cache
         count = clear_cache()
         assert count > 0
 
-        # 确认缓存已清除
+        # Confirm the cache was cleared
         info_after = get_cache_info()
         assert info_after["file_count"] == 0
 
 
 class TestOperatorWrapper:
-    """测试算子包装器功能"""
+    """Test operator wrapper functionality"""
 
     def test_operator_repr(self):
-        """测试算子的字符串表示"""
+        """Test the string representation of an operator"""
         cpp_code = """
 class TestReprOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -333,7 +334,7 @@ public:
             constructor_args=[("size_t", "reg_id"), ("double", "param")],
         )
 
-        # 创建实例并检查 repr
+        # Create an instance and check its repr
         op = OpClass(reg_id=0, param=3.14)
         repr_str = repr(op)
         assert "TestReprOp" in repr_str
@@ -342,10 +343,10 @@ public:
 
 
 class TestAdvancedFeatures:
-    """测试高级功能"""
+    """Test advanced features"""
 
     def test_complex_operator(self):
-        """测试复杂算子编译"""
+        """Test compiling a complex operator"""
         cpp_code = """
 class TestComplexOp : public SelfAdjointOperator {
     size_t reg_a;
@@ -379,7 +380,7 @@ public:
         assert op is not None
 
     def test_operator_with_extra_includes(self):
-        """测试带额外头文件路径的编译"""
+        """Test compilation with extra include paths"""
         cpp_code = """
 class TestIncludeOp : public SelfAdjointOperator {
     size_t reg_id;
@@ -392,7 +393,7 @@ public:
     }
 };
 """
-        # 使用额外的 include 路径（即使为空也应正常工作）
+        # Use extra include paths (should work even when empty)
         OpClass = compile_operator(
             name="TestIncludeOp",
             cpp_code=cpp_code,
@@ -404,7 +405,7 @@ public:
         assert OpClass is not None
 
 
-# ============ 运行测试 ============
+# ============ Run tests ============
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

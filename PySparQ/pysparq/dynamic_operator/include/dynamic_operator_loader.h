@@ -1,7 +1,7 @@
 /**
  * @file dynamic_operator_loader.h
- * @brief C++ 动态算子加载器
- * @details 用于运行时加载编译后的动态链接库（.so/.dll），获取算子工厂函数
+ * @brief C++ dynamic operator loader
+ * @details Loads compiled dynamic libraries (.so/.dll) at runtime and retrieves operator factory functions
  */
 
 #pragma once
@@ -13,88 +13,88 @@
 namespace pysparq {
 
 /**
- * @brief 动态库加载器
- * @details 封装了平台相关的动态库加载功能，支持 Linux(dlopen)、Windows(LoadLibrary) 和 macOS
+ * @brief Dynamic library loader
+ * @details Wraps platform-specific dynamic library loading, supporting Linux (dlopen), Windows (LoadLibrary), and macOS
  */
 class DynamicOperatorLoader {
 public:
     /**
-     * @brief 构造函数，加载指定的动态库
-     * @param lib_path 动态库文件路径（.so/.dll/.dylib）
+     * @brief Constructor, loads the specified dynamic library
+     * @param lib_path Dynamic library file path (.so/.dll/.dylib)
      */
     explicit DynamicOperatorLoader(const std::string& lib_path);
 
     /**
-     * @brief 析构函数，自动卸载动态库
+     * @brief Destructor, automatically unloads the dynamic library
      */
     ~DynamicOperatorLoader();
 
-    // 禁止拷贝（动态库句柄不可复制）
+    // Copying is forbidden (dynamic library handles are not copyable)
     DynamicOperatorLoader(const DynamicOperatorLoader&) = delete;
     DynamicOperatorLoader& operator=(const DynamicOperatorLoader&) = delete;
 
-    // 允许移动
+    // Moving is allowed
     DynamicOperatorLoader(DynamicOperatorLoader&& other) noexcept;
     DynamicOperatorLoader& operator=(DynamicOperatorLoader&& other) noexcept;
 
     /**
-     * @brief 获取动态库中的符号（工厂函数）
-     * @param name 符号名称（如 "create_operator"）
-     * @return 指向符号的指针，失败返回 nullptr
+     * @brief Retrieves a symbol (factory function) from the dynamic library
+     * @param name Symbol name (e.g. "create_operator")
+     * @return Pointer to the symbol, or nullptr on failure
      */
     void* get_symbol(const std::string& name);
 
     /**
-     * @brief 检查动态库是否成功加载
-     * @return true 表示加载成功，false 表示加载失败
+     * @brief Checks whether the dynamic library was loaded successfully
+     * @return true if loading succeeded, false if it failed
      */
     bool is_valid() const;
 
     /**
-     * @brief 获取最后一次错误信息
-     * @return 错误描述字符串，无错误时返回空字符串
+     * @brief Retrieves the most recent error message
+     * @return Error description string, or an empty string when there is no error
      */
     std::string get_error() const;
 
     /**
-     * @brief 获取动态库路径
-     * @return 库文件路径
+     * @brief Retrieves the dynamic library path
+     * @return Library file path
      */
     const std::string& get_lib_path() const;
 
 private:
-    void* handle_;              ///< 动态库句柄（平台相关）
-    std::string lib_path_;      ///< 库文件路径
-    std::string error_msg_;     ///< 错误信息
+    void* handle_;              ///< Dynamic library handle (platform-specific)
+    std::string lib_path_;      ///< Library file path
+    std::string error_msg_;     ///< Error message
 
     /**
-     * @brief 清除当前错误信息
+     * @brief Clears the current error message
      */
     void clear_error();
 
     /**
-     * @brief 设置错误信息（从系统获取）
+     * @brief Sets the error message (obtained from the system)
      */
     void set_error_from_system();
 
     /**
-     * @brief 关闭动态库（内部实现）
+     * @brief Closes the dynamic library (internal implementation)
      */
     void close_library();
 };
 
 /**
- * @brief 工厂函数类型别名
- * @details 用于创建 BaseOperator 派生对象的工厂函数签名
+ * @brief Factory function type alias
+ * @details Signature of a factory function that creates BaseOperator-derived objects
  */
 using CreateOperatorFunc = void* (*)();
 
 /**
- * @brief 带类型的符号获取辅助函数
- * @tparam FuncType 函数指针类型
- * @param loader 动态库加载器
- * @param name 符号名称
- * @return 类型化的函数指针，失败返回 nullptr
+ * @brief Typed symbol retrieval helper
+ * @tparam FuncType Function pointer type
+ * @param loader Dynamic library loader
+ * @param name Symbol name
+ * @return Typed function pointer, or nullptr on failure
  */
 template<typename FuncType>
 FuncType get_typed_symbol(DynamicOperatorLoader& loader, const std::string& name) {

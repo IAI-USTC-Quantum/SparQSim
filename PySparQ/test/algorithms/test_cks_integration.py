@@ -1,13 +1,13 @@
 """
-CKS 集成测试和 Fidelity 验证。
+CKS integration tests and fidelity verification.
 
-测试内容：
-- Chebyshev 系数正确性（与 C++ 参考值对比）
-- 量子游走组件正确性
-- SparseMatrix 构建
-- 端到端 fidelity 测试（当实现完成后）
+Tested content:
+- Chebyshev coefficient correctness (compared against C++ reference values)
+- Quantum walk component correctness
+- SparseMatrix construction
+- End-to-end fidelity tests (once the implementation is complete)
 
-参考: test/CPUTest/CommonTest/CorrectnessTest_Common.inl
+Reference: test/CPUTest/CommonTest/CorrectnessTest_Common.inl
 """
 
 import pytest
@@ -33,18 +33,18 @@ from pysparq.algorithms.cks_solver import (
 def get_fidelity(
     state_amps: dict[int, complex], target_amps: dict[int, complex]
 ) -> float:
-    """计算两个量子态之间的 fidelity。
+    """Compute the fidelity between two quantum states.
 
     Fidelity = |<ψ|φ>|² = |Σᵢ ψᵢ* φᵢ|²
 
-    注意：输入态应该是归一化的（Σ|ψᵢ|² = 1）
+    Note: the input states should be normalized (Σ|ψᵢ|² = 1)
 
     Args:
-        state_amps: 实际态的振幅字典 {basis_index: amplitude}
-        target_amps: 目标态的振幅字典 {basis_index: amplitude}
+        state_amps: amplitude dictionary of the actual state {basis_index: amplitude}
+        target_amps: amplitude dictionary of the target state {basis_index: amplitude}
 
     Returns:
-        Fidelity 值，范围 [0, 1]
+        Fidelity value in the range [0, 1]
     """
     overlap = complex(0, 0)
     all_indices = set(state_amps.keys()) | set(target_amps.keys())
@@ -58,14 +58,14 @@ def get_fidelity(
 
 
 def chebyshev_n(n: int, A: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """计算 T_n(A)|b⟩，用于 CKS 量子游走验证。
+    """Compute T_n(A)|b⟩ for CKS quantum walk verification.
 
-    T_n 是第 n 阶 Chebyshev 多项式。
+    T_n is the n-th order Chebyshev polynomial.
 
     Args:
-        n: Chebyshev 多项式阶数
-        A: 厄米矩阵（归一化到 ||A|| ≤ 1）
-        b: 初始向量
+        n: Chebyshev polynomial order
+        A: Hermitian matrix (normalized so that ||A|| ≤ 1)
+        b: initial vector
 
     Returns:
         T_n(A) @ b
@@ -88,7 +88,7 @@ def chebyshev_n(n: int, A: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 
 def normalize_vector(v: np.ndarray) -> np.ndarray:
-    """归一化向量。"""
+    """Normalize a vector."""
     norm = np.linalg.norm(v)
     if norm > 1e-10:
         return v / norm
@@ -99,7 +99,7 @@ def normalize_vector(v: np.ndarray) -> np.ndarray:
 # C++ Reference Values (from CorrectnessTest_Common.inl)
 # ==============================================================================
 
-# Chebyshev 系数参考值（b=10 时）
+# Chebyshev coefficient reference values (for b=10)
 CHEBYSHEV_COEF_B10 = [
     0.5,
     0.37109375,
@@ -120,29 +120,29 @@ CHEBYSHEV_COEF_B10 = [
 
 
 class TestChebyshevCoefficientCorrectness:
-    """测试 Chebyshev 系数计算的正确性。"""
+    """Test the correctness of Chebyshev coefficient computation."""
 
     def test_coefficient_values_b10(self):
-        """验证 b=10 时的系数值为正且有界。"""
+        """Verify the coefficient values for b=10 are positive and bounded."""
         cheb = ChebyshevPolynomialCoefficient(b=10)
 
         for j in range(cheb.b):
             coef = cheb.coef(j)
-            # 系数应该非负且有界
+            # Coefficients should be non-negative and bounded
             assert coef >= 0, f"j={j}: coefficient should be non-negative, got {coef}"
             assert coef < 10, f"j={j}: coefficient should be bounded, got {coef}"
 
     def test_coefficient_sum(self):
-        """验证系数和的性质。"""
+        """Verify properties of the coefficient sum."""
         for b in [5, 10, 20, 50]:
             cheb = ChebyshevPolynomialCoefficient(b)
 
             total = sum(cheb.coef(j) for j in range(b))
-            # 系数和应该接近某个正数（不是 1，但有界）
+            # The coefficient sum should be close to some positive number (not 1, but bounded)
             assert 0 < total < 10, f"b={b}: total coefficient sum = {total}"
 
     def test_step_size_correctness(self):
-        """验证步长 step(j) = 2j + 1。"""
+        """Verify the step size step(j) = 2j + 1."""
         cheb = ChebyshevPolynomialCoefficient(b=10)
 
         for j in range(cheb.b):
@@ -150,7 +150,7 @@ class TestChebyshevCoefficientCorrectness:
             assert cheb.step(j) == expected, f"j={j}: step should be {expected}"
 
     def test_sign_alternation(self):
-        """验证符号交替：偶数 j 为正，奇数 j 为负。"""
+        """Verify sign alternation: positive for even j, negative for odd j."""
         cheb = ChebyshevPolynomialCoefficient(b=10)
 
         for j in range(cheb.b):
@@ -159,10 +159,10 @@ class TestChebyshevCoefficientCorrectness:
 
 
 class TestRotationMatrixCorrectness:
-    """测试旋转矩阵的正确性。"""
+    """Test the correctness of rotation matrices."""
 
     def test_positive_only_unitary(self):
-        """验证正元素旋转矩阵的酉性。"""
+        """Verify the unitarity of rotation matrices for positive elements."""
         mat_data_size = 8
 
         for v in range(0, 256, 25):
@@ -174,7 +174,7 @@ class TestRotationMatrixCorrectness:
             assert np.allclose(identity, np.eye(2), atol=1e-10), f"v={v}: not unitary"
 
     def test_positive_only_boundary_values(self):
-        """验证边界值。"""
+        """Verify boundary values."""
         mat_data_size = 8
         Amax = 2**mat_data_size - 1
 
@@ -189,34 +189,34 @@ class TestRotationMatrixCorrectness:
         assert abs(mat_max[2]) < 1e-10  # y = 0
 
     def test_common_signed_values(self):
-        """测试带符号矩阵的旋转矩阵。"""
+        """Test rotation matrices for signed matrices."""
         mat_data_size = 8
 
-        # 正值
+        # Positive value
         mat_pos = get_coef_common(mat_data_size, 100, 0, 0)
         R_pos = np.array([[mat_pos[0], mat_pos[1]], [mat_pos[2], mat_pos[3]]])
         assert np.allclose(R_pos @ R_pos.conj().T, np.eye(2), atol=1e-10)
 
-        # 负值（需要更大的值来触发）
+        # Negative value (a larger value is needed to trigger it)
         mat_neg = get_coef_common(mat_data_size, 200, 0, 0)
         R_neg = np.array([[mat_neg[0], mat_neg[1]], [mat_neg[2], mat_neg[3]]])
         assert np.allclose(R_neg @ R_neg.conj().T, np.eye(2), atol=1e-10)
 
 
 class TestSparseMatrixConstruction:
-    """测试稀疏矩阵构建的正确性。"""
+    """Test the correctness of sparse matrix construction."""
 
     def test_from_dense_identity(self):
-        """测试单位矩阵转换。"""
+        """Test identity matrix conversion."""
         A = np.eye(4)
         mat = SparseMatrix.from_dense(A, data_size=8)
 
         assert mat.n_row == 4
-        assert mat.nnz_col == 1  # 每行一个非零元素
+        assert mat.nnz_col == 1  # one nonzero element per row
         assert mat.positive_only == True
 
     def test_from_dense_diagonal(self):
-        """测试对角矩阵。"""
+        """Test a diagonal matrix."""
         A = np.diag([1, 2, 3, 4])
         mat = SparseMatrix.from_dense(A, data_size=8)
 
@@ -224,7 +224,7 @@ class TestSparseMatrixConstruction:
         assert mat.nnz_col == 1
 
     def test_from_dense_tridiagonal(self):
-        """测试三对角矩阵。"""
+        """Test a tridiagonal matrix."""
         n = 4
         A = np.zeros((n, n))
         for i in range(n):
@@ -237,8 +237,8 @@ class TestSparseMatrixConstruction:
         mat = SparseMatrix.from_dense(A, data_size=8)
 
         assert mat.n_row == 4
-        assert mat.nnz_col == 3  # 每行最多 3 个非零元素
-        assert mat.positive_only == False  # 包含负元素
+        assert mat.nnz_col == 3  # at most 3 nonzero elements per row
+        assert mat.positive_only == False  # contains negative elements
 
     def test_from_dense_positive(self):
         """测试正矩阵。"""

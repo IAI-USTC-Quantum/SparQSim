@@ -1,7 +1,7 @@
 /**
  * @file grover.cpp
- * @brief Grover 算法实现
- * @details 实现 grover.h 中声明的 GroverOracle、HPH、GroverOperator、GroverAmplify、GroverCount 及 grover_dense 稠密态旧接口
+ * @brief Grover's algorithm implementation
+ * @details Implements GroverOracle, HPH, GroverOperator, GroverAmplify, GroverCount, and the grover_dense legacy dense-state interface declared in grover.h
  */
 #include "grover.h"
 namespace qram_simulator {	

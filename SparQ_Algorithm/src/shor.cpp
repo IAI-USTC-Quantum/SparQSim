@@ -1,7 +1,7 @@
 /**
  * @file shor.cpp
- * @brief Shor 因数分解实现
- * @details 实现 shor.h 中声明的 ExpMod、Shor、SemiClassicalShor 与连分数后处理函数
+ * @brief Shor's factoring implementation
+ * @details Implements ExpMod, Shor, SemiClassicalShor, and the continued-fractions postprocessing functions declared in shor.h
  */
 #include "shor.h"
 

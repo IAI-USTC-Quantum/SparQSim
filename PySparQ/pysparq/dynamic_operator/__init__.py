@@ -1,20 +1,26 @@
-"""PySparQ 动态算子扩展模块 - 提供运行时编译和加载自定义 C++ 算子的功能。
+"""PySparQ dynamic operator extension module - provides runtime compilation and loading of custom C++ operators.
 
 .. warning::
-   ``compile_operator()`` 只是把用户提供的 ``operator()``/``dag()`` 编译为共享库
-   并用 ctypes 调用；编译成功仅代表代码可以通过 C++ 类型检查，**不代表**、也
-   **不能**静态或动态地证明该算子是酉的（unitary）或 ``operator()``/``dag()``
-   互为逆运算。凡是自行覆盖寄存器、清零寄存器实现 ``dag()``、或以其他方式破坏
-   信息的实现都能顺利通过编译。
+   ``compile_operator()`` merely compiles the user-provided ``operator()``/``dag()``
+   into a shared library and calls it via ctypes; a successful compilation only means
+   the code passes C++ type checking. It does **not** imply, and **cannot** statically
+   or dynamically prove, that the operator is unitary or that ``operator()``/``dag()``
+   are inverses of each other. Any implementation that overwrites registers on its
+   own, implements ``dag()`` by zeroing registers, or destroys information in some
+   other way will compile without complaint.
 
-   因此，本仓库支持的 QCFD 路径（QECC.Lang 驱动的 qfvm/qnls/qham）**禁止**使用
-   ``compile_operator`` 编译得到的动态算子。所有语义必须通过具名、可静态检查的
-   PySparQ 内建算子（或由内建算子组合而成的 Python 组合算子）表达，并通过
-   ``pysparq.conformance`` 提供的一致性测试矩阵（任意非零输出、穷举/抽样基态、
-   碰撞检测、叠加线性性、正/负/多重控制、forward+dagger 与 dagger+forward
-   恒等）验证。``compile_operator`` 仍然是通用（不局限于 QCFD）的运行时算子
-   编译工具，可用于原型验证、教学或与 QCFD 无关的实验，但不应被视为已通过任何
-   酉性证明。
+   Therefore, the QCFD paths supported by this repository (QECC.Lang-driven
+   qfvm/qnls/qham) are **forbidden** from using dynamic operators compiled via
+   ``compile_operator``. All semantics must be expressed through named, statically
+   checkable PySparQ built-in operators (or Python composite operators built from
+   built-in operators), and validated with the conformance test matrix provided by
+   ``pysparq.conformance`` (arbitrary non-zero outputs, exhaustive/sampled basis
+   states, collision detection, linearity on superpositions, positive/negative/
+   multiple controls, and forward+dagger and dagger+forward identity).
+   ``compile_operator`` remains a general-purpose (not QCFD-specific) runtime
+   operator compilation tool that can be used for prototyping, teaching, or
+   experiments unrelated to QCFD, but it must not be treated as having passed any
+   unitarity proof.
 """
 
 from typing import List, Tuple, Type, Optional
@@ -42,7 +48,7 @@ from .operator_wrapper import (
 )
 
 __all__ = [
-    # 编译相关
+    # Compilation related
     "CompilerConfig",
     "CompilationError",
     "compile_cpp_code",
@@ -53,7 +59,7 @@ __all__ = [
     "clear_cache",
     "get_cache_info",
     "quick_compile",
-    # 动态算子相关
+    # Dynamic operator related
     "compile_operator",
     "CppOperatorWrapper",
     "DynamicOperatorError",
@@ -76,46 +82,50 @@ def compile_operator(
     cache_dir: Optional[str] = None,
     verbose: bool = False,
 ) -> Type:
-    """编译 C++ 代码为动态算子类。
+    """Compile C++ code into a dynamic operator class.
 
-    这是一个高级函数，将用户提供的 C++ 代码编译为共享库，
-    并包装为可直接在 Python 中使用的算子类。动态算子可以
-    像原生 PySparQ 算子一样应用于 SparseState。
+    This is a high-level function that compiles user-provided C++ code into a
+    shared library and wraps it into an operator class that can be used directly
+    from Python. A dynamic operator can be applied to a SparseState just like a
+    native PySparQ operator.
 
     Warning:
-        编译成功只表示 ``operator()``/``dag()`` 通过了 C++ 类型检查，
-        **不构成任何酉性证明**：本函数既不静态也不动态验证生成的算子是
-        酉的，或者 ``dag()`` 确实是 ``operator()`` 的逆。因此支持的 QCFD
-        路径（QECC.Lang 驱动的 qfvm/qnls/qham）禁止使用本函数编译的动态
-        算子；QCFD 语义必须使用具名的 PySparQ 内建算子并通过
-        ``pysparq.conformance`` 的一致性测试矩阵验证。
+        A successful compilation only means ``operator()``/``dag()`` passed C++
+        type checking; it **constitutes no unitarity proof whatsoever**: this
+        function neither statically nor dynamically verifies that the generated
+        operator is unitary, or that ``dag()`` is actually the inverse of
+        ``operator()``. Hence the supported QCFD paths (QECC.Lang-driven
+        qfvm/qnls/qham) forbid the use of dynamic operators compiled by this
+        function; QCFD semantics must use named PySparQ built-in operators and
+        be validated with the ``pysparq.conformance`` conformance test matrix.
 
     Args:
-        name: 算子类名。必须是有效的 Python 类名，且必须与 C++ 代码中的类名匹配。
-        cpp_code: C++ 源代码，仅包含类定义部分。代码必须继承自 BaseOperator
-            或 SelfAdjointOperator，并实现 operator() 方法。
-        base_class: 基类名，决定 dagger 行为。可选值：
-            - "BaseOperator": 一般算子，需手动实现 dag() 方法
-            - "SelfAdjointOperator": 厄米算子，dag() 自动等于 operator()
-            默认为 "BaseOperator"。
-        extra_includes: 额外头文件搜索路径列表。PySparQ 头文件会自动包含。
-        extra_libs: 额外链接库列表。大多数算子不需要额外库。
-        constructor_args: 构造函数参数列表，格式为 [(类型, 名称), ...]。
-            支持的类型: size_t, int, long, double, float, bool, uint64_t。
-            示例: [("size_t", "reg_id"), ("double", "phase")]
-        cache_dir: 缓存目录路径。默认使用系统临时目录下的 pysparq_dynamic_ops/。
-        verbose: 是否输出详细编译日志，用于调试。
+        name: Operator class name. Must be a valid Python class name and must match the class name in the C++ code.
+        cpp_code: C++ source code, containing only the class definition part. The code must inherit from
+            BaseOperator or SelfAdjointOperator and implement the operator() method.
+        base_class: Base class name, determines dagger behavior. Allowed values:
+            - "BaseOperator": general operator, requires a manually implemented dag() method
+            - "SelfAdjointOperator": Hermitian operator, dag() automatically equals operator()
+            Defaults to "BaseOperator".
+        extra_includes: List of extra header search paths. PySparQ headers are included automatically.
+        extra_libs: List of extra libraries to link. Most operators need no extra libraries.
+        constructor_args: List of constructor arguments in the form [(type, name), ...].
+            Supported types: size_t, int, long, double, float, bool, uint64_t.
+            Example: [("size_t", "reg_id"), ("double", "phase")]
+        cache_dir: Cache directory path. Defaults to pysparq_dynamic_ops/ under the system temporary directory.
+        verbose: Whether to print verbose compilation logs, useful for debugging.
 
     Returns:
-        动态生成的算子类。可通过关键字参数创建实例，如: OpClass(reg_id=0, phase=1.0)
+        The dynamically generated operator class. Instances are created with keyword
+        arguments, e.g.: OpClass(reg_id=0, phase=1.0)
 
     Raises:
-        CompilationError: C++ 编译失败。错误信息包含详细的编译器输出。
-        DynamicOperatorLoadError: 动态库加载失败。
-        ValueError: 参数错误（如空名称、无效基类等）。
+        CompilationError: C++ compilation failed. The error message contains detailed compiler output.
+        DynamicOperatorLoadError: Failed to load the dynamic library.
+        ValueError: Invalid arguments (e.g. empty name, invalid base class, etc.).
 
     Example:
-        创建一个简单的翻转算子:
+        Create a simple flip operator:
 
         >>> from pysparq.dynamic_operator import compile_operator
         >>>
@@ -139,20 +149,20 @@ def compile_operator(
         ...     constructor_args=[("size_t", "reg_id")]
         ... )
         >>>
-        >>> # 创建实例
+        >>> # Create an instance
         >>> op = FlipOp(reg_id=0)
         >>> print(repr(op))  # FlipOp(reg_id=0)
 
     Note:
-        - 编译的库会基于代码哈希缓存，避免重复编译。
-        - Windows 上可能存在 ABI 兼容性问题（MSVC vs MinGW）。
-        - C++ 类名必须与 Python name 参数匹配。
-        - 算子中的状态访问: s.get(reg_id).value 获取值，s.amplitude 获取振幅。
+        - Compiled libraries are cached by code hash to avoid redundant compilation.
+        - ABI compatibility issues may exist on Windows (MSVC vs MinGW).
+        - The C++ class name must match the Python name parameter.
+        - State access inside operators: s.get(reg_id).value gets the value, s.amplitude gets the amplitude.
 
     See Also:
-        get_cache_info: 查询编译缓存状态。
-        clear_cache: 清除编译缓存。
-        CompilerConfig: 高级编译器配置。
+        get_cache_info: Query the compilation cache status.
+        clear_cache: Clear the compilation cache.
+        CompilerConfig: Advanced compiler configuration.
     """
     if extra_includes is None:
         extra_includes = []
@@ -161,21 +171,21 @@ def compile_operator(
     if constructor_args is None:
         constructor_args = []
 
-    # 参数验证
+    # Argument validation
     if not name or not isinstance(name, str):
-        raise ValueError("name 必须是有效的字符串")
+        raise ValueError("name must be a valid string")
     if not cpp_code or not isinstance(cpp_code, str):
-        raise ValueError("cpp_code 必须是有效的 C++ 代码字符串")
+        raise ValueError("cpp_code must be a valid C++ code string")
 
     valid_base_classes = ["BaseOperator", "SelfAdjointOperator"]
     if base_class not in valid_base_classes:
-        raise ValueError(f"base_class 必须是 {valid_base_classes} 之一")
+        raise ValueError(f"base_class must be one of {valid_base_classes}")
 
-    # 构造构造函数参数字符串
+    # Build the constructor argument strings
     ctor_params = ", ".join(f"{arg_type} {arg_name}" for arg_type, arg_name in constructor_args)
     ctor_args = ", ".join(arg_name for _, arg_name in constructor_args)
 
-    # 使用 Python 增强模板
+    # Use the Python-enhanced template
     config = CompilerConfig(
         include_paths=extra_includes,
         libraries=extra_libs,
@@ -183,18 +193,18 @@ def compile_operator(
     )
 
     if verbose:
-        print(f"[compile_operator] 编译算子: {name}")
-        print(f"[compile_operator] 基类: {base_class}")
-        print(f"[compile_operator] 参数: {ctor_params}")
+        print(f"[compile_operator] Compiling operator: {name}")
+        print(f"[compile_operator] Base class: {base_class}")
+        print(f"[compile_operator] Parameters: {ctor_params}")
 
-    # 自动检测项目根目录
+    # Auto-detect the project root directory
     project_root = find_project_root()
     if project_root is None:
         raise RuntimeError(
-            "无法自动检测项目根目录。请确保 SparQ/ 和 PySparQ/ 目录存在。"
+            "Failed to auto-detect the project root directory. Make sure the SparQ/ and PySparQ/ directories exist."
         )
 
-    # 编译 C++ 代码
+    # Compile the C++ code
     lib_path = compile_cpp_code(
         cpp_code=cpp_code,
         class_name=name,
@@ -207,10 +217,10 @@ def compile_operator(
     )
 
     if verbose:
-        print(f"[compile_operator] 编译成功: {lib_path}")
-        print(f"[compile_operator] 创建 Python 类...")
+        print(f"[compile_operator] Compilation succeeded: {lib_path}")
+        print(f"[compile_operator] Creating the Python class...")
 
-    # 创建 Python 类
+    # Create the Python class
     OpClass = create_operator_class(
         name=name,
         lib_path=lib_path,
@@ -219,6 +229,6 @@ def compile_operator(
     )
 
     if verbose:
-        print(f"[compile_operator] 算子类 {name} 已创建")
+        print(f"[compile_operator] Operator class {name} created")
 
     return OpClass

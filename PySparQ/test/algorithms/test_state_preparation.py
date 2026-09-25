@@ -1,13 +1,13 @@
 """
-状态准备算法测试。
+State preparation algorithm tests.
 
-测试内容：
-- StatePrepViaQRAM: QRAM 状态制备算子
-- StatePreparation: 高层封装
-- 保真度验证
-- 分布准确性
+Tested content:
+- StatePrepViaQRAM: QRAM state preparation operator
+- StatePreparation: high-level wrapper
+- Fidelity verification
+- Distribution accuracy
 
-参考: Experiments/StatePreparation/StatePreparationTest.cpp
+Reference: Experiments/StatePreparation/StatePreparationTest.cpp
 """
 
 import pytest
@@ -30,10 +30,10 @@ def _make_test_tree(qubit_number: int, data_size: int = 8):
 
 
 class TestStatePrepViaQRAM:
-    """测试 QRAM 状态制备算子。"""
+    """Test the QRAM state preparation operator."""
 
     def test_operator_creation(self, fresh_system):
-        """测试操作符创建。"""
+        """Test operator creation."""
         qubit_number = 2
         data_size = 8
         rational_size = 16
@@ -46,7 +46,7 @@ class TestStatePrepViaQRAM:
         assert prep.addr_size == qubit_number + 1
 
     def test_operator_execution(self, fresh_system):
-        """测试操作符执行。"""
+        """Test operator execution."""
         qubit_number = 2
         data_size = 8
         rational_size = 16
@@ -61,7 +61,7 @@ class TestStatePrepViaQRAM:
         assert state.size() > 0
 
     def test_dagger_cancels_forward(self, fresh_system):
-        """测试 dag 操作取消前向操作。"""
+        """Test that the dagger cancels the forward operation."""
         qubit_number = 2
         data_size = 8
         rational_size = 16
@@ -81,23 +81,23 @@ class TestStatePrepViaQRAM:
 
 
 class TestStatePreparation:
-    """测试高层状态准备封装。"""
+    """Test the high-level state preparation wrapper."""
 
     def test_creation(self, fresh_system):
-        """测试创建。"""
+        """Test creation."""
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         assert sp.qubit_number == 2
         assert sp.data_size == 8
 
     def test_random_distribution(self, fresh_system):
-        """测试随机分布生成。"""
+        """Test random distribution generation."""
         qubit_number = 2
         sp = StatePreparation(qubit_number, data_size=8, data_range=4)
         sp.random_distribution()
         assert len(sp.dist) == pow2(qubit_number)
 
     def test_distribution_normalization(self, fresh_system):
-        """测试分布归一化。"""
+        """Test distribution normalization."""
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
         real_dist = sp.get_real_dist()
@@ -105,14 +105,14 @@ class TestStatePreparation:
         assert abs(total - 1.0) < 1e-10
 
     def test_make_tree(self, fresh_system):
-        """测试树构建。"""
+        """Test tree construction."""
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
         sp.make_tree()
         assert len(sp.tree) > 0
 
     def test_make_qram(self, fresh_system):
-        """测试 QRAM 创建。"""
+        """Test QRAM creation."""
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
         sp.make_tree()
@@ -120,7 +120,7 @@ class TestStatePreparation:
         assert sp.qram is not None
 
     def test_full_pipeline(self, fresh_system):
-        """测试完整流水线。"""
+        """Test the full pipeline."""
         np.random.seed(42)
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
@@ -133,7 +133,7 @@ class TestStatePreparation:
         assert fidelity >= 0.0
 
     def test_fidelity_near_one(self, fresh_system):
-        """测试保真度接近 1。"""
+        """Test fidelity near 1."""
         np.random.seed(42)
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
@@ -148,7 +148,7 @@ class TestStatePreparation:
 
     @pytest.mark.parametrize("qubit_number", [2])
     def test_various_sizes(self, fresh_system, qubit_number):
-        """测试不同大小的状态准备。"""
+        """Test state preparation at various sizes."""
         np.random.seed(42)
         sp = StatePreparation(qubit_number, data_size=8, data_range=4)
         sp.random_distribution()
@@ -161,10 +161,10 @@ class TestStatePreparation:
 
 
 class TestStatePreparationAccuracy:
-    """测试状态准备精度。"""
+    """Test state preparation accuracy."""
 
     def test_uniform_distribution(self, fresh_system):
-        """测试均匀分布制备。"""
+        """Test uniform distribution preparation."""
         qubit_number = 2
         data_size = 8
 
@@ -183,7 +183,7 @@ class TestStatePreparationAccuracy:
             assert abs(abs(basis.amplitude) - 0.5) < 0.2
 
     def test_single_state(self, fresh_system):
-        """测试单态制备。"""
+        """Test single-state preparation."""
         qubit_number = 2
         data_size = 8
 
@@ -206,10 +206,10 @@ class TestStatePreparationAccuracy:
 
 
 class TestStatePreparationConditioning:
-    """测试条件执行。"""
+    """Test conditional execution."""
 
     def test_conditioned_by_nonzeros(self, fresh_system):
-        """测试非零条件执行。"""
+        """Test conditional execution on nonzero condition."""
         qubit_number = 2
         data_size = 8
         rational_size = 16
@@ -227,7 +227,7 @@ class TestStatePreparationConditioning:
         assert state.size() >= 1
 
     def test_clear_conditions(self, fresh_system):
-        """测试清除条件。"""
+        """Test clearing conditions."""
         qubit_number = 2
         data_size = 8
         rational_size = 16
@@ -242,10 +242,10 @@ class TestStatePreparationConditioning:
 
 
 class TestStatePreparationIntegration:
-    """状态准备集成测试。"""
+    """State preparation integration tests."""
 
     def test_with_quantum_operations(self, fresh_system):
-        """测试与其他量子操作集成。"""
+        """Test integration with other quantum operations."""
         np.random.seed(42)
         sp = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp.random_distribution()
@@ -258,7 +258,7 @@ class TestStatePreparationIntegration:
         assert fidelity >= 0.0
 
     def test_repeatability(self, fresh_system):
-        """测试可重复性。"""
+        """Test repeatability."""
         np.random.seed(42)
         sp1 = StatePreparation(qubit_number=2, data_size=8, data_range=4)
         sp1.random_distribution()

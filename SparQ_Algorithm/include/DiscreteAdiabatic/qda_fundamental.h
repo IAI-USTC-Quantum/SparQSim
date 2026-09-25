@@ -1,14 +1,17 @@
 /**
  * @file qda_fundamental.h
- * @brief 量子离散绝热（QDA）线性系统求解器基础组件
- * @details 实现基于离散绝热定理的最优规模量子线性系统求解器
- *          （Optimal scaling quantum linear-systems solver via discrete adiabatic theorem,
- *          PRX Quantum, 2022, 3(4): 040303，构造细节见论文 Appendix F）的核心部件：
- *          插值哈密顿量 H(s) = (1-f(s))H₀ + f(s)H₁ 的块编码（Block_Encoding_Hs /
- *          Block_Encoding_Hs_PD）、单步量子游走算子（Walk_s）、游走幂次的 LCU 组合
- *          与 Dolph-Chebyshev 滤波（Filtering），以及保真度调试工具（QDADebugger /
- *          GetOutput）。插值参数 f(s) 取自论文 Eq. (69)，算法复杂度 O(κ log(κ/ε))；
- *          具体求解流程由 qda_tridiagonal.h / qda_via_QRAM.h 组合完成
+ * @brief Fundamental components of the quantum discrete adiabatic (QDA) linear-system solver
+ * @details Implements the core components of the optimal-scaling quantum linear-systems
+ *          solver based on the discrete adiabatic theorem (Optimal scaling quantum
+ *          linear-systems solver via discrete adiabatic theorem, PRX Quantum, 2022, 3(4):
+ *          040303; construction details in Appendix F of the paper): the block encoding of
+ *          the interpolated Hamiltonian H(s) = (1-f(s))H₀ + f(s)H₁ (Block_Encoding_Hs /
+ *          Block_Encoding_Hs_PD), the single-step quantum walk operator (Walk_s), the LCU
+ *          combination of walk powers together with Dolph-Chebyshev filtering (Filtering),
+ *          and fidelity debugging tools (QDADebugger / GetOutput). The interpolation
+ *          parameter f(s) is taken from Eq. (69) of the paper, and the algorithm complexity
+ *          is O(κ log(κ/ε)); the concrete solving procedure is assembled in
+ *          qda_tridiagonal.h / qda_via_QRAM.h
  */
 
 #pragma once
@@ -34,55 +37,56 @@ namespace qram_simulator {
 		Construction details: Appendix F
 		*/
 		/**
-		 * @brief 插值哈密顿量 H(s) 的块编码（一般版本）
-		 * @details H(s) = (1-f(s))H₀ + f(s)H₁：H₀ 由 |b⟩ 状态制备（enc_b）与主寄存器
-		 *          反射构造，H₁ 由 A 的块编码（enc_A）构造（电路细节见上方论文
-		 *          Appendix F）。插值通过旋转矩阵
-		 *          R_s = [[√N(1-f), √N f], [√N f, √N(f-1)]]（√N = 1/√((1-f)²+f²)）
-		 *          作用在 anc_2 上实现，配合受控 enc_A/enc_b 与各级反射，
-		 *          整体构成 H(s) 的 (⟨0|⊗I) U (|0|⊗I) 型块编码。
-		 *          支持条件控制（ClassControllable）
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
+		 * @brief Block encoding of the interpolated Hamiltonian H(s) (general version)
+		 * @details H(s) = (1-f(s))H₀ + f(s)H₁: H₀ is built from the |b⟩ state preparation
+		 *          (enc_b) and a reflection on the main register, while H₁ is built from the
+		 *          block encoding of A (enc_A) (circuit details in Appendix F of the paper
+		 *          above). The interpolation is realized by applying the rotation matrix
+		 *          R_s = [[√N(1-f), √N f], [√N f, √N(f-1)]] (√N = 1/√((1-f)²+f²))
+		 *          on anc_2; combined with controlled enc_A/enc_b and the reflections at
+		 *          each level, the whole forms a (⟨0|⊗I) U (|0|⊗I)-type block encoding of
+		 *          H(s). Supports conditional control (ClassControllable)
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
 		 */
 		template<typename Block_Encoding, typename State_Prep>
 		struct Block_Encoding_Hs
 		{
-			/** @brief 插值参数 f(s) ∈ [0,1] */
+			/** @brief Interpolation parameter f(s) ∈ [0,1] */
 			double fs;
-			/** @brief 插值旋转矩阵 R_s（作用于 anc_2） */
+			/** @brief Interpolation rotation matrix R_s (applied on anc_2) */
 			u22_t R_s;
-			/** @brief 主数据寄存器名称 */
+			/** @brief Main data register name */
 			std::string main_reg;
-			/** @brief A 的块编码所用辅助寄存器名称 */
+			/** @brief Ancilla register name used by the block encoding of A */
 			std::string anc_UA;
-			/** @brief 辅助寄存器 anc_1 名称 */
+			/** @brief Ancilla register anc_1 name */
 			std::string anc_1;
-			/** @brief 辅助寄存器 anc_2 名称（插值旋转作用位） */
+			/** @brief Ancilla register anc_2 name (target of the interpolation rotation) */
 			std::string anc_2;
-			/** @brief 辅助寄存器 anc_3 名称 */
+			/** @brief Ancilla register anc_3 name */
 			std::string anc_3;
-			/** @brief 辅助寄存器 anc_4 名称 */
+			/** @brief Ancilla register anc_4 name */
 			std::string anc_4;
 			// size_t data_size;
 			// size_t rational_size;
-			/** @brief 矩阵 A 的块编码算子 */
+			/** @brief Block encoding operator of matrix A */
 			Block_Encoding enc_A;
-			/** @brief 右端项 |b⟩ 的状态制备算子 */
+			/** @brief State preparation operator of the right-hand side |b⟩ */
 			State_Prep enc_b;
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（计算插值旋转矩阵 R_s）
-			 * @param enc_A_ A 的块编码算子
-			 * @param enc_b_ |b⟩ 的状态制备算子
-			 * @param main_reg_ 主数据寄存器名称
-			 * @param anc_UA_ A 的块编码辅助寄存器名称
-			 * @param anc_1_ 辅助寄存器 anc_1 名称
-			 * @param anc_2_ 辅助寄存器 anc_2 名称（插值旋转作用位）
-			 * @param anc_3_ 辅助寄存器 anc_3 名称
-			 * @param anc_4_ 辅助寄存器 anc_4 名称
-			 * @param fs_ 插值参数 f(s)
+			 * @brief Constructor (computes the interpolation rotation matrix R_s)
+			 * @param enc_A_ Block encoding operator of A
+			 * @param enc_b_ State preparation operator of |b⟩
+			 * @param main_reg_ Main data register name
+			 * @param anc_UA_ Ancilla register name of the block encoding of A
+			 * @param anc_1_ Ancilla register anc_1 name
+			 * @param anc_2_ Ancilla register anc_2 name (target of the interpolation rotation)
+			 * @param anc_3_ Ancilla register anc_3 name
+			 * @param anc_4_ Ancilla register anc_4 name
+			 * @param fs_ Interpolation parameter f(s)
 			 */
 			Block_Encoding_Hs(
 				Block_Encoding enc_A_,
@@ -107,11 +111,13 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief 块编码电路实现（正向）
-			 * @param state 系统状态向量
-			 * @details 电路序列：H(anc_3) → enc_b† → 主寄存器反射（受控）→ enc_b →
-			 *          R_s 插值旋转（受控 anc_4）→ H(anc_2) → 受控 enc_A 与反射 →
-			 *          逆插值旋转 → 第二轮 enc_b 反射序列 → H(anc_3)
+			 * @brief Block encoding circuit implementation (forward)
+			 * @param state System state vector
+			 * @details Circuit sequence: H(anc_3) → enc_b† → main-register reflection
+			 *          (controlled) → enc_b → R_s interpolation rotation (controlled on
+			 *          anc_4) → H(anc_2) → controlled enc_A and reflection → inverse
+			 *          interpolation rotation → second round of the enc_b reflection
+			 *          sequence → H(anc_3)
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const
@@ -150,9 +156,10 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 块编码电路实现（dagger，逆向）
-			 * @param state 系统状态向量
-			 * @note 当前实现入口处即抛出运行时异常（尚未完成），调用会直接失败
+			 * @brief Block encoding circuit implementation (dagger, inverse)
+			 * @param state System state vector
+			 * @note The current implementation throws a runtime error right at the entry
+			 *       (not yet completed); calling it fails immediately
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const
@@ -199,52 +206,54 @@ namespace qram_simulator {
 		Construction details: Appendix F
 		*/
 		/**
-		 * @brief 插值哈密顿量 H(s) 的块编码（正定版本）
-		 * @details 适用于 A 为正定矩阵的情形，电路比一般版本精简（省去部分受控层，
-		 *          插值旋转 R_s 改为作用于 anc_1，enc_A 由 {anc_1, anc_3} 控制），
-		 *          H(s) = (1-f(s))H₀ + f(s)H₁ 的构造思路与一般版本一致。
-		 *          支持条件控制（ClassControllable）
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
+		 * @brief Block encoding of the interpolated Hamiltonian H(s) (positive-definite version)
+		 * @details Applicable when A is a positive-definite matrix; the circuit is leaner than
+		 *          the general version (some controlled layers are omitted, the interpolation
+		 *          rotation R_s acts on anc_1 instead, and enc_A is controlled by
+		 *          {anc_1, anc_3}); the construction of H(s) = (1-f(s))H₀ + f(s)H₁ follows
+		 *          the same idea as the general version. Supports conditional control
+		 *          (ClassControllable)
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
 		 */
 		template<typename Block_Encoding, typename State_Prep>
 		struct Block_Encoding_Hs_PD
 		{
-			/** @brief 插值参数 f(s) ∈ [0,1] */
+			/** @brief Interpolation parameter f(s) ∈ [0,1] */
 			double fs;
-			/** @brief 插值旋转矩阵 R_s（作用于 anc_1） */
+			/** @brief Interpolation rotation matrix R_s (applied on anc_1) */
 			u22_t R_s;
-			/** @brief 主数据寄存器名称 */
+			/** @brief Main data register name */
 			std::string main_reg;
-			/** @brief A 的块编码所用辅助寄存器名称 */
+			/** @brief Ancilla register name used by the block encoding of A */
 			std::string anc_UA;
-			/** @brief 辅助寄存器 anc_1 名称（插值旋转作用位） */
+			/** @brief Ancilla register anc_1 name (target of the interpolation rotation) */
 			std::string anc_1;
-			/** @brief 辅助寄存器 anc_2 名称 */
+			/** @brief Ancilla register anc_2 name */
 			std::string anc_2;
-			/** @brief 辅助寄存器 anc_3 名称 */
+			/** @brief Ancilla register anc_3 name */
 			std::string anc_3;
-			/** @brief 辅助寄存器 anc_4 名称 */
+			/** @brief Ancilla register anc_4 name */
 			std::string anc_4;
 			// size_t data_size;
 			// size_t rational_size;
-			/** @brief 矩阵 A 的块编码算子 */
+			/** @brief Block encoding operator of matrix A */
 			Block_Encoding enc_A;
-			/** @brief 右端项 |b⟩ 的状态制备算子 */
+			/** @brief State preparation operator of the right-hand side |b⟩ */
 			State_Prep enc_b;
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（计算插值旋转矩阵 R_s）
-			 * @param enc_A_ A 的块编码算子
-			 * @param enc_b_ |b⟩ 的状态制备算子
-			 * @param main_reg_ 主数据寄存器名称
-			 * @param anc_UA_ A 的块编码辅助寄存器名称
-			 * @param anc_1_ 辅助寄存器 anc_1 名称（插值旋转作用位）
-			 * @param anc_2_ 辅助寄存器 anc_2 名称
-			 * @param anc_3_ 辅助寄存器 anc_3 名称
-			 * @param anc_4_ 辅助寄存器 anc_4 名称（正定版本未使用）
-			 * @param fs_ 插值参数 f(s)
+			 * @brief Constructor (computes the interpolation rotation matrix R_s)
+			 * @param enc_A_ Block encoding operator of A
+			 * @param enc_b_ State preparation operator of |b⟩
+			 * @param main_reg_ Main data register name
+			 * @param anc_UA_ Ancilla register name of the block encoding of A
+			 * @param anc_1_ Ancilla register anc_1 name (target of the interpolation rotation)
+			 * @param anc_2_ Ancilla register anc_2 name
+			 * @param anc_3_ Ancilla register anc_3 name
+			 * @param anc_4_ Ancilla register anc_4 name (unused in the positive-definite version)
+			 * @param fs_ Interpolation parameter f(s)
 			 */
 			Block_Encoding_Hs_PD(
 				Block_Encoding enc_A_,
@@ -269,11 +278,13 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief 正定版块编码电路实现（正向）
-			 * @param state 系统状态向量
-			 * @details 电路序列：H(anc_2) → enc_b† → 主寄存器反射（受控 {anc_2, anc_3}）→
-			 *          enc_b → R_s 插值旋转（受控 anc_3）→ H(anc_1) → 受控 enc_A 与
-			 *          enc_A† → 逆插值旋转 → 第二轮 enc_b 反射序列 → H(anc_2)
+			 * @brief Positive-definite block encoding circuit implementation (forward)
+			 * @param state System state vector
+			 * @details Circuit sequence: H(anc_2) → enc_b† → main-register reflection
+			 *          (controlled on {anc_2, anc_3}) → enc_b → R_s interpolation rotation
+			 *          (controlled on anc_3) → H(anc_1) → controlled enc_A and enc_A† →
+			 *          inverse interpolation rotation → second round of the enc_b reflection
+			 *          sequence → H(anc_2)
 			 */
 			template<typename Ty>
 			void operator()(Ty& state) const
@@ -310,73 +321,78 @@ namespace qram_simulator {
 		//bool PD = false;
 		// template<typename Block_Encoding, typename State_Prep>
 		/**
-		 * @brief 参数 s 处的单步量子游走算子 W(s)
-		 * @details 离散绝热演化的单步实现：W(s) = i · R · U_H(s)，其中 U_H(s) 为插值
-		 *          哈密顿量 H(s) = (1-f(s))H₀ + f(s)H₁ 的块编码，R 为关于块编码辅助
-		 *          寄存器的反射（PD = true 时作用在 {anc_UA, anc_1, anc_2}，
-		 *          否则作用在 {anc_UA, anc_2, anc_3}），整体再乘全局相位 i。
-		 *          插值参数按论文 Eq. (69) 计算：
-		 *          fs = κ/(κ-1) · (1 - (1 + s(κ^(p-1) - 1))^(1/(1-p)))。
-		 *          支持条件控制（ClassControllable）
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
-		 * @tparam PD 是否采用正定（positive-definite）变体的反射寄存器组合
-		 * @note PD 仅切换反射所用寄存器；enc_Hs 统一使用一般版块编码 Block_Encoding_Hs
-		 *       （正定块编码的切换见被注释的 EncHs 条件类型别名）
+		 * @brief Single-step quantum walk operator W(s) at parameter s
+		 * @details Single-step implementation of the discrete adiabatic evolution:
+		 *          W(s) = i · R · U_H(s), where U_H(s) is the block encoding of the
+		 *          interpolated Hamiltonian H(s) = (1-f(s))H₀ + f(s)H₁ and R is the
+		 *          reflection over the block-encoding ancilla registers (acting on
+		 *          {anc_UA, anc_1, anc_2} when PD = true, otherwise on
+		 *          {anc_UA, anc_2, anc_3}); the whole is then multiplied by the global
+		 *          phase i. The interpolation parameter is computed according to Eq. (69)
+		 *          of the paper: fs = κ/(κ-1) · (1 - (1 + s(κ^(p-1) - 1))^(1/(1-p))).
+		 *          Supports conditional control (ClassControllable)
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
+		 * @tparam PD Whether to use the reflection register set of the positive-definite
+		 *            variant
+		 * @note PD only switches the registers used by the reflection; enc_Hs always uses
+		 *       the general block encoding Block_Encoding_Hs (see the commented-out
+		 *       conditional type alias EncHs for switching to the positive-definite block
+		 *       encoding)
 		 */
 		template<typename Block_Encoding, typename State_Prep, bool PD = false>
 		struct Walk_s
 		{
-			/** @brief 绝热演化离散化参数 s ∈ [0,1] */
+			/** @brief Adiabatic evolution discretization parameter s ∈ [0,1] */
 			double s;
-			/** @brief 线性系统条件数 κ */
+			/** @brief Condition number κ of the linear system */
 			double kappa;
-			/** @brief 绝热调度参数 p */
+			/** @brief Adiabatic schedule parameter p */
 			double p;
-			/** @brief 插值参数 f(s)（由 s、κ、p 按论文 Eq. (69) 计算） */
+			/** @brief Interpolation parameter f(s) (computed from s, κ, p via Eq. (69) of the paper) */
 			double fs;
 			// double temp;
-			/** @brief 全局相位因子（默认 i） */
+			/** @brief Global phase factor (default i) */
 			complex_t phase = complex_t(0, 1.0);
-			/** @brief 主数据寄存器名称 */
+			/** @brief Main data register name */
 			std::string main_reg;
-			/** @brief A 的块编码所用辅助寄存器名称 */
+			/** @brief Ancilla register name used by the block encoding of A */
 			std::string anc_UA;
-			/** @brief 辅助寄存器 anc_1 名称 */
+			/** @brief Ancilla register anc_1 name */
 			std::string anc_1;
-			/** @brief 辅助寄存器 anc_2 名称 */
+			/** @brief Ancilla register anc_2 name */
 			std::string anc_2;
-			/** @brief 辅助寄存器 anc_3 名称 */
+			/** @brief Ancilla register anc_3 name */
 			std::string anc_3;
-			/** @brief 辅助寄存器 anc_4 名称 */
+			/** @brief Ancilla register anc_4 name */
 			std::string anc_4;
-			/** @brief 矩阵 A 的块编码算子 */
+			/** @brief Block encoding operator of matrix A */
 			Block_Encoding enc_A;
-			/** @brief 右端项 |b⟩ 的状态制备算子 */
+			/** @brief State preparation operator of the right-hand side |b⟩ */
 			State_Prep enc_b;
-			/** @brief 正定变体标志（编译期常量，来自模板参数 PD） */
+			/** @brief Positive-definite variant flag (compile-time constant from template parameter PD) */
 			constexpr static bool is_positive_definite = PD;
-			/** @brief H(s) 块编码类型别名 */
+			/** @brief Type alias of the H(s) block encoding */
 			using EncHs = Block_Encoding_Hs<Block_Encoding, State_Prep>;
 			//using EncHs = std::conditional<PD, Block_Encoding_Hs_PD<Block_Encoding, State_Prep>, Block_Encoding_Hs<Block_Encoding, State_Prep>>;
-			/** @brief H(s) 的块编码算子实例 */
+			/** @brief Block encoding operator instance of H(s) */
 			EncHs enc_Hs;
 
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（内部推导 f(s) 并组装 H(s) 块编码）
-			 * @param enc_A_ A 的块编码算子
-			 * @param enc_b_ |b⟩ 的状态制备算子
-			 * @param main_reg_ 主数据寄存器名称
-			 * @param anc_UA_ A 的块编码辅助寄存器名称
-			 * @param anc_1_ 辅助寄存器 anc_1 名称
-			 * @param anc_2_ 辅助寄存器 anc_2 名称
-			 * @param anc_3_ 辅助寄存器 anc_3 名称
-			 * @param anc_4_ 辅助寄存器 anc_4 名称
-			 * @param s_ 绝热演化离散化参数 s ∈ [0,1]
-			 * @param kappa_ 条件数 κ
-			 * @param p_ 绝热调度参数 p
+			 * @brief Constructor (internally derives f(s) and assembles the H(s) block encoding)
+			 * @param enc_A_ Block encoding operator of A
+			 * @param enc_b_ State preparation operator of |b⟩
+			 * @param main_reg_ Main data register name
+			 * @param anc_UA_ Ancilla register name of the block encoding of A
+			 * @param anc_1_ Ancilla register anc_1 name
+			 * @param anc_2_ Ancilla register anc_2 name
+			 * @param anc_3_ Ancilla register anc_3 name
+			 * @param anc_4_ Ancilla register anc_4 name
+			 * @param s_ Adiabatic evolution discretization parameter s ∈ [0,1]
+			 * @param kappa_ Condition number κ
+			 * @param p_ Adiabatic schedule parameter p
 			 */
 			Walk_s(Block_Encoding enc_A_,
 				State_Prep enc_b_,
@@ -400,8 +416,9 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief 单步游走电路实现（正向）：H(s) 块编码 → 反射 → 全局相位
-			 * @param state 系统状态向量
+			 * @brief Single-step walk circuit implementation (forward): H(s) block encoding →
+			 *        reflection → global phase
+			 * @param state System state vector
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const
@@ -424,8 +441,9 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 单步游走电路实现（dagger，逆向）：全局相位⁻¹ → 反射 → H(s) 块编码†
-			 * @param state 系统状态向量
+			 * @brief Single-step walk circuit implementation (dagger, inverse): global phase⁻¹ →
+			 *        reflection → H(s) block encoding†
+			 * @param state System state vector
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const
@@ -453,30 +471,32 @@ namespace qram_simulator {
 
 
 		/**
-		 * @brief QDA 经典参考解调试器
-		 * @details 保存原始矩阵 A 与右端项 b，在经典侧计算离散绝热演化各阶段的
-		 *          理想结果：Hermitian 扩展插值矩阵 A_f、理想初态 |0⟩⊗|b⟩ 与 |1⟩⊗|b⟩
-		 *          以及中间时刻的理想本征态（经经典线性求解器求得），
-		 *          用于与量子模拟结果做保真度对比
+		 * @brief QDA classical reference-solution debugger
+		 * @details Stores the original matrix A and the right-hand side b, and computes the
+		 *          ideal results of each stage of the discrete adiabatic evolution on the
+		 *          classical side: the Hermitian extended interpolation matrix A_f, the
+		 *          ideal initial states |0⟩⊗|b⟩ and |1⟩⊗|b⟩, and the ideal eigenstate at
+		 *          intermediate times (obtained via a classical linear solver); used for
+		 *          fidelity comparison against the quantum simulation results
 		 */
 		struct QDADebugger
 		{
-			/** @brief 原始矩阵 A */
+			/** @brief Original matrix A */
 			DenseMatrix<double> matrix_A;
-			/** @brief 原始右端项向量 b */
+			/** @brief Original right-hand side vector b */
 			DenseVector<double> vector_b;
-			/** @brief 插值参数 f(s) */
+			/** @brief Interpolation parameter f(s) */
 			double fs;
-			/** @brief b 的维数 */
+			/** @brief Dimension of b */
 			size_t row_size;
 
 			/**
-			 * @brief 构造函数（按 Eq. (69) 由 s、κ、p 计算 f(s)）
-			 * @param matrix_A_ 原始矩阵 A
-			 * @param vector_b_ 原始右端项向量 b
-			 * @param s_ 绝热演化离散化参数 s
-			 * @param kappa_ 条件数 κ
-			 * @param p_ 绝热调度参数 p
+			 * @brief Constructor (computes f(s) from s, κ, p via Eq. (69))
+			 * @param matrix_A_ Original matrix A
+			 * @param vector_b_ Original right-hand side vector b
+			 * @param s_ Adiabatic evolution discretization parameter s
+			 * @param kappa_ Condition number κ
+			 * @param p_ Adiabatic schedule parameter p
 			 */
 			QDADebugger(
 				const DenseMatrix<double>& matrix_A_,
@@ -494,68 +514,75 @@ namespace qram_simulator {
 			//void init_eigenstate(std::vector<System>& state);
 
 			/**
-			 * @brief 计算 Hermitian 扩展插值矩阵 A_f
-			 * @return 2n×2n 矩阵 [[(1-f)I, fA], [fA†, -(1-f)I]]
+			 * @brief Compute the Hermitian extended interpolation matrix A_f
+			 * @return 2n×2n matrix [[(1-f)I, fA], [fA†, -(1-f)I]]
 			 */
 			DenseMatrix<double> get_matrix_Af();
 			/**
-			 * @brief 理想初态向量 |0⟩⊗|b⟩（扩展空间）
-			 * @return 2n 维向量，前 n 个分量为 b，后 n 个为 0
+			 * @brief Ideal initial state vector |0⟩⊗|b⟩ (extended space)
+			 * @return 2n-dimensional vector whose first n components are b and last n are 0
 			 */
 			DenseVector<double> get_vector_0b();
 			/**
-			 * @brief 理想向量 |1⟩⊗|b⟩（扩展空间）
-			 * @return 2n 维向量，前 n 个分量为 0，后 n 个为 b
+			 * @brief Ideal vector |1⟩⊗|b⟩ (extended space)
+			 * @return 2n-dimensional vector whose first n components are 0 and last n are b
 			 */
 			DenseVector<double> get_vector_1b();
 			/**
-			 * @brief 计算中间时刻 s 的理想本征态（保真度参考态）
-			 * @param is_PD 是否正定情形（当前实现未使用）
-			 * @return 长度 4n 的实数向量（按主寄存器 + 辅助位布局补零，
-			 *         便于与量子态直接对比）
-			 * @details f(s) ≈ 0 时返回初态 |0⟩⊗|b⟩；f(s) ≈ 1 时返回 A x = b 的
-			 *          归一化解（置于 |1⟩ 分支）；否则求解 A_f y = (|0⟩⊗|b⟩) 的
-			 *          归一化解作为中间本征态
+			 * @brief Compute the ideal eigenstate at intermediate time s (fidelity reference
+			 *        state)
+			 * @param is_PD Whether this is the positive-definite case (unused in the current
+			 *        implementation)
+			 * @return Real vector of length 4n (zero-padded according to the main register +
+			 *         ancilla layout, for direct comparison with the quantum state)
+			 * @details Returns the initial state |0⟩⊗|b⟩ when f(s) ≈ 0; returns the
+			 *          normalized solution of A x = b (placed in the |1⟩ branch) when
+			 *          f(s) ≈ 1; otherwise solves A_f y = (|0⟩⊗|b⟩) and returns its
+			 *          normalized solution as the intermediate eigenstate
 			 */
 			std::vector<double> get_mid_eigenstate(bool is_PD=false);
 			//std::vector<double> get_matrix_dag();
 		};
 
 		/**
-		 * @brief 后选择（post-selection）读出算子
-		 * @details 从演化末态中筛选所有指定辅助寄存器（anc_registers）取值均为 0 的
-		 *          分支，返回归一化后的振幅向量（主寄存器 + anc_1 + anc_4 布局）与
-		 *          成功概率（命中分支的权重和），用于读取离散绝热演化的解并做保真度验证
+		 * @brief Post-selection readout operator
+		 * @details Filters out, from the final evolved state, the branches in which every
+		 *          specified ancilla register (anc_registers) takes value 0, and returns the
+		 *          normalized amplitude vector (main register + anc_1 + anc_4 layout)
+		 *          together with the success probability (sum of the weights of the matching
+		 *          branches); used to read out the solution of the discrete adiabatic
+		 *          evolution and verify its fidelity
 		 */
 		struct GetOutput {
-			/** @brief 主寄存器 ID */
+			/** @brief Main register ID */
 			size_t main_reg;
-			/** @brief A 块编码辅助寄存器 ID */
+			/** @brief Ancilla register ID of the block encoding of A */
 			size_t anc_UA;
-			/** @brief 辅助寄存器 anc_4 ID */
+			/** @brief Ancilla register anc_4 ID */
 			size_t anc_4;
-			/** @brief 辅助寄存器 anc_3 ID */
+			/** @brief Ancilla register anc_3 ID */
 			size_t anc_3;
-			/** @brief 辅助寄存器 anc_2 ID */
+			/** @brief Ancilla register anc_2 ID */
 			size_t anc_2;
-			/** @brief 辅助寄存器 anc_1 ID */
+			/** @brief Ancilla register anc_1 ID */
 			size_t anc_1;
-			/** @brief LCU 索引寄存器 ID（滤波流程用） */
+			/** @brief LCU index register ID (used by the filtering procedure) */
 			size_t index;
-			/** @brief 滤波辅助寄存器 anc_h ID */
+			/** @brief Filtering ancilla register anc_h ID */
 			size_t anc_h;
-			/** @brief 参与后选择的辅助寄存器 ID 列表 */
+			/** @brief List of ancilla register IDs participating in the post-selection */
 			std::vector<size_t> anc_registers;
 			//std::vector<double> weights;
 			/**
-			 * @brief 构造函数（基本版本，后选择 {anc_UA, anc_3, anc_2}）
-			 * @param main_reg 主寄存器名称
-			 * @param anc_UA A 块编码辅助寄存器名称
-			 * @param anc_4 辅助寄存器 anc_4 名称
-			 * @param anc_3 辅助寄存器 anc_3 名称
-			 * @param anc_2 辅助寄存器 anc_2 名称
-			 * @param anc_1 辅助寄存器 anc_1 名称
-			 * @param is_PD 正定模式标志（当前实现未使用，两种模式后选择同一组寄存器）
+			 * @brief Constructor (basic version, post-selects {anc_UA, anc_3, anc_2})
+			 * @param main_reg Main register name
+			 * @param anc_UA Ancilla register name of the block encoding of A
+			 * @param anc_4 Ancilla register anc_4 name
+			 * @param anc_3 Ancilla register anc_3 name
+			 * @param anc_2 Ancilla register anc_2 name
+			 * @param anc_1 Ancilla register anc_1 name
+			 * @param is_PD Positive-definite mode flag (unused in the current implementation;
+			 *        both modes post-select the same set of registers)
 			 */
 			GetOutput(
 				std::string main_reg,
@@ -580,15 +607,15 @@ namespace qram_simulator {
 				anc_registers = { System::get(anc_UA), System::get(anc_3), System::get(anc_2) };
 			};
 			/**
-			 * @brief 构造函数（滤波版本，后选择 {anc_UA, anc_3, anc_2, index, anc_h}）
-			 * @param main_reg 主寄存器名称
-			 * @param anc_UA A 块编码辅助寄存器名称
-			 * @param anc_4 辅助寄存器 anc_4 名称
-			 * @param anc_3 辅助寄存器 anc_3 名称
-			 * @param anc_2 辅助寄存器 anc_2 名称
-			 * @param anc_1 辅助寄存器 anc_1 名称
-			 * @param index LCU 索引寄存器名称
-			 * @param anc_h 滤波辅助寄存器名称
+			 * @brief Constructor (filtering version, post-selects {anc_UA, anc_3, anc_2, index, anc_h})
+			 * @param main_reg Main register name
+			 * @param anc_UA Ancilla register name of the block encoding of A
+			 * @param anc_4 Ancilla register anc_4 name
+			 * @param anc_3 Ancilla register anc_3 name
+			 * @param anc_2 Ancilla register anc_2 name
+			 * @param anc_1 Ancilla register anc_1 name
+			 * @param index LCU index register name
+			 * @param anc_h Filtering ancilla register name
 			 */
 			GetOutput(
 				std::string main_reg,
@@ -608,17 +635,19 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 从系统状态向量提取后选择子空间（具体实现在 qda_fundamental.cpp）
-			 * @param state 系统状态向量
-			 * @return {归一化振幅向量（索引 = main_reg 值 + anc_1·2^n + anc_4·2^(n+1)）,
-			 *          成功概率}
+			 * @brief Extract the post-selected subspace from a system state vector
+			 *        (concrete implementation in qda_fundamental.cpp)
+			 * @param state System state vector
+			 * @return {Normalized amplitude vector (index = main_reg value + anc_1·2^n +
+			 *          anc_4·2^(n+1)), success probability}
 			 */
 			std::pair<std::vector<complex_t>, double> operator()(const std::vector<System>& state) const;
 			
 			/**
-			 * @brief 从稀疏态提取后选择子空间（委托给基矢列表版本）
-			 * @param state 稀疏态
-			 * @return {归一化振幅向量, 成功概率}
+			 * @brief Extract the post-selected subspace from a sparse state (delegates to the
+			 *        basis-state-list version)
+			 * @param state Sparse state
+			 * @return {Normalized amplitude vector, success probability}
 			 */
 			std::pair<std::vector<complex_t>, double> operator()(const SparseState& state) const
 			{
@@ -626,18 +655,19 @@ namespace qram_simulator {
 			}
 #ifdef USE_CUDA
 			/**
-			 * @brief 从 CUDA 稀疏态提取后选择子空间
-			 * @param state CUDA 稀疏态
-			 * @return {归一化振幅向量, 成功概率}
+			 * @brief Extract the post-selected subspace from a CUDA sparse state
+			 * @param state CUDA sparse state
+			 * @return {Normalized amplitude vector, success probability}
 			 */
 			std::pair<std::vector<complex_t>, double> operator()(const CuSparseState& state) const;
 #endif
 
 			/**
-			 * @brief 检查指定辅助寄存器在所有分支中是否均已归零
-			 * @param state 系统状态向量
-			 * @return {anc_UA, anc_3, anc_2, index, anc_h} 全为 0 时返回 true
-			 * @note 使用 index/anc_h 成员，需以包含它们的构造函数构造才有意义
+			 * @brief Check whether the specified ancilla registers are zero in all branches
+			 * @param state System state vector
+			 * @return Returns true when {anc_UA, anc_3, anc_2, index, anc_h} are all 0
+			 * @note Uses the index/anc_h members; it is only meaningful when constructed via
+			 *       the constructor that includes them
 			 */
 			template<typename Ty>
 			bool check_removable(Ty& state)
@@ -656,9 +686,11 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 提取辅助寄存器（anc_registers）全零的子空间并归一化
-			 * @param state 系统状态向量
-			 * @return {子空间状态列表（权重和不为 0 时已归一化）, 子空间概率和}
+			 * @brief Extract the subspace where all ancilla registers (anc_registers) are zero
+			 *        and normalize it
+			 * @param state System state vector
+			 * @return {Subspace state list (normalized when the weight sum is nonzero),
+			 *          subspace probability sum}
 			 */
 			template<typename Ty>
 			std::pair<Ty, double> get_subspace(Ty& state)
@@ -698,10 +730,10 @@ namespace qram_simulator {
 		};
 
 		/**
-		 * @brief 构造投影补算符矩阵 Q_b = I - (|0⟩⟨0|)⊗(|b⟩⟨b|)
-		 * @param b 归一化右端项向量
-		 * @return Q_b 对应的复数矩阵（扩展空间）
-		 * @tparam Ty Eigen 向量表达式类型
+		 * @brief Build the projector-complement operator matrix Q_b = I - (|0⟩⟨0|)⊗(|b⟩⟨b|)
+		 * @param b Normalized right-hand side vector
+		 * @return Complex matrix corresponding to Q_b (extended space)
+		 * @tparam Ty Eigen vector expression type
 		 */
 		template<typename Ty>
 		auto GetQb(const Eigen::MatrixBase<Ty>& b) -> EigenMat<complex_t>
@@ -721,11 +753,11 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 构造 Hermitian 扩展插值算符 A_f
-		 * @param A 原始矩阵
-		 * @param fs 插值参数 f(s)
-		 * @return A_f = (1-f)·σz⊗I + f·[[0, A], [A†, 0]] 对应的复数矩阵
-		 * @tparam Ty Eigen 矩阵表达式类型
+		 * @brief Build the Hermitian extended interpolation operator A_f
+		 * @param A Original matrix
+		 * @param fs Interpolation parameter f(s)
+		 * @return Complex matrix corresponding to A_f = (1-f)·σz⊗I + f·[[0, A], [A†, 0]]
+		 * @tparam Ty Eigen matrix expression type
 		 */
 		template<typename Ty>
 		EigenMat<complex_t> GetAf(const Eigen::MatrixBase<Ty>& A, double fs)
@@ -735,13 +767,13 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 构造插值哈密顿量矩阵 H(s)（非对角块形式）
-		 * @param A 原始矩阵
-		 * @param fs 插值参数 f(s)
-		 * @param b 归一化右端项向量
-		 * @return H(s) = c·[[0, A_f·Q_b], [Q_b·A_f, 0]]，其中 c = 1/√(2f² + 2(1-f)²)
-		 * @tparam Ty1 Eigen 矩阵表达式类型
-		 * @tparam Ty2 Eigen 向量表达式类型
+		 * @brief Build the interpolated Hamiltonian matrix H(s) (off-diagonal block form)
+		 * @param A Original matrix
+		 * @param fs Interpolation parameter f(s)
+		 * @param b Normalized right-hand side vector
+		 * @return H(s) = c·[[0, A_f·Q_b], [Q_b·A_f, 0]], where c = 1/√(2f² + 2(1-f)²)
+		 * @tparam Ty1 Eigen matrix expression type
+		 * @tparam Ty2 Eigen vector expression type
 		 */
 		template<typename Ty1, typename Ty2>
 		EigenMat<complex_t> GetHs(const Eigen::MatrixBase<Ty1>& A, double fs, const Eigen::MatrixBase<Ty2>& b)
@@ -766,31 +798,33 @@ namespace qram_simulator{
 	namespace QDA
 	{
 		/**
-		 * @brief 游走算子幂次的 LCU（酉算子线性组合）容器
-		 * @details 对索引寄存器的第 i 位，构造以该位为控制的游走算子并重复执行
-		 *          2^(i+1) 次；与索引寄存器上的系数状态制备（State_Prep_via_QRAM）
-		 *          配合，实现 Σ_k c_k W^k 型的游走幂次展开（LCU）。每步进度同时
-		 *          打印并写入日志文件。支持条件控制（ClassControllable）
-		 * @tparam Walk_s 游走算子类型
+		 * @brief LCU (linear combination of unitaries) container of powers of the walk operator
+		 * @details For the i-th bit of the index register, builds a walk operator controlled
+		 *          by that bit and applies it 2^(i+1) times; combined with the coefficient
+		 *          state preparation on the index register (State_Prep_via_QRAM), realizes
+		 *          the Σ_k c_k W^k-type expansion in walk powers (LCU). The progress of each
+		 *          step is both printed and written to the log file. Supports conditional
+		 *          control (ClassControllable)
+		 * @tparam Walk_s Walk operator type
 		 */
 		template<typename Walk_s>
 		struct LCU
 		{
-			/** @brief LCU 索引寄存器 ID */
+			/** @brief LCU index register ID */
 			size_t index;
-			/** @brief 游走算子实例 */
+			/** @brief Walk operator instance */
 			Walk_s Walk;
-			/** @brief 索引寄存器位宽 */
+			/** @brief Index register bit width */
 			size_t index_size;
-			/** @brief 日志文件路径 */
+			/** @brief Log file path */
 			std::string filename;
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（索引以寄存器 ID 给出）
-			 * @param Walk 游走算子实例
-			 * @param index 索引寄存器 ID
-			 * @param filename_ 日志文件路径
+			 * @brief Constructor (index given as a register ID)
+			 * @param Walk Walk operator instance
+			 * @param index Index register ID
+			 * @param filename_ Log file path
 			 */
 			LCU(Walk_s Walk, size_t index, std::string filename_) :
 				Walk(Walk), index(index), filename(filename_)
@@ -799,10 +833,10 @@ namespace qram_simulator{
 			};
 
 			/**
-			 * @brief 构造函数（索引以寄存器名称给出）
-			 * @param Walk 游走算子实例
-			 * @param index 索引寄存器名称
-			 * @param filename_ 日志文件路径
+			 * @brief Constructor (index given as a register name)
+			 * @param Walk Walk operator instance
+			 * @param index Index register name
+			 * @param filename_ Log file path
 			 */
 			LCU(Walk_s Walk, std::string index, std::string filename_) :
 				Walk(Walk), index(System::get(index)), filename(filename_)
@@ -812,8 +846,8 @@ namespace qram_simulator{
 			}
 
 			/**
-			 * @brief 执行 LCU 组合（正向）
-			 * @param state 系统状态向量
+			 * @brief Execute the LCU combination (forward)
+			 * @param state System state vector
 			 */
 			template<typename Ty>
 			void operator()(Ty& state)
@@ -839,8 +873,8 @@ namespace qram_simulator{
 			}
 
 			/**
-			 * @brief 执行 LCU 组合（dagger，逆向）
-			 * @param state 系统状态向量
+			 * @brief Execute the LCU combination (dagger, inverse)
+			 * @param state System state vector
 			 */
 			template<typename Ty>
 			void dag(Ty& state)
@@ -868,10 +902,11 @@ namespace qram_simulator{
 
 
 		/**
-		 * @brief 由非负系数序列计算顺序状态制备的旋转角序列
-		 * @param coeffs 非负系数列表
-		 * @return 旋转角列表 θ_i = 2·arccos(√(c_i / Σ_{j≥i} c_j))
-		 * @throws 当系数出现负值时抛出异常
+		 * @brief Compute the rotation-angle sequence for sequential state preparation from a
+		 *        list of nonnegative coefficients
+		 * @param coeffs List of nonnegative coefficients
+		 * @return List of rotation angles θ_i = 2·arccos(√(c_i / Σ_{j≥i} c_j))
+		 * @throws Throws an exception when a coefficient is negative
 		 */
 		inline std::vector<double> CalculateAngles(std::vector<double>& coeffs) {
 			auto l = coeffs.size();
@@ -890,9 +925,10 @@ namespace qram_simulator{
 		};
 
 		/**
-		 * @brief 计算第一类 Chebyshev 多项式 T_n(x)（迭代实现）
-		 * @param n 多项式阶数
-		 * @param x 输入值
+		 * @brief Compute the Chebyshev polynomial of the first kind T_n(x) (iterative
+		 *        implementation)
+		 * @param n Polynomial order
+		 * @param x Input value
 		 * @return T_n(x)
 		 */
 		inline double chebyshevT(size_t n, double x) {
@@ -911,10 +947,10 @@ namespace qram_simulator{
 		}
 
 		/**
-		 * @brief 计算 Dolph-Chebyshev 窗函数值
-		 * @param epsilon_ 误差容限 ε
-		 * @param l_ 窗长度参数 l
-		 * @param phi_ 相位角 φ
+		 * @brief Compute the Dolph-Chebyshev window function value
+		 * @param epsilon_ Error tolerance ε
+		 * @param l_ Window length parameter l
+		 * @param phi_ Phase angle φ
 		 * @return ε·T_l(cosh(acosh(1/ε)/l)·cos φ)
 		 */
 		inline double DolphChebyshev(double epsilon_, int l_, double phi_) {
@@ -924,9 +960,9 @@ namespace qram_simulator{
 		}
 
 		/**
-		 * @brief 求值偶函数 Fourier 级数
-		 * @param weights 系数列表（w_0 为常数项）
-		 * @param x 求值点
+		 * @brief Evaluate an even-function Fourier series
+		 * @param weights Coefficient list (w_0 is the constant term)
+		 * @param x Evaluation point
 		 * @return w_0 + Σ_{i≥1} 2·w_i·cos(i·x)
 		 */
 		inline double FourierSeries(std::vector<double> weights, double x)
@@ -941,10 +977,11 @@ namespace qram_simulator{
 		}
 		// Function to compute the coefficients of the Fourier series
 		/**
-		 * @brief 数值计算 Dolph-Chebyshev 滤波器的 Fourier 系数
-		 * @param epsilon_ 误差容限 ε
-		 * @param l_ 滤波器长度参数 l
-		 * @return 偶数阶系数列表（对窗函数做数值积分，仅保留 j 为偶数的项）
+		 * @brief Numerically compute the Fourier coefficients of the Dolph-Chebyshev filter
+		 * @param epsilon_ Error tolerance ε
+		 * @param l_ Filter length parameter l
+		 * @return List of even-order coefficients (numerical integration of the window
+		 *         function, keeping only terms with even j)
 		 */
 		inline std::vector<double> ComputeFourierCoeffs(double epsilon_, int l_) {
 			std::vector<double> coeffs; // Initialize coefficients array
@@ -975,60 +1012,63 @@ namespace qram_simulator{
 		}
 
 		/**
-		 * @brief Dolph-Chebyshev 滤波算子（QDA 精度增强）
-		 * @details 对游走序列施加滤波以放大成功分支的振幅：先用 QRAM（qram_w）在
-		 *          索引寄存器上制备滤波系数态，对 anc_h 做 Hadamard 后施加受控 LCU
-		 *          游走幂次展开，再经 X(anc_h) 与 LCU† 的交替组合实现反射式滤波，
-		 *          最后逆制备并读取成功概率。滤波系数由 ComputeFourierCoeffs
-		 *          （Dolph-Chebyshev 窗）给出。支持条件控制（ClassControllable）
-		 * @tparam Walk_type 游走算子类型
+		 * @brief Dolph-Chebyshev filtering operator (QDA accuracy enhancement)
+		 * @details Applies filtering to the walk sequence to amplify the amplitude of the
+		 *          successful branch: first prepares the filter-coefficient state on the
+		 *          index register using a QRAM (qram_w), applies a Hadamard on anc_h followed
+		 *          by the controlled LCU walk-power expansion, then realizes reflection-style
+		 *          filtering through the alternating combination of X(anc_h) and LCU†, and
+		 *          finally undoes the preparation and reads the success probability. The
+		 *          filter coefficients are given by ComputeFourierCoeffs (Dolph-Chebyshev
+		 *          window). Supports conditional control (ClassControllable)
+		 * @tparam Walk_type Walk operator type
 		 */
 		template<typename Walk_type>
 		struct Filtering
 		{
-			/** @brief 存储滤波系数的 QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit storing the filter coefficients */
 			qram_qutrit::QRAMCircuit* qram_w;
-			/** @brief 主数据寄存器名称 */
+			/** @brief Main data register name */
 			std::string main_reg;
-			/** @brief A 的块编码所用辅助寄存器名称 */
+			/** @brief Ancilla register name used by the block encoding of A */
 			std::string anc_UA;
-			/** @brief 辅助寄存器 anc_4 名称 */
+			/** @brief Ancilla register anc_4 name */
 			std::string anc_4;
-			/** @brief 辅助寄存器 anc_3 名称 */
+			/** @brief Ancilla register anc_3 name */
 			std::string anc_3;
-			/** @brief 辅助寄存器 anc_2 名称 */
+			/** @brief Ancilla register anc_2 name */
 			std::string anc_2;
-			/** @brief 辅助寄存器 anc_1 名称 */
+			/** @brief Ancilla register anc_1 name */
 			std::string anc_1;
-			/** @brief LCU 索引寄存器名称 */
+			/** @brief LCU index register name */
 			std::string index;
-			/** @brief 滤波辅助寄存器名称 */
+			/** @brief Filtering ancilla register name */
 			std::string anc_h;
-			/** @brief 数据寄存器位宽（定点量化位数） */
+			/** @brief Data register bit width (fixed-point quantization bits) */
 			size_t data_size;
-			/** @brief 有理数（旋转角）寄存器位宽 */
+			/** @brief Rational (rotation-angle) register bit width */
 			size_t rational_size;
-			/** @brief 游走算子实例 */
+			/** @brief Walk operator instance */
 			Walk_type Walk;
-			/** @brief 索引寄存器位宽 */
+			/** @brief Index register bit width */
 			int index_size;
-			/** @brief 运行日志文件路径 */
+			/** @brief Run log file path */
 			std::string stdout_filename;
 			/**
-			 * @brief 构造函数
-			 * @param qram_w 存储滤波系数的 QRAM 电路指针
-			 * @param Walk 游走算子实例
-			 * @param main_reg 主数据寄存器名称
-			 * @param anc_UA A 的块编码辅助寄存器名称
-			 * @param anc_4 辅助寄存器 anc_4 名称
-			 * @param anc_3 辅助寄存器 anc_3 名称
-			 * @param anc_2 辅助寄存器 anc_2 名称
-			 * @param anc_1 辅助寄存器 anc_1 名称
-			 * @param index LCU 索引寄存器名称
-			 * @param anc_h 滤波辅助寄存器名称
-			 * @param ds 数据寄存器位宽
-			 * @param rs 有理数寄存器位宽
-			 * @param stdout_filename_ 运行日志文件路径
+			 * @brief Constructor
+			 * @param qram_w Pointer to the QRAM circuit storing the filter coefficients
+			 * @param Walk Walk operator instance
+			 * @param main_reg Main data register name
+			 * @param anc_UA Ancilla register name of the block encoding of A
+			 * @param anc_4 Ancilla register anc_4 name
+			 * @param anc_3 Ancilla register anc_3 name
+			 * @param anc_2 Ancilla register anc_2 name
+			 * @param anc_1 Ancilla register anc_1 name
+			 * @param index LCU index register name
+			 * @param anc_h Filtering ancilla register name
+			 * @param ds Data register bit width
+			 * @param rs Rational register bit width
+			 * @param stdout_filename_ Run log file path
 			 */
 			Filtering(qram_qutrit::QRAMCircuit* qram_w,
 				Walk_type Walk,
@@ -1051,10 +1091,10 @@ namespace qram_simulator{
 			};
 
 			/**
-			 * @brief 生成随机初态（调试用）
-			 * @param state 系统状态向量
-			 * @details 对 anc_1 与主寄存器施加 Hadamard，再为每个分支注入随机实振幅
-			 *          并归一化
+			 * @brief Generate a random initial state (for debugging)
+			 * @param state System state vector
+			 * @details Applies Hadamards on anc_1 and the main register, then injects a
+			 *          random real amplitude into each branch and normalizes
 			 */
 			template<typename Ty>
 			void random_state_generate(Ty& state)
@@ -1075,12 +1115,14 @@ namespace qram_simulator{
 			//}
 
 			/**
-			 * @brief 执行滤波流程并返回成功概率
-			 * @param state 系统状态向量
-			 * @return 后选择概率（anc_h 与 index 均为 0 的分支），由偏迹振幅取平方得到
-			 * @details 流程：系数态制备 → H(anc_h) → LCU（受控）→ X(anc_h) →
-			 *          LCU†（受控）→ X(anc_h) → H(anc_h) → 逆制备；运行后将
-			 *          峰值资源统计写入日志文件
+			 * @brief Execute the filtering procedure and return the success probability
+			 * @param state System state vector
+			 * @return Post-selection probability (branches where both anc_h and index are 0),
+			 *         obtained by squaring the partial-trace amplitude
+			 * @details Procedure: coefficient state preparation → H(anc_h) → LCU
+			 *          (controlled) → X(anc_h) → LCU† (controlled) → X(anc_h) → H(anc_h) →
+			 *          inverse preparation; afterwards writes the peak resource statistics
+			 *          to the log file
 			 */
 			template<typename Ty>
 			double operator()(Ty& state)
@@ -1121,18 +1163,18 @@ namespace qram_simulator{
 	{
 		/* Extract full unitary of BlockEncoding_Hs */
 		/**
-		 * @brief 提取 Block_Encoding_Hs 的完整幺正矩阵（调试用）
-		 * @param encHs H(s) 块编码算子
-		 * @param main_reg 主数据寄存器名称
-		 * @param anc_UA A 的块编码辅助寄存器名称
-		 * @param anc_1 辅助寄存器 anc_1 名称
-		 * @param anc_2 辅助寄存器 anc_2 名称
-		 * @param anc_3 辅助寄存器 anc_3 名称
-		 * @param anc_4 辅助寄存器 anc_4 名称
-		 * @return 2^(主寄存器位数 + anc_UA 位数 + 4) 维完整幺正矩阵
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
-		 * @tparam StateType 状态容器类型（默认 SparseState）
+		 * @brief Extract the full unitary matrix of Block_Encoding_Hs (for debugging)
+		 * @param encHs H(s) block encoding operator
+		 * @param main_reg Main data register name
+		 * @param anc_UA Ancilla register name of the block encoding of A
+		 * @param anc_1 Ancilla register anc_1 name
+		 * @param anc_2 Ancilla register anc_2 name
+		 * @param anc_3 Ancilla register anc_3 name
+		 * @param anc_4 Ancilla register anc_4 name
+		 * @return Full unitary matrix of dimension 2^(main register bits + anc_UA bits + 4)
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
+		 * @tparam StateType State container type (default SparseState)
 		 */
 		template <typename Block_Encoding, typename State_Prep, typename StateType = SparseState>
 		DenseMatrix<complex_t> _extract_full_unitary(
@@ -1209,17 +1251,18 @@ namespace qram_simulator{
 		}
 
 		/**
-		 * @brief 提取 Block_Encoding_Hs 的完整幺正矩阵（SparseState 版便捷封装）
-		 * @param encHs H(s) 块编码算子
-		 * @param main_reg 主数据寄存器名称
-		 * @param anc_UA A 的块编码辅助寄存器名称
-		 * @param anc_1 辅助寄存器 anc_1 名称
-		 * @param anc_2 辅助寄存器 anc_2 名称
-		 * @param anc_3 辅助寄存器 anc_3 名称
-		 * @param anc_4 辅助寄存器 anc_4 名称
-		 * @return 完整幺正矩阵
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
+		 * @brief Extract the full unitary matrix of Block_Encoding_Hs (convenient
+		 *        SparseState wrapper)
+		 * @param encHs H(s) block encoding operator
+		 * @param main_reg Main data register name
+		 * @param anc_UA Ancilla register name of the block encoding of A
+		 * @param anc_1 Ancilla register anc_1 name
+		 * @param anc_2 Ancilla register anc_2 name
+		 * @param anc_3 Ancilla register anc_3 name
+		 * @param anc_4 Ancilla register anc_4 name
+		 * @return Full unitary matrix
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
 		 */
 		template <typename Block_Encoding, typename State_Prep>
 		DenseMatrix<complex_t> extract_full_unitary(
@@ -1233,20 +1276,22 @@ namespace qram_simulator{
 
 		/* Extract the block encoding part of the Hs */
 		/**
-		 * @brief 提取 H(s) 块编码的有效编码块（调试用）
-		 * @param encHs H(s) 块编码算子
-		 * @param main_reg 主数据寄存器名称
-		 * @param anc_UA A 的块编码辅助寄存器名称
-		 * @param anc_1 辅助寄存器 anc_1 名称
-		 * @param anc_2 辅助寄存器 anc_2 名称
-		 * @param anc_3 辅助寄存器 anc_3 名称
-		 * @param anc_4 辅助寄存器 anc_4 名称
-		 * @param qubit_num 主寄存器量子位数 n
-		 * @return 后选择（anc_UA / anc_2 / anc_3 全 0）并按成功概率归一化的
-		 *         2^(n+2) 维矩阵，行列索引包含 anc_1 与 anc_4 两个外层块指标
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
-		 * @tparam StateType 状态容器类型（默认 SparseState）
+		 * @brief Extract the effective encoded block of the H(s) block encoding (for
+		 *        debugging)
+		 * @param encHs H(s) block encoding operator
+		 * @param main_reg Main data register name
+		 * @param anc_UA Ancilla register name of the block encoding of A
+		 * @param anc_1 Ancilla register anc_1 name
+		 * @param anc_2 Ancilla register anc_2 name
+		 * @param anc_3 Ancilla register anc_3 name
+		 * @param anc_4 Ancilla register anc_4 name
+		 * @param qubit_num Number of qubits n of the main register
+		 * @return 2^(n+2)-dimensional matrix, post-selected (anc_UA / anc_2 / anc_3 all 0)
+		 *         and normalized by the success probability, whose row and column indices
+		 *         include the two outer block indicators anc_1 and anc_4
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
+		 * @tparam StateType State container type (default SparseState)
 		 */
 		template <typename Block_Encoding, typename State_Prep, typename StateType = SparseState>
 		DenseMatrix<complex_t> _extract_block_encoding_Hs(
@@ -1301,18 +1346,19 @@ namespace qram_simulator{
 
 
 		/**
-		 * @brief 提取 H(s) 块编码的有效编码块（SparseState 版便捷封装）
-		 * @param encHs H(s) 块编码算子
-		 * @param main_reg 主数据寄存器名称
-		 * @param anc_UA A 的块编码辅助寄存器名称
-		 * @param anc_1 辅助寄存器 anc_1 名称
-		 * @param anc_2 辅助寄存器 anc_2 名称
-		 * @param anc_3 辅助寄存器 anc_3 名称
-		 * @param anc_4 辅助寄存器 anc_4 名称
-		 * @param qubit_num 主寄存器量子位数
-		 * @return 后选择归一化后的编码块矩阵
-		 * @tparam Block_Encoding A 的块编码类型
-		 * @tparam State_Prep |b⟩ 的状态制备类型
+		 * @brief Extract the effective encoded block of the H(s) block encoding (convenient
+		 *        SparseState wrapper)
+		 * @param encHs H(s) block encoding operator
+		 * @param main_reg Main data register name
+		 * @param anc_UA Ancilla register name of the block encoding of A
+		 * @param anc_1 Ancilla register anc_1 name
+		 * @param anc_2 Ancilla register anc_2 name
+		 * @param anc_3 Ancilla register anc_3 name
+		 * @param anc_4 Ancilla register anc_4 name
+		 * @param qubit_num Number of qubits of the main register
+		 * @return Encoded block matrix after post-selection normalization
+		 * @tparam Block_Encoding Block encoding type of A
+		 * @tparam State_Prep State preparation type of |b⟩
 		 */
 		template <typename Block_Encoding, typename State_Prep>
 		DenseMatrix<complex_t> extract_block_encoding_Hs(

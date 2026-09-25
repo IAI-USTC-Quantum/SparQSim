@@ -1,15 +1,15 @@
 """
-PySparQ 测试共享配置和 Fixture。
+PySparQ test shared configuration and fixtures.
 
-提供：
-- fresh_system: 自动清理 System 状态的 fixture
-- pytest marker 配置
+Provides:
+- fresh_system: fixture that automatically clears System state
+- pytest marker configuration
 
-Helper 函数：
-- get_amplitude: 获取特定基态的振幅
-- get_reg_value: 获取寄存器值
-- verify_unitarity_self_adjoint: 验证自伴算子幺正性
-- verify_unitarity_explicit_dag: 验证显式 dag 算子幺正性
+Helper functions:
+- get_amplitude: get the amplitude of a specific basis state
+- get_reg_value: get a register value
+- verify_unitarity_self_adjoint: verify unitarity of a self-adjoint operator
+- verify_unitarity_explicit_dag: verify unitarity of an operator with explicit dag
 """
 
 import pytest
@@ -17,7 +17,7 @@ import numpy as np
 
 
 def pytest_configure(config):
-    """注册自定义 pytest markers。"""
+    """Register custom pytest markers."""
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
@@ -25,9 +25,9 @@ def pytest_configure(config):
 
 @pytest.fixture(autouse=True)
 def fresh_system():
-    """每个测试前后自动清理 System 状态。
+    """Automatically clear System state before and after each test.
 
-    这确保测试之间相互隔离，避免状态污染。
+    This keeps tests isolated from each other and avoids state pollution.
     """
     import pysparq as ps
 
@@ -38,10 +38,10 @@ def fresh_system():
 
 @pytest.fixture
 def small_qram():
-    """创建小型 QRAM 用于快速测试。
+    """Create a small QRAM for fast tests.
 
     Returns:
-        Callable: 接受 (memory, n_bits, data_size) 参数，返回 QRAMCircuit_qutrit
+        Callable: accepts (memory, n_bits, data_size) arguments and returns a QRAMCircuit_qutrit
     """
 
     def _create(memory: list, n_bits: int = None, data_size: int = 8):
@@ -61,14 +61,14 @@ def small_qram():
 
 
 def get_amplitude(state, reg_values: dict) -> complex:
-    """获取特定基态的振幅。
+    """Get the amplitude of a specific basis state.
 
     Args:
-        state: SparseState 实例
-        reg_values: 字典，映射寄存器名称到期望值
+        state: SparseState instance
+        reg_values: dict mapping register names to expected values
 
     Returns:
-        匹配基态的复数振幅，如果未找到返回 0
+        The complex amplitude of the matching basis state, or 0 if not found
 
     Example:
         >>> amp = get_amplitude(state, {"addr": 3, "data": 8})
@@ -88,14 +88,14 @@ def get_amplitude(state, reg_values: dict) -> complex:
 
 
 def get_reg_value(basis, reg: str | int) -> int:
-    """获取基态中寄存器的值。
+    """Get the value of a register in a basis state.
 
     Args:
-        basis: System 基态（来自 state.basis_states）
-        reg: 寄存器名称或 ID
+        basis: System basis state (from state.basis_states)
+        reg: register name or ID
 
     Returns:
-        寄存器中存储的整数值
+        The integer value stored in the register
     """
     import pysparq as ps
 
@@ -112,41 +112,42 @@ def verify_unitarity_self_adjoint(
     rtol: float = 1e-6,
     atol: float = 1e-10,
 ) -> bool:
-    """验证自伴算子的幺正性：U * U = I。
+    """Verify unitarity of a self-adjoint operator: U * U = I.
 
-    自伴算子满足 U^dagger = U，因此应用两次应返回初始状态。
+    A self-adjoint operator satisfies U^dagger = U, so applying it twice should return
+    the initial state.
 
     Args:
-        state: SparseState 实例
-        operator: 具有操作符接口的对象
-        rtol: 相对容差（未使用，保留兼容）
-        atol: 绝对容差
+        state: SparseState instance
+        operator: object with an operator interface
+        rtol: relative tolerance (unused, kept for compatibility)
+        atol: absolute tolerance
 
     Returns:
-        True 如果验证通过
+        True if the verification passes
 
     Example:
         >>> state = ps.SparseState()
-        >>> # ... 初始化状态 ...
+        >>> # ... initialize the state ...
         >>> assert verify_unitarity_self_adjoint(state, operator)
     """
     import pysparq as ps
 
-    # 记录初始振幅
+    # Record the initial amplitudes
     initial_amplitudes = {}
     for basis in state.basis_states:
-        # 使用寄存器值作为键
+        # Use register values as the key
         key = tuple(
             (ps.System.name_of(i), basis.get(i).value)
             for i in range(len(basis.registers))
         )
         initial_amplitudes[key] = basis.amplitude
 
-    # 应用操作符两次
+    # Apply the operator twice
     operator(state)
     operator(state)
 
-    # 验证返回初始状态
+    # Verify that the state returns to the initial one
     for basis in state.basis_states:
         key = tuple(
             (ps.System.name_of(i), basis.get(i).value)
@@ -164,27 +165,27 @@ def verify_unitarity_explicit_dag(
     rtol: float = 1e-6,
     atol: float = 1e-10,
 ) -> bool:
-    """验证非自伴算子的幺正性：U^dagger * U = I。
+    """Verify unitarity of a non-self-adjoint operator: U^dagger * U = I.
 
-    使用显式的 dag() 方法验证。
+    Verified using the explicit dag() method.
 
     Args:
-        state: SparseState 实例
-        operator: 具有 dag() 方法的操作符对象
-        rtol: 相对容差（未使用，保留兼容）
-        atol: 绝对容差
+        state: SparseState instance
+        operator: operator object with a dag() method
+        rtol: relative tolerance (unused, kept for compatibility)
+        atol: absolute tolerance
 
     Returns:
-        True 如果验证通过
+        True if the verification passes
 
     Example:
         >>> state = ps.SparseState()
-        >>> # ... 初始化状态 ...
+        >>> # ... initialize the state ...
         >>> assert verify_unitarity_explicit_dag(state, operator)
     """
     import pysparq as ps
 
-    # 记录初始振幅
+    # Record the initial amplitudes
     initial_amplitudes = {}
     for basis in state.basis_states:
         key = tuple(
@@ -193,11 +194,11 @@ def verify_unitarity_explicit_dag(
         )
         initial_amplitudes[key] = basis.amplitude
 
-    # 应用前向操作后应用 dag
+    # Apply the forward operator, then apply dag
     operator(state)
     operator.dag(state)
 
-    # 验证返回初始状态
+    # Verify that the state returns to the initial one
     for basis in state.basis_states:
         key = tuple(
             (ps.System.name_of(i), basis.get(i).value)
@@ -210,14 +211,14 @@ def verify_unitarity_explicit_dag(
 
 
 def state_to_amplitude_dict(state, main_reg: str) -> dict:
-    """将稀疏状态转换为振幅字典。
+    """Convert a sparse state to an amplitude dict.
 
     Args:
-        state: SparseState 实例
-        main_reg: 主寄存器名称
+        state: SparseState instance
+        main_reg: main register name
 
     Returns:
-        字典映射寄存器值到振幅
+        Dict mapping register values to amplitudes
     """
     import pysparq as ps
 
@@ -226,17 +227,17 @@ def state_to_amplitude_dict(state, main_reg: str) -> dict:
 
 
 def assert_amplitude_close(actual: complex, expected: complex, tol: float = 1e-10):
-    """验证振幅接近预期值。
+    """Verify that an amplitude is close to the expected value.
 
     Args:
-        actual: 实际振幅
-        expected: 预期振幅
-        tol: 容差
+        actual: actual amplitude
+        expected: expected amplitude
+        tol: tolerance
 
     Raises:
-        AssertionError: 如果振幅不匹配
+        AssertionError: if the amplitudes do not match
     """
-    assert abs(actual - expected) < tol, f"振幅不匹配: {actual} != {expected}"
+    assert abs(actual - expected) < tol, f"Amplitude mismatch: {actual} != {expected}"
 
 
 def assert_probability_distribution(
@@ -246,17 +247,17 @@ def assert_probability_distribution(
     rtol: float = 0.1,
     atol: float = 0.05,
 ):
-    """验证测量概率分布接近预期。
+    """Verify that the measurement probability distribution is close to the expected one.
 
     Args:
-        state: SparseState 实例
-        expected_probs: 字典映射寄存器值到预期概率
-        main_reg: 主寄存器名称
-        rtol: 相对容差
-        atol: 绝对容差
+        state: SparseState instance
+        expected_probs: dict mapping register values to expected probabilities
+        main_reg: main register name
+        rtol: relative tolerance
+        atol: absolute tolerance
 
     Raises:
-        AssertionError: 如果概率不匹配
+        AssertionError: if the probabilities do not match
     """
     import pysparq as ps
 
@@ -270,5 +271,5 @@ def assert_probability_distribution(
         actual_prob = measured.get(val, 0)
         if not np.isclose(actual_prob, expected_prob, rtol=rtol, atol=atol):
             raise AssertionError(
-                f"概率不匹配: 值 {val} 预期 {expected_prob:.4f}, 实际 {actual_prob:.4f}"
+                f"Probability mismatch: value {val} expected {expected_prob:.4f}, actual {actual_prob:.4f}"
             )

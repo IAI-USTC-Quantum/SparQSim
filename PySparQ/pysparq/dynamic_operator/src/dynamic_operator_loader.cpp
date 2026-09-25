@@ -1,7 +1,7 @@
 /**
  * @file dynamic_operator_loader.cpp
- * @brief 动态算子加载器实现
- * @details 实现跨平台的动态库加载功能
+ * @brief Dynamic operator loader implementation
+ * @details Implements cross-platform dynamic library loading
  */
 
 #include "dynamic_operator_loader.h"
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <cstring>
 
-// 平台相关的头文件
+// Platform-specific headers
 #ifdef _WIN32
     #include <windows.h>
 #else
@@ -18,7 +18,7 @@
 
 namespace pysparq {
 
-// ========== 构造函数 ==========
+// ========== Constructor ==========
 
 DynamicOperatorLoader::DynamicOperatorLoader(const std::string& lib_path)
     : handle_(nullptr)
@@ -31,7 +31,7 @@ DynamicOperatorLoader::DynamicOperatorLoader(const std::string& lib_path)
     }
 
 #ifdef _WIN32
-    // Windows: 使用 LoadLibraryA
+    // Windows: use LoadLibraryA
     handle_ = static_cast<void*>(LoadLibraryA(lib_path.c_str()));
     if (handle_ == nullptr) {
         DWORD error_code = GetLastError();
@@ -48,9 +48,9 @@ DynamicOperatorLoader::DynamicOperatorLoader(const std::string& lib_path)
         error_msg_ = std::string("Failed to load library: ") + error_buffer;
     }
 #else
-    // Linux/macOS: 使用 dlopen
-    // RTLD_NOW: 立即解析所有符号
-    // RTLD_LOCAL: 符号不对外可见
+    // Linux/macOS: use dlopen
+    // RTLD_NOW: resolve all symbols immediately
+    // RTLD_LOCAL: symbols are not made visible outside
     handle_ = dlopen(lib_path.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (handle_ == nullptr) {
         const char* dl_error = dlerror();
@@ -59,13 +59,13 @@ DynamicOperatorLoader::DynamicOperatorLoader(const std::string& lib_path)
 #endif
 }
 
-// ========== 析构函数 ==========
+// ========== Destructor ==========
 
 DynamicOperatorLoader::~DynamicOperatorLoader() {
     close_library();
 }
 
-// ========== 移动构造函数 ==========
+// ========== Move constructor ==========
 
 DynamicOperatorLoader::DynamicOperatorLoader(DynamicOperatorLoader&& other) noexcept
     : handle_(other.handle_)
@@ -76,7 +76,7 @@ DynamicOperatorLoader::DynamicOperatorLoader(DynamicOperatorLoader&& other) noex
     other.error_msg_.clear();
 }
 
-// ========== 移动赋值运算符 ==========
+// ========== Move assignment operator ==========
 
 DynamicOperatorLoader& DynamicOperatorLoader::operator=(DynamicOperatorLoader&& other) noexcept {
     if (this != &other) {
@@ -90,7 +90,7 @@ DynamicOperatorLoader& DynamicOperatorLoader::operator=(DynamicOperatorLoader&& 
     return *this;
 }
 
-// ========== 公共接口 ==========
+// ========== Public interface ==========
 
 void* DynamicOperatorLoader::get_symbol(const std::string& name) {
     if (!is_valid()) {
@@ -107,7 +107,7 @@ void* DynamicOperatorLoader::get_symbol(const std::string& name) {
     void* symbol = nullptr;
 
 #ifdef _WIN32
-    // Windows: 使用 GetProcAddress
+    // Windows: use GetProcAddress
     HMODULE hModule = static_cast<HMODULE>(handle_);
     FARPROC proc = GetProcAddress(hModule, name.c_str());
     if (proc == nullptr) {
@@ -127,7 +127,7 @@ void* DynamicOperatorLoader::get_symbol(const std::string& name) {
     }
     symbol = reinterpret_cast<void*>(proc);
 #else
-    // Linux/macOS: 使用 dlsym
+    // Linux/macOS: use dlsym
     symbol = dlsym(handle_, name.c_str());
     if (symbol == nullptr) {
         const char* dl_error = dlerror();
@@ -153,12 +153,12 @@ const std::string& DynamicOperatorLoader::get_lib_path() const {
     return lib_path_;
 }
 
-// ========== 私有辅助方法 ==========
+// ========== Private helper methods ==========
 
 void DynamicOperatorLoader::clear_error() {
     error_msg_.clear();
 #ifndef _WIN32
-    dlerror();  // 清除之前的错误状态
+    dlerror();  // Clear any previous error state
 #endif
 }
 

@@ -1,4 +1,4 @@
-"""基于 QRAM 二叉树分解的量子态制备。"""
+"""Quantum state preparation based on QRAM binary-tree decomposition."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Union
 
 
 class StatePrepViaQRAM:
-    """基于 QRAM 二叉树分解的态制备量子算子。"""
+    """Quantum state-preparation operator based on QRAM binary-tree decomposition."""
 
     qram: object
     work_qubit: str
@@ -36,7 +36,7 @@ class StatePrepViaQRAM:
 
 
 class StatePreparation:
-    """管理完整态制备流水线的高级封装。"""
+    """High-level wrapper managing the full state-preparation pipeline."""
 
     qubit_number: int
     data_size: int
@@ -48,34 +48,34 @@ class StatePreparation:
 
     def __init__(self, qubit_number: int, data_size: int, data_range: int) -> None: ...
     def random_distribution(self) -> None:
-        """生成随机振幅分布。"""
+        """Generate a random amplitude distribution."""
         ...
     def show_distribution(self) -> None:
-        """打印分布的原始值和归一化振幅。"""
+        """Print the raw values and normalized amplitudes of the distribution."""
         ...
     def get_real_dist(self) -> list[float]:
-        """返回归一化振幅分布的浮点数列表。"""
+        """Return the normalized amplitude distribution as a list of floats."""
         ...
     def make_tree(self) -> None:
-        """从当前分布构建二叉树。"""
+        """Build the binary tree from the current distribution."""
         ...
     def show_tree(self) -> None:
-        """逐层打印二叉树。"""
+        """Print the binary tree level by level."""
         ...
     def make_qram(self) -> None:
-        """创建适合树数据大小的 QRAM 电路。"""
+        """Create a QRAM circuit sized for the tree data."""
         ...
     def set_qram(self) -> None:
-        """将二叉树数据加载到 QRAM 电路中。"""
+        """Load the binary-tree data into the QRAM circuit."""
         ...
     def get_fidelity(self) -> float:
-        """计算制备态与目标态之间的保真度。"""
+        """Compute the fidelity between the prepared state and the target state."""
         ...
     def run(self) -> None:
-        """执行完整的态制备流水线。"""
+        """Run the full state-preparation pipeline."""
         ...
 
 
 def create_state_preparation_demo() -> str:
-    """返回态制备的演示脚本字符串。"""
+    """Return a demo script string for state preparation."""
     ...

@@ -268,7 +268,8 @@ namespace qram_simulator {
 					if (ConditionNotSatisfied(s))
 						continue;
 
-					// Read the quantized element and normalize it to a ratio in [0,1] according to the matrix sign convention
+					// Read the quantized element and normalize it to a ratio in [0,1] according to the matrix
+					// sign convention
 					uint64_t v = s.GetAs(data_id, uint64_t);
 					double ratio;
 					if (mat->positive_only)
@@ -630,9 +631,9 @@ namespace qram_simulator {
 
 		void LCU_Container::iterate()
 		{
-			// LCU iteration: the j-th term = c_j · W^(2j+1). First prepare the walk state with the corresponding number of
-			// steps, then accumulate it into the combined state according to the coefficient and sign, and finally
-			// sort-merge to keep the state size under control
+			// LCU iteration: the j-th term = c_j · W^(2j+1). First prepare the walk state with the corresponding
+			// number of steps, then accumulate it into the combined state according to the coefficient and sign,
+			// and finally sort-merge to keep the state size under control
 			for (size_t j = 0; j <= j0; ++j)
 			{
 				double coef = chebyshev_obj.coef(j);

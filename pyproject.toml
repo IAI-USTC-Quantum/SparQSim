@@ -53,9 +53,10 @@ exclude = [
     "extern/qram-simulator/test",
     "extern/qram-simulator/ThirdParty/googletest",
     "SparQ/test",
-    # 根目录锚定（前导 /）：不带斜杠的 gitignore 风格模式会匹配任意层级，
-    # 曾误伤 PySparQ/pysparq/test（0.1.1 起随包发布的测试支撑模块，
-    # PySparQ/test 下的集成测试经 installed 包导入它）
+    # Root-anchored (leading /): gitignore-style patterns without a slash
+    # match at any level and once caught PySparQ/pysparq/test by mistake (the
+    # test-support module shipped in the package since 0.1.1; integration
+    # tests under PySparQ/test import it from the installed package)
     "/Experiments",
     "/test",
     "/examples",
@@ -81,8 +82,8 @@ fallback_version = "0.0.0"
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
-# 暂不支持 32 位系统(size_t != uint64_t)
-# 暂时移除 macOS 支持
+# 32-bit systems not supported yet (size_t != uint64_t)
+# macOS support temporarily removed
 skip = ["*-musllinux_*", "*-win32", "*-macos*"]
 
 [tool.cibuildwheel.linux]

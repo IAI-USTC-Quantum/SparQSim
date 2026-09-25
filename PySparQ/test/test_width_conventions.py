@@ -1,4 +1,4 @@
-"""Width & truncation convention coverage (docs/operators.md《宽度与截断约定》).
+"""Width & truncation convention coverage (docs/operators.md "Width and Truncation Conventions").
 
 Every new integer-core / flag operator plus the migrated existing operators
 is run through :func:`pysparq.conformance.width_matrix_case`: independent
@@ -30,7 +30,7 @@ UINT = ps.UnsignedInteger
 SINT = ps.SignedInteger
 BOOL = ps.Boolean
 
-# 宽度组合:小/混合/边界(63、64 为移位 UB 修复边界)
+# Width combos: small / mixed / boundary (63 and 64 are the shift-UB fix boundaries)
 COMBOS_2IN = [(1, 1, 1), (2, 3, 2), (3, 5, 4), (4, 4, 4), (5, 8, 3), (8, 8, 8), (63, 2, 8), (64, 64, 64)]
 COMBOS_1IN = [(1, 1), (2, 3), (3, 5), (5, 8), (8, 8), (63, 8), (64, 64)]
 
@@ -54,7 +54,7 @@ def _controls(names_values: dict[str, int], inactive: dict[str, int] | None = No
 
 
 # ---------------------------------------------------------------------------
-# 整数核
+# Integer cores
 # ---------------------------------------------------------------------------
 
 
@@ -137,7 +137,7 @@ def test_sqrt_uint_width_matrix():
 
 
 def test_select_bool_uint_uint_width_matrix():
-    # combo = (cond_w 恒为 1, lhs_w, rhs_w, res_w)
+    # combo = (cond_w always 1, lhs_w, rhs_w, res_w)
     combos = [(1, a, b, c) for a, b, c in COMBOS_2IN]
 
     def specs(c):
@@ -180,7 +180,7 @@ def test_bitwise_uint_uint_width_matrix(kind):
 
 
 # ---------------------------------------------------------------------------
-# 比较与 flag 算子
+# Comparison and flag operators
 # ---------------------------------------------------------------------------
 
 
@@ -209,7 +209,7 @@ def test_carry_uint_uint_width_matrix():
         ],
         make_op=lambda w: ps.Carry_UInt_UInt("lhs", "rhs", "res", "flag"),
         model=lambda v, w: {
-            "res": 0,  # 宽度提供者:不读不写
+            "res": 0,  # width provider: neither read nor written
             "flag": int(v["lhs"] + v["rhs"] >= (1 << w["res"])),
         },
         input_names=["lhs", "rhs"],
@@ -251,7 +251,7 @@ def test_mul_overflow_uint_uint_width_matrix():
         ],
         make_op=lambda w: ps.MulOverflow_UInt_UInt("lhs", "rhs", "res", "flag"),
         model=lambda v, w: {
-            "res": 0,  # 宽度提供者:不读不写
+            "res": 0,  # width provider: neither read nor written
             "flag": int(v["lhs"] * v["rhs"] >= (1 << w["res"])),
         },
         input_names=["lhs", "rhs"],
@@ -288,7 +288,7 @@ def test_negative_sint_width_matrix():
 
 
 # ---------------------------------------------------------------------------
-# 存量算子的约定重验
+# Convention re-validation of existing operators
 # ---------------------------------------------------------------------------
 
 
@@ -337,7 +337,8 @@ def test_assign_revalidated():
 
 
 # ---------------------------------------------------------------------------
-# Add_AnyInt_AnyInt_InPlace:AnyInt 槽新语义(原地,不适用 xor-out runner)
+# Add_AnyInt_AnyInt_InPlace: new AnyInt slot semantics (in-place, not
+# applicable to the xor-out runner)
 # ---------------------------------------------------------------------------
 
 
@@ -379,7 +380,7 @@ class TestAddAnyIntSlotSemantics:
 
 
 # ---------------------------------------------------------------------------
-# two_complement_decode 自检(模型本身的正确性)
+# two_complement_decode self-check (correctness of the model itself)
 # ---------------------------------------------------------------------------
 
 

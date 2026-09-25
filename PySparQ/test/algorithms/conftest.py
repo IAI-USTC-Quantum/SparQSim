@@ -1,10 +1,10 @@
 """
-算法专用 fixtures 和 helper 函数。
+Algorithm-specific fixtures and helper functions.
 
-提供：
-- tridiagonal_matrix: 创建三对角矩阵
-- random_unitary: 创建随机酉矩阵
-- assert_probability_distribution: 验证概率分布
+Provides:
+- tridiagonal_matrix: creates a tridiagonal matrix
+- random_unitary: creates a random unitary matrix
+- assert_probability_distribution: validates a probability distribution
 """
 
 import pytest
@@ -13,10 +13,10 @@ import numpy as np
 
 @pytest.fixture
 def tridiagonal_matrix():
-    """创建三对角矩阵用于块编码测试。
+    """Create a tridiagonal matrix for block encoding tests.
 
     Returns:
-        Callable: 接受 (alpha, beta, dim) 参数，返回归一化的三对角矩阵
+        Callable: takes (alpha, beta, dim) parameters and returns a normalized tridiagonal matrix
     """
 
     def _create(alpha: float, beta: float, dim: int) -> np.ndarray:
@@ -27,7 +27,7 @@ def tridiagonal_matrix():
                 mat[i - 1, i] = beta
             if i < dim - 1:
                 mat[i + 1, i] = beta
-        # 归一化
+        # Normalize
         norm = np.linalg.norm(mat, "fro")
         if norm > 0:
             mat = mat / norm
@@ -38,10 +38,10 @@ def tridiagonal_matrix():
 
 @pytest.fixture
 def random_unitary():
-    """生成随机酉矩阵用于测试。
+    """Generate a random unitary matrix for testing.
 
     Returns:
-        Callable: 接受 (dim, seed) 参数，返回酉矩阵
+        Callable: takes (dim, seed) parameters and returns a unitary matrix
     """
 
     def _create(dim: int, seed: int = 42) -> np.ndarray:
@@ -55,16 +55,16 @@ def random_unitary():
 
 @pytest.fixture
 def simple_linear_system():
-    """创建简单线性系统用于求解器测试。
+    """Create a simple linear system for solver tests.
 
     Returns:
-        Callable: 接受 (n, kappa) 参数，返回 (A, b, x_expected)
+        Callable: takes (n, kappa) parameters and returns (A, b, x_expected)
     """
 
     def _create(n: int = 2, kappa: float = 2.0) -> tuple:
-        # 创建条件数为 kappa 的对称正定矩阵
+        # Create a symmetric positive definite matrix with condition number kappa
         # A = I + (kappa-1)/n * ones
-        # 这样条件数约为 kappa
+        # This gives a condition number of approximately kappa
         A = np.eye(n) + (kappa - 1) / n * np.ones((n, n))
         b = np.ones(n)
         x_expected = np.linalg.solve(A, b)

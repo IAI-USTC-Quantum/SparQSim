@@ -1,14 +1,16 @@
 /**
  * @file qda_via_QRAM.h
- * @brief 基于 QRAM 的通用矩阵 QDA 线性系统求解器
- * @details 将 qda_fundamental.h 的通用单步离散绝热游走 Walk_s 实例化为
- *          QRAM 场景：矩阵 A 的块编码用 Block_Encoding_via_QRAM（数据来自
- *          qram_A 层级树），右端项 b 的编码用 State_Prep_via_QRAM（数据来自
- *          qram_b 层级树）。含可定制 b 编码的模板版（Walk_s_via_QRAM_A）、
- *          标准版（Walk_s_via_QRAM）、调试版（Walk_s_via_QRAM_Debug）与
- *          多步完整求解序列（WalkSequence_via_QRAM_Debug，含逐步保真度统计）。
- *          对应的 Python 实现见 pysparq.algorithms.qda_solver，
- *          C++ 实验入口见 Experiments/QDA
+ * @brief QRAM-based general-matrix QDA linear-system solver
+ * @details Instantiates the generic single-step discrete adiabatic walk Walk_s from
+ *          qda_fundamental.h for the QRAM setting: the block encoding of the matrix A
+ *          uses Block_Encoding_via_QRAM (data from the qram_A hierarchy tree), and the
+ *          encoding of the right-hand side b uses State_Prep_via_QRAM (data from the
+ *          qram_b hierarchy tree). Includes the template version with customizable b
+ *          encoding (Walk_s_via_QRAM_A), the standard version (Walk_s_via_QRAM), the
+ *          debug version (Walk_s_via_QRAM_Debug), and the complete multi-step solving
+ *          sequence (WalkSequence_via_QRAM_Debug, with per-step fidelity statistics).
+ *          The corresponding Python implementation is pysparq.algorithms.qda_solver;
+ *          the C++ experiment entry point is Experiments/QDA
  */
 
 #pragma once
@@ -24,47 +26,49 @@ namespace qram_simulator {
 	namespace QDA {
 		/**
 		 * @namespace qram_simulator::QDA::QDA_via_QRAM
-		 * @brief 基于 QRAM 的 QDA 求解器
+		 * @brief QRAM-based QDA solver
 		 */
 		namespace QDA_via_QRAM {
 			using namespace block_encoding::block_encoding_via_QRAM;
 			using namespace state_prep;
 
 			/**
-			 * @brief QRAM 场景的单步游走（b 编码可定制的模板版）
-			 * @details 矩阵块编码固定为 Block_Encoding_via_QRAM（数据来自 qram_A），
-			 *          右端项编码类型由模板参数 Encb_type 指定
-			 * @tparam Encb_type 右端项 b 的编码算子类型
+			 * @brief Single-step walk for the QRAM setting (template version with
+			 *        customizable b encoding)
+			 * @details The matrix block encoding is fixed to Block_Encoding_via_QRAM (data
+			 *          from qram_A); the right-hand side encoding type is specified by the
+			 *          template parameter Encb_type
+			 * @tparam Encb_type Encoding operator type of the right-hand side b
 			 */
 			template<typename Encb_type>
 			struct Walk_s_via_QRAM_A : Walk_s<Block_Encoding_via_QRAM, Encb_type>
 			{
-				/** @brief 矩阵 A 的 QRAM 电路指针（层级树数据） */
+				/** @brief Pointer to the QRAM circuit of matrix A (hierarchy tree data) */
 				qram_qutrit::QRAMCircuit* qram_A;
-				/** @brief 数据寄存器位宽 */
+				/** @brief Data register bit width */
 				size_t data_size;
-				/** @brief 有理数寄存器位宽 */
+				/** @brief Rational register bit width */
 				size_t rational_size;
-				/** @brief 矩阵块编码类型 */
+				/** @brief Matrix block encoding type */
 				using EncA = Block_Encoding_via_QRAM;
-				/** @brief 右端项编码类型 */
+				/** @brief Right-hand side encoding type */
 				using Encb = Encb_type;
 
 				/**
-				 * @brief 构造函数
-				 * @param qram_A_ 矩阵 A 的 QRAM 电路指针
-				 * @param encb_ 右端项编码算子实例
-				 * @param main_reg_ 主寄存器名称
-				 * @param anc_UA_ 块编码辅助寄存器名称
-				 * @param anc_1_ 辅助寄存器 1 名称
-				 * @param anc_2_ 辅助寄存器 2 名称
-				 * @param anc_3_ 辅助寄存器 3 名称
-				 * @param anc_4_ 辅助寄存器 4 名称
-				 * @param s_ 插值参数 s ∈ [0, 1]
-				 * @param kappa_ 条件数 κ
-				 * @param p_ 成功概率参数
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_A_ Pointer to the QRAM circuit of matrix A
+				 * @param encb_ Right-hand side encoding operator instance
+				 * @param main_reg_ Main register name
+				 * @param anc_UA_ Block encoding ancilla register name
+				 * @param anc_1_ Ancilla register 1 name
+				 * @param anc_2_ Ancilla register 2 name
+				 * @param anc_3_ Ancilla register 3 name
+				 * @param anc_4_ Ancilla register 4 name
+				 * @param s_ Interpolation parameter s ∈ [0, 1]
+				 * @param kappa_ Condition number κ
+				 * @param p_ Success probability parameter
+				 * @param dsz Data register bit width
+				 * @param rsz Rational register bit width
 				 */
 				Walk_s_via_QRAM_A(
 					qram_qutrit::QRAMCircuit* qram_A_,
@@ -93,42 +97,42 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief QRAM 场景的标准单步游走
-			 * @details 矩阵块编码用 Block_Encoding_via_QRAM（qram_A），
-			 *          右端项编码用 State_Prep_via_QRAM（qram_b，
-			 *          经典分布的 QRAM 态制备）
+			 * @brief Standard single-step walk for the QRAM setting
+			 * @details The matrix block encoding uses Block_Encoding_via_QRAM (qram_A), and
+			 *          the right-hand side encoding uses State_Prep_via_QRAM (qram_b, QRAM
+			 *          state preparation of a classical distribution)
 			 */
 			struct Walk_s_via_QRAM : Walk_s<Block_Encoding_via_QRAM, State_Prep_via_QRAM>
 			{
-				/** @brief 矩阵 A 的 QRAM 电路指针 */
+				/** @brief Pointer to the QRAM circuit of matrix A */
 				qram_qutrit::QRAMCircuit* qram_A;
-				/** @brief 右端项 b 的 QRAM 电路指针 */
+				/** @brief Pointer to the QRAM circuit of the right-hand side b */
 				qram_qutrit::QRAMCircuit* qram_b;
-				/** @brief 数据寄存器位宽 */
+				/** @brief Data register bit width */
 				size_t data_size;
-				/** @brief 有理数寄存器位宽 */
+				/** @brief Rational register bit width */
 				size_t rational_size;
 
-				/** @brief 矩阵块编码类型 */
+				/** @brief Matrix block encoding type */
 				using EncA = Block_Encoding_via_QRAM;
-				/** @brief 右端项编码类型 */
+				/** @brief Right-hand side encoding type */
 				using Encb = State_Prep_via_QRAM;
 
 				/**
-				 * @brief 构造函数
-				 * @param qram_A_ 矩阵 A 的 QRAM 电路指针
-				 * @param qram_b_ 右端项 b 的 QRAM 电路指针
-				 * @param main_reg_ 主寄存器名称
-				 * @param anc_UA_ 块编码辅助寄存器名称
-				 * @param anc_1_ 辅助寄存器 1 名称
-				 * @param anc_2_ 辅助寄存器 2 名称
-				 * @param anc_3_ 辅助寄存器 3 名称
-				 * @param anc_4_ 辅助寄存器 4 名称
-				 * @param s_ 插值参数 s ∈ [0, 1]
-				 * @param kappa_ 条件数 κ
-				 * @param p_ 成功概率参数
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_A_ Pointer to the QRAM circuit of matrix A
+				 * @param qram_b_ Pointer to the QRAM circuit of the right-hand side b
+				 * @param main_reg_ Main register name
+				 * @param anc_UA_ Block encoding ancilla register name
+				 * @param anc_1_ Ancilla register 1 name
+				 * @param anc_2_ Ancilla register 2 name
+				 * @param anc_3_ Ancilla register 3 name
+				 * @param anc_4_ Ancilla register 4 name
+				 * @param s_ Interpolation parameter s ∈ [0, 1]
+				 * @param kappa_ Condition number κ
+				 * @param p_ Success probability parameter
+				 * @param dsz Data register bit width
+				 * @param rsz Rational register bit width
 				 */
 				Walk_s_via_QRAM(
 					qram_qutrit::QRAMCircuit* qram_A_,
@@ -156,30 +160,32 @@ namespace qram_simulator {
 
 
 			/**
-			 * @brief QRAM 场景 QDA 游走的调试版
-			 * @details 在 Walk_s_via_QRAM 基础上附带 QDADebugger：
-			 *          持有经典矩阵/向量副本，用于与理想中间本征态做保真度对比
+			 * @brief Debug version of the QDA walk for the QRAM setting
+			 * @details Extends Walk_s_via_QRAM with a QDADebugger: holds classical copies of
+			 *          the matrix/vector for fidelity comparison against the ideal
+			 *          intermediate eigenstate
 			 */
 			struct Walk_s_via_QRAM_Debug : public Walk_s_via_QRAM, QDADebugger
 			{
 				/**
-				 * @brief 构造函数
-				 * @param qram_A_ 矩阵 A 的 QRAM 电路指针
-				 * @param qram_b_ 右端项 b 的 QRAM 电路指针
-				 * @param matrix_A_ 经典矩阵副本（保真度对比用）
-				 * @param vector_b_ 经典右端项副本（保真度对比用）
-				 * @param main_reg_ 主寄存器名称
-				 * @param anc_UA_ 块编码辅助寄存器名称
-				 * @param anc_1_ 辅助寄存器 1 名称
-				 * @param anc_2_ 辅助寄存器 2 名称
-				 * @param anc_3_ 辅助寄存器 3 名称
-				 * @param anc_4_ 辅助寄存器 4 名称
-				 * @param s_ 插值参数 s ∈ [0, 1]
-				 * @param kappa_ 条件数 κ
-				 * @param p_ 成功概率参数
-				 * @param is_PD 矩阵是否正定（选择 H(s) 构造路径）
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_A_ Pointer to the QRAM circuit of matrix A
+				 * @param qram_b_ Pointer to the QRAM circuit of the right-hand side b
+				 * @param matrix_A_ Classical matrix copy (for fidelity comparison)
+				 * @param vector_b_ Classical right-hand side copy (for fidelity comparison)
+				 * @param main_reg_ Main register name
+				 * @param anc_UA_ Block encoding ancilla register name
+				 * @param anc_1_ Ancilla register 1 name
+				 * @param anc_2_ Ancilla register 2 name
+				 * @param anc_3_ Ancilla register 3 name
+				 * @param anc_4_ Ancilla register 4 name
+				 * @param s_ Interpolation parameter s ∈ [0, 1]
+				 * @param kappa_ Condition number κ
+				 * @param p_ Success probability parameter
+				 * @param is_PD Whether the matrix is positive definite (selects the H(s)
+				 *        construction path)
+				 * @param dsz Data register bit width
+				 * @param rsz Rational register bit width
 				 */
 				Walk_s_via_QRAM_Debug(qram_qutrit::QRAMCircuit* qram_A_,
 					qram_qutrit::QRAMCircuit* qram_b_,
@@ -206,64 +212,65 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief QRAM 场景 QDA 完整求解序列（调试驱动）
-			 * @details 逐步执行 s = n/steps 的单步游走并清理零振幅分支；
-			 *          每隔若干步用 GetOutput 读出中间态、与理想本征态
-			 *          （QDADebugger::get_mid_eigenstate）做保真度对比，
-			 *          将进度/保真度/最大寄存器规模等统计追加写入
-			 *          stdout_filename 与 fidelity_filename（由 stdout 文件名
-			 *          替换 "stdout" 为 "fidelity" 生成）两个文件
+			 * @brief Complete solving sequence of QDA for the QRAM setting (debug driver)
+			 * @details Executes the single-step walk with s = n/steps step by step and
+			 *          clears zero-amplitude branches; every few steps, reads out the
+			 *          intermediate state with GetOutput and compares it against the ideal
+			 *          eigenstate (QDADebugger::get_mid_eigenstate) for fidelity, appending
+			 *          statistics such as progress/fidelity/maximum register size to the two
+			 *          files stdout_filename and fidelity_filename (the latter generated
+			 *          from the stdout filename by replacing "stdout" with "fidelity")
 			 */
 			struct WalkSequence_via_QRAM_Debug
 			{
-				/** @brief 离散绝热总步数 */
+				/** @brief Total number of discrete adiabatic steps */
 				size_t steps;
-				/** @brief 条件数 κ */
+				/** @brief Condition number κ */
 				double kappa;
-				/** @brief 成功概率参数 */
+				/** @brief Success probability parameter */
 				double p;
-				/** @brief 主寄存器名称 */
+				/** @brief Main register name */
 				std::string main_reg;
-				/** @brief 块编码辅助寄存器名称 */
+				/** @brief Block encoding ancilla register name */
 				std::string anc_UA;
-				/** @brief 辅助寄存器 1-4 名称 */
+				/** @brief Names of ancilla registers 1-4 */
 				std::string anc_1;
 				std::string anc_2;
 				std::string anc_3;
 				std::string anc_4;
-				/** @brief 矩阵 A 的 QRAM 电路指针 */
+				/** @brief Pointer to the QRAM circuit of matrix A */
 				qram_qutrit::QRAMCircuit* qram_A;
-				/** @brief 右端项 b 的 QRAM 电路指针 */
+				/** @brief Pointer to the QRAM circuit of the right-hand side b */
 				qram_qutrit::QRAMCircuit* qram_b;
-				/** @brief 经典矩阵副本（保真度对比用） */
+				/** @brief Classical matrix copy (for fidelity comparison) */
 				DenseMatrix<double> matrix_A;
-				/** @brief 经典右端项副本（保真度对比用） */
+				/** @brief Classical right-hand side copy (for fidelity comparison) */
 				DenseVector<double> vector_b;
-				/** @brief 数据寄存器位宽 */
+				/** @brief Data register bit width */
 				size_t data_size;
-				/** @brief 有理数寄存器位宽 */
+				/** @brief Rational register bit width */
 				size_t rational_size;
-				/** @brief 运行统计输出文件名（保真度文件名由其派生） */
+				/** @brief Run-statistics output filename (the fidelity filename is derived from it) */
 				std::string stdout_filename;
 
 				/**
-				 * @brief 构造函数
-				 * @param qram_A_ 矩阵 A 的 QRAM 电路指针
-				 * @param qram_b_ 右端项 b 的 QRAM 电路指针
-				 * @param matrix_A 经典矩阵副本
-				 * @param vector_b 经典右端项副本
-				 * @param main_reg_ 主寄存器名称
-				 * @param anc_UA_ 块编码辅助寄存器名称
-				 * @param anc_1_ 辅助寄存器 1 名称
-				 * @param anc_2_ 辅助寄存器 2 名称
-				 * @param anc_3_ 辅助寄存器 3 名称
-				 * @param anc_4_ 辅助寄存器 4 名称
-				 * @param steps_ 离散绝热总步数
-				 * @param kappa_ 条件数 κ
-				 * @param p_ 成功概率参数
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
-				 * @param stdout_filename_ 运行统计输出文件名
+				 * @brief Constructor
+				 * @param qram_A_ Pointer to the QRAM circuit of matrix A
+				 * @param qram_b_ Pointer to the QRAM circuit of the right-hand side b
+				 * @param matrix_A Classical matrix copy
+				 * @param vector_b Classical right-hand side copy
+				 * @param main_reg_ Main register name
+				 * @param anc_UA_ Block encoding ancilla register name
+				 * @param anc_1_ Ancilla register 1 name
+				 * @param anc_2_ Ancilla register 2 name
+				 * @param anc_3_ Ancilla register 3 name
+				 * @param anc_4_ Ancilla register 4 name
+				 * @param steps_ Total number of discrete adiabatic steps
+				 * @param kappa_ Condition number κ
+				 * @param p_ Success probability parameter
+				 * @param dsz Data register bit width
+				 * @param rsz Rational register bit width
+				 * @param stdout_filename_ Run-statistics output filename
 				 */
 				WalkSequence_via_QRAM_Debug(qram_qutrit::QRAMCircuit* qram_A_,
 					qram_qutrit::QRAMCircuit* qram_b_,
@@ -287,9 +294,9 @@ namespace qram_simulator {
 				};
 
 				/**
-				 * @brief 执行完整离散绝热序列（正向）
-				 * @tparam Ty 状态类型
-				 * @param state 系统状态
+				 * @brief Execute the complete discrete adiabatic sequence (forward)
+				 * @tparam Ty State type
+				 * @param state System state
 				 */
 				template<typename Ty>
 				void operator()(Ty& state)
@@ -357,10 +364,11 @@ namespace qram_simulator {
 				}
 
 				/**
-				 * @brief 执行离散绝热序列的逆（dagger）
-				 * @details 逆序施加各步游走的 dagger（s 从 1 回到 0）
-				 * @tparam Ty 状态类型
-				 * @param state 系统状态
+				 * @brief Execute the inverse (dagger) of the discrete adiabatic sequence
+				 * @details Applies the dagger of each step's walk in reverse order (s goes
+				 *          from 1 back to 0)
+				 * @tparam Ty State type
+				 * @param state System state
 				 */
 				template<typename Ty>
 				void dag(Ty& state)

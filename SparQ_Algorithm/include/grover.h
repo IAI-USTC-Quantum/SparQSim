@@ -1,11 +1,13 @@
 /**
  * @file grover.h
- * @brief Grover 量子搜索算法（稀疏态/稠密态两套接口）
- * @details 提供基于寄存器级编程的 Grover 组件：QRAM 相位预言机（GroverOracle）、
- *          HPH 扩散算子、完整迭代（GroverOperator）、多次振幅放大（GroverAmplify）
- *          与量子计数（GroverCount），在 N 个条目中以 O(√N) 复杂度搜索标记项。
- *          另含 grover_dense 命名空间下的稠密态旧接口（直接操作
- *          std::vector<complex_t> 状态向量），与 grover 命名空间的稀疏态新接口相区别
+ * @brief Grover quantum search algorithm (two interface sets: sparse state / dense state)
+ * @details Provides register-level-programming-based Grover components: QRAM phase oracle
+ *          (GroverOracle), HPH diffusion operator, full iteration (GroverOperator), repeated
+ *          amplitude amplification (GroverAmplify), and quantum counting (GroverCount), which
+ *          search for a marked item among N entries with O(√N) complexity. Also contains the
+ *          legacy dense-state interface under the grover_dense namespace (operating directly on
+ *          the std::vector<complex_t> state vector), as distinct from the new sparse-state
+ *          interface in the grover namespace
  */
 
 #pragma once
@@ -18,21 +20,23 @@
 namespace qram_simulator {
 	/**
 	 * @namespace qram_simulator::grover_dense
-	 * @brief Grover 算法的稠密态旧接口
-	 * @details 直接操作 std::vector<complex_t> 全态向量，配合 QRAM 电路与噪声模型，
-	 *          用于与 QRAM-Simulator 基座的稠密态模拟器对接；
-	 *          新代码建议使用 grover 命名空间下的稀疏态接口
+	 * @brief Legacy dense-state interface of Grover's algorithm
+	 * @details Operates directly on the full std::vector<complex_t> state vector, together with
+	 *          QRAM circuits and noise models, for interfacing with the dense-state simulator of
+	 *          the QRAM-Simulator base; new code is advised to use the sparse-state interface
+	 *          in the grover namespace
 	 */
 	namespace grover_dense {
 		/**
-		 * @brief 对稠密态应用 QRAM 预言机
-		 * @details 将 QRAM 应用于地址位 [0, n)、数据位 n，其余位为 otherqubit；
-		 *          执行后校验态归一性，失败时打印状态并抛出异常
-		 * @tparam QRAM QRAM 电路类型（qutrit/qubit 实现）
-		 * @param state 输入输出稠密态向量
-		 * @param n 地址位宽度
-		 * @param qram QRAM 电路指针
-		 * @param version QRAM 电路版本字符串
+		 * @brief Apply the QRAM oracle to a dense state
+		 * @details Applies the QRAM with address bits [0, n) and data bit n, the remaining bits
+		 *          being otherqubit; after execution, verifies state normalization, printing the
+		 *          state and throwing an exception on failure
+		 * @tparam QRAM QRAM circuit type (qutrit/qubit implementation)
+		 * @param state Dense state vector (input and output)
+		 * @param n Address bit width
+		 * @param qram QRAM circuit pointer
+		 * @param version QRAM circuit version string
 		 */
 		template<typename QRAM>
 		void oracle(std::vector<complex_t>& state, size_t n, QRAM* qram, std::string version)
@@ -57,35 +61,36 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief Grover 扩散算子（关于平均值的反射）
-		 * @param state 输入输出稠密态向量
-		 * @param n 地址位宽度
+		 * @brief Grover diffusion operator (reflection about the mean)
+		 * @param state Dense state vector (input and output)
+		 * @param n Address bit width
 		 */
 		void diffusion(std::vector<complex_t>& state, size_t n);
 
 		/**
-		 * @brief 执行完整 Grover 迭代（预言机 + 扩散）
-		 * @param state 输入输出稠密态向量
-		 * @param n 地址位宽度
-		 * @param pos 标记项在内存中的位置
-		 * @param repeat 迭代次数
-		 * @param oracle 预言机回调（接受稠密态引用）
+		 * @brief Perform a full Grover iteration (oracle + diffusion)
+		 * @param state Dense state vector (input and output)
+		 * @param n Address bit width
+		 * @param pos Position of the marked item in memory
+		 * @param repeat Number of iterations
+		 * @param oracle Oracle callback (takes a reference to the dense state)
 		 */
 		void grover(std::vector<complex_t>& state, size_t n, size_t pos, size_t repeat,
 			std::function<void(decltype(state))> oracle);
 
 		/**
-		 * @brief 多次采样运行 Grover 搜索并统计测量结果
-		 * @details 每次采样重新制备初态、执行指定轮数的 Grover 迭代后测量，
-		 *          只保留最低 n 位（地址位）的测量结果
-		 * @tparam QRAM QRAM 电路类型
-		 * @param n 地址位宽度
-		 * @param pos 标记项在内存中的位置
-		 * @param shots 采样次数
-		 * @param repeat 每次采样的 Grover 迭代次数
-		 * @param noise 各操作类型的噪声模型参数
-		 * @param version QRAM 电路版本字符串
-		 * @return 长度为 2^n 的向量，第 i 项为测得地址 i 的次数
+		 * @brief Run Grover search with multiple samples and tally the measurement results
+		 * @details Each sample re-prepares the initial state, performs the specified number of
+		 *          Grover iterations, then measures, keeping only the lowest n bits (address bits)
+		 *          of the measurement result
+		 * @tparam QRAM QRAM circuit type
+		 * @param n Address bit width
+		 * @param pos Position of the marked item in memory
+		 * @param shots Number of samples
+		 * @param repeat Number of Grover iterations per sample
+		 * @param noise Noise model parameters for each operation type
+		 * @param version QRAM circuit version string
+		 * @return Vector of length 2^n whose i-th entry is the number of times address i was measured
 		 */
 		template<typename QRAM>
 		std::vector<size_t> grover_shots(size_t n, size_t pos, size_t shots, size_t repeat,
@@ -116,36 +121,36 @@ namespace qram_simulator {
 
 	/**
 	 * @namespace qram_simulator::grover
-	 * @brief Grover 算法的稀疏态接口（寄存器级编程）
+	 * @brief Sparse-state interface of Grover's algorithm (register-level programming)
 	 */
 	namespace grover
 	{
 		/**
-		 * @brief 基于 QRAM 的 Grover 相位预言机
-		 * @details 通过 QRAM 加载把内存数据读入数据寄存器，对等于搜索目标的分支
-		 *          施加相位翻转，再卸载（uncompute）数据寄存器，
-		 *          实现相位反冲式标记：|x⟩|0⟩ → (-1)^{f(x)} |x⟩|0⟩。
-		 *          支持条件控制（ClassControllable）
+		 * @brief QRAM-based Grover phase oracle
+		 * @details Loads the memory data into the data register via QRAM, applies a phase flip
+		 *          to the branches equal to the search target, then unloads (uncomputes) the data
+		 *          register, realizing phase-kickback-style marking: |x⟩|0⟩ → (-1)^{f(x)} |x⟩|0⟩.
+		 *          Supports conditional control (ClassControllable)
 		 */
 		struct GroverOracle
 		{
-			/** @brief QRAM 地址寄存器 ID */
+			/** @brief QRAM address register ID */
 			size_t qram_address_id;
-			/** @brief QRAM 数据寄存器 ID */
+			/** @brief QRAM data register ID */
 			size_t qram_data_id;
-			/** @brief 搜索目标寄存器 ID（存放待匹配值） */
+			/** @brief Search-target register ID (holds the value to match) */
 			size_t search_data_id;
-			/** @brief QRAM 电路（qutrit/qubit 实现）指针 */
+			/** @brief QRAM circuit (qutrit/qubit implementation) pointer */
 			qram_qutrit::QRAMCircuit* qram;
 
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版）
-			 * @param qram_ QRAM 电路指针
-			 * @param qram_address_id_ 地址寄存器 ID
-			 * @param qram_data_id_ 数据寄存器 ID
-			 * @param search_data_id_ 搜索目标寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param qram_ QRAM circuit pointer
+			 * @param qram_address_id_ Address register ID
+			 * @param qram_data_id_ Data register ID
+			 * @param search_data_id_ Search-target register ID
 			 */
 			GroverOracle(qram_qutrit::QRAMCircuit* qram_, size_t qram_address_id_,
 				size_t qram_data_id_, size_t search_data_id_)
@@ -158,11 +163,11 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 构造函数（寄存器名称版）
-			 * @param qram_ QRAM 电路指针
-			 * @param qram_address_ 地址寄存器名称
-			 * @param qram_data_ 数据寄存器名称
-			 * @param search_data_ 搜索目标寄存器名称
+			 * @brief Constructor (register-name version)
+			 * @param qram_ QRAM circuit pointer
+			 * @param qram_address_ Address register name
+			 * @param qram_data_ Data register name
+			 * @param search_data_ Search-target register name
 			 */
 			GroverOracle(qram_qutrit::QRAMCircuit* qram_, std::string_view qram_address_,
 				std::string_view qram_data_, std::string_view search_data_)
@@ -175,32 +180,32 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 应用预言机操作
-			 * @param state 系统状态向量
+			 * @brief Apply the oracle operation
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 
 		};
 
 		/**
-		 * @brief H-P-H 扩散算子
-		 * @details Grover 扩散算子的 H⊗n · 相位翻转 · H⊗n 形式：
-		 *          对地址寄存器先施加 Hadamard、再对 |0...0⟩ 分支翻转相位、
-		 *          最后再施加 Hadamard，实现关于均匀叠加态的反射。
-		 *          支持条件控制（ClassControllable）
+		 * @brief H-P-H diffusion operator
+		 * @details The H⊗n · phase flip · H⊗n form of the Grover diffusion operator: applies
+		 *          Hadamard to the address register, then flips the phase of the |0...0⟩ branch,
+		 *          then applies Hadamard again, realizing reflection about the uniform
+		 *          superposition state. Supports conditional control (ClassControllable)
 		 */
 		struct HPH
 		{
-			/** @brief 地址寄存器 ID */
+			/** @brief Address register ID */
 			size_t qram_address_id;
-			/** @brief 寄存器位宽（构造时自全局寄存器表缓存） */
+			/** @brief Register bit width (cached from the global register table at construction) */
 			size_t size;
 
 			ClassControllable
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版）
-			 * @param qram_address_id_ 地址寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param qram_address_id_ Address register ID
 			 */
 			HPH(size_t qram_address_id_)
 				: qram_address_id(qram_address_id_),
@@ -208,47 +213,47 @@ namespace qram_simulator {
 			{ }
 
 			/**
-			 * @brief 构造函数（寄存器名称版）
-			 * @param qram_address_name 地址寄存器名称
-			 * @param size_ 寄存器位宽
+			 * @brief Constructor (register-name version)
+			 * @param qram_address_name Address register name
+			 * @param size_ Register bit width
 			 */
 			HPH(std::string qram_address_name, size_t size_)
 				: qram_address_id(System::get(qram_address_name)), size(size_)
 			{ }
 
 			/**
-			 * @brief 应用扩散操作
-			 * @param state 系统状态向量
+			 * @brief Apply the diffusion operation
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 
 		};
 
 		/**
-		 * @brief 单次完整 Grover 迭代算子
-		 * @details 组合 GroverOracle（相位标记）与 HPH（扩散反射），
-		 *          构成一次标准 Grover 迭代 G = HPH · Oracle。
-		 *          支持条件控制（ClassControllable）
+		 * @brief Single full Grover iteration operator
+		 * @details Combines GroverOracle (phase marking) with HPH (diffusion reflection) to form
+		 *          one standard Grover iteration G = HPH · Oracle.
+		 *          Supports conditional control (ClassControllable)
 		 */
 		struct GroverOperator
 		{
-			/** @brief QRAM 地址寄存器 ID */
+			/** @brief QRAM address register ID */
 			size_t qram_address_id;
-			/** @brief QRAM 数据寄存器 ID */
+			/** @brief QRAM data register ID */
 			size_t qram_data_id;
-			/** @brief 搜索目标寄存器 ID */
+			/** @brief Search-target register ID */
 			size_t search_data_id;
-			/** @brief QRAM 电路指针 */
+			/** @brief QRAM circuit pointer */
 			qram_qutrit::QRAMCircuit* qram;
 
 			ClassControllable
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ QRAM 电路指针
-			 * @param qram_address_id_ 地址寄存器 ID
-			 * @param qram_data_id_ 数据寄存器 ID
-			 * @param search_data_id_ 搜索目标寄存器 ID
+			 * @brief Constructor
+			 * @param qram_ QRAM circuit pointer
+			 * @param qram_address_id_ Address register ID
+			 * @param qram_data_id_ Data register ID
+			 * @param search_data_id_ Search-target register ID
 			 */
 			GroverOperator(qram_qutrit::QRAMCircuit* qram_, size_t qram_address_id_,
 				size_t qram_data_id_, size_t search_data_id_)
@@ -259,40 +264,40 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 应用单次 Grover 迭代
-			 * @param state 系统状态向量
+			 * @brief Apply a single Grover iteration
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 		};
 
 		/**
-		 * @brief 多轮振幅放大算子
-		 * @details 连续执行 n_repeats 次 GroverOperator 迭代，
-		 *          把标记项的测量概率放大到接近 1
+		 * @brief Multi-round amplitude amplification operator
+		 * @details Executes the GroverOperator iteration n_repeats times in a row, amplifying
+		 *          the measurement probability of the marked item to close to 1
 		 */
 		struct GroverAmplify
 		{
-			/** @brief 迭代次数 */
+			/** @brief Number of iterations */
 			size_t n_repeats;
 
-			/** @brief QRAM 地址寄存器 ID */
+			/** @brief QRAM address register ID */
 			size_t qram_address_id;
-			/** @brief QRAM 数据寄存器 ID */
+			/** @brief QRAM data register ID */
 			size_t qram_data_id;
-			/** @brief 搜索目标寄存器 ID */
+			/** @brief Search-target register ID */
 			size_t search_data_id;
-			/** @brief 搜索目标值的位宽 */
+			/** @brief Bit width of the search-target value */
 			size_t data_size;
-			/** @brief QRAM 电路指针 */
+			/** @brief QRAM circuit pointer */
 			qram_qutrit::QRAMCircuit* qram;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ QRAM 电路指针
-			 * @param qram_address_id_ 地址寄存器 ID
-			 * @param search_data_id_ 搜索目标寄存器 ID
-			 * @param data_size_ 搜索目标值位宽
-			 * @param n_repeats_ 迭代次数
+			 * @brief Constructor
+			 * @param qram_ QRAM circuit pointer
+			 * @param qram_address_id_ Address register ID
+			 * @param search_data_id_ Search-target register ID
+			 * @param data_size_ Search-target value bit width
+			 * @param n_repeats_ Number of iterations
 			 */
 			GroverAmplify(qram_qutrit::QRAMCircuit* qram_, size_t qram_address_id_, size_t search_data_id_,
 				size_t data_size_, size_t n_repeats_)
@@ -301,42 +306,43 @@ namespace qram_simulator {
 			{}
 
 			/**
-			 * @brief 应用多轮振幅放大
-			 * @param state 系统状态向量
+			 * @brief Apply multi-round amplitude amplification
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state);
 
 		};
 
 		/**
-		 * @brief 量子计数（quantum counting）算子
-		 * @details 电路结构：计数寄存器 Hadamard 制备叠加态 → 以计数寄存器
-		 *          控制 Grover 迭代幂（c-U^{2^k}）→ 对计数寄存器做逆 QFT，
-		 *          从而估计标记项数目 M（相位估计视角：sin²θ = M/N）
+		 * @brief Quantum counting operator
+		 * @details Circuit structure: Hadamard prepares the counting register in superposition →
+		 *          powers of the Grover iteration controlled by the counting register (c-U^{2^k})
+		 *          → inverse QFT on the counting register, thereby estimating the number of marked
+		 *          items M (phase-estimation view: sin²θ = M/N)
 		 */
 		struct GroverCount
 		{
 			/*
 			-- H -- (c-U) - iQFT
 			*/
-			/** @brief 计数寄存器 ID */
+			/** @brief Counting register ID */
 			size_t count_reg;
-			/** @brief QRAM 地址寄存器 ID */
+			/** @brief QRAM address register ID */
 			size_t addr_reg;
-			/** @brief QRAM 数据寄存器 ID */
+			/** @brief QRAM data register ID */
 			size_t data_reg;
-			/** @brief 搜索目标寄存器 ID */
+			/** @brief Search-target register ID */
 			size_t search_data_reg;
-			/** @brief QRAM 电路指针 */
+			/** @brief QRAM circuit pointer */
 			qram_qutrit::QRAMCircuit* qram;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ QRAM 电路指针
-			 * @param count_reg_ 计数寄存器 ID
-			 * @param addr_reg_ 地址寄存器 ID
-			 * @param data_reg_ 数据寄存器 ID
-			 * @param search_data_reg_ 搜索目标寄存器 ID
+			 * @brief Constructor
+			 * @param qram_ QRAM circuit pointer
+			 * @param count_reg_ Counting register ID
+			 * @param addr_reg_ Address register ID
+			 * @param data_reg_ Data register ID
+			 * @param search_data_reg_ Search-target register ID
 			 */
 			GroverCount(qram_qutrit::QRAMCircuit* qram_, size_t count_reg_, size_t addr_reg_,
 				size_t data_reg_, size_t search_data_reg_)
@@ -345,8 +351,8 @@ namespace qram_simulator {
 			{}
 
 			/**
-			 * @brief 执行量子计数
-			 * @param state 系统状态向量
+			 * @brief Perform quantum counting
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state);
 		};

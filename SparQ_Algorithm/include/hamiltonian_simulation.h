@@ -23,12 +23,14 @@ namespace qram_simulator
 		using walk_angle_function_t = std::function<u22_t(uint64_t, size_t row, size_t col)>;
 
 			/**
-			 * @brief Generates the 2x2 rotation matrix of the quantum walk (case where all matrix elements are non-negative)
+			 * @brief Generates the 2x2 rotation matrix of the quantum walk (case where all matrix elements are
+			 *          non-negative)
 			 * @param mat_data_size Quantization bit width of the matrix element
 			 * @param v Quantized matrix element value
 			 * @param row Row index of the element (unused in this overload)
 			 * @param col Column index of the element (unused in this overload)
-			 * @param mat Output buffer; the 2x2 complex matrix is written in the real/imaginary interleaved layout of u22_t
+			 * @param mat Output buffer; the 2x2 complex matrix is written in the real/imaginary interleaved
+			 *          layout of u22_t
 			 * @details Let Amax = 2^mat_data_size - 1 and a = v / Amax; generates the rotation matrix
 			 *          [[sqrt(a), -sqrt(1-a)], [sqrt(1-a), sqrt(a)]],
 			 *          whose rotation angle theta satisfies cos(theta) = sqrt(a).
@@ -56,7 +58,8 @@ namespace qram_simulator
 		//u22_t _get_coef(const SparseMatrix& mat, size_t v, size_t row, size_t col);
 		/**
 		 * @brief Generates the 2x2 rotation matrix of the quantum walk (positive-only elements case), returned as u22_t
-		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the rotation matrix.
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the
+		 *          rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_positive_only(size_t mat_data_size, size_t v, size_t row, size_t col)
 		{
@@ -137,8 +140,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief Generates the 2x2 rotation matrix of the quantum walk (general case allowing negative elements), returned as u22_t
-		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the rotation matrix.
+		 * @brief Generates the 2x2 rotation matrix of the quantum walk (general case allowing negative elements),
+		 *          returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the
+		 *          rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_common(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -180,7 +185,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative elements)
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative
+		 *          elements)
 		 * @details First generates the forward rotation matrix, then takes its conjugate transpose (dagger).
 		 *          The parameters have the same meaning as in the forward version.
 		 */
@@ -191,8 +197,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (positive-only elements case), returned as u22_t
-		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the inverse rotation matrix.
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (positive-only elements case),
+		 *          returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the
+		 *          inverse rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_positive_only_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -202,9 +210,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative elements),
-		 *          returned as u22_t
-		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the inverse rotation matrix.
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative
+		 *          elements), returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the
+		 *          inverse rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_common_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -231,8 +240,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief Generates the inverse (dagger) of the quantum-walk rotation matrix according to the sparse matrix's
-			 *          sign convention
+			 * @brief Generates the inverse (dagger) of the quantum-walk rotation matrix according to the sparse
+			 *          matrix's sign convention
 			 * @param mat Sparse matrix (its positive_only and data_size metadata are used)
 			 * @param v Quantized matrix element value
 			 * @param row Row index of the element
@@ -369,8 +378,8 @@ namespace qram_simulator
 		 * @brief Chebyshev polynomial expansion coefficients for the CKS algorithm
 		 * @details Provides the coefficients c_j and their signs for the LCU combination Σ_j c_j · W^(2j+1):
 		 *          expansion order b = kappa^2 · log(kappa/eps), truncation point j0 = sqrt(b·log(4b/eps)).
-		 *          For large b, c_j is computed with the erfc asymptotic formula; for small b, the binomial-distribution
-		 *          tail probability is summed exactly; odd-j terms take a negative sign.
+		 *          For large b, c_j is computed with the erfc asymptotic formula; for small b,
+		 *          the binomial-distribution tail probability is summed exactly; odd-j terms take a negative sign.
 		 */
 		struct ChebyshevPolynomialCoefficient
 		{
@@ -392,7 +401,8 @@ namespace qram_simulator
 			 * @param Big Upper parameter of the binomial coefficient
 			 * @param Small Lower parameter of the binomial coefficient
 			 * @return C(Big, Small) / 4^b
-			 * @note During the recursion, as soon as the intermediate value exceeds 2^b it is divided by 2^b to avoid overflow.
+			 * @note During the recursion, as soon as the intermediate value exceeds 2^b it is divided by 2^b to
+			 *          avoid overflow.
 			 */
 			double C(size_t Big, size_t Small);
 
@@ -880,34 +890,34 @@ namespace qram_simulator
 		};
 
 		/**
-		 * @brief 矩阵元素存储地址计算算子（自伴）
-		 * @details 执行 data_offset ^= offset + row_sz * row + col_sparse，
-		 *          即元素（行 row 的第 col_sparse 个稀疏槽位）在 QRAM 数据表中的
-		 *          地址；两次调用相互抵消。
+		 * @brief Matrix-element storage address computation operator (self-adjoint)
+		 * @details Performs data_offset ^= offset + row_sz * row + col_sparse, i.e. the address in the QRAM data
+		 *          table of the element (the col_sparse-th sparse slot of row row);
+		 *          two invocations cancel each other.
 		 */
 		struct GetDataAddr : SelfAdjointOperator
 		{
 			using SelfAdjointOperator::operator();
 			using SelfAdjointOperator::dag;
 
-			/** @brief 数据表起始偏移寄存器 ID */
+			/** @brief Register ID of the data-table start offset */
 			size_t offset_id;
-			/** @brief 行号寄存器 ID */
+			/** @brief Register ID of the row index */
 			size_t row_id;
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_sz;
-			/** @brief 稀疏槽位寄存器 ID */
+			/** @brief Register ID of the sparse slot */
 			size_t col_sparse_id;
-			/** @brief 元素地址输出寄存器 ID（以 XOR 方式写入） */
+			/** @brief Register ID of the element-address output (written by XOR) */
 			size_t row_data_id;
 
 			/**
-			 * @brief 构造函数（寄存器名称版本）
-			 * @param reg_offset 数据表起始偏移寄存器名称
-			 * @param reg_row 行号寄存器名称
-			 * @param reg_col_sparse 稀疏槽位寄存器名称
-			 * @param row_sz_ 每行的槽位数
-			 * @param reg_data_offset 元素地址输出寄存器名称
+			 * @brief Constructor (register-name version)
+			 * @param reg_offset Name of the data-table start offset register
+			 * @param reg_row Name of the row-index register
+			 * @param reg_col_sparse Name of the sparse-slot register
+			 * @param row_sz_ Number of slots per row
+			 * @param reg_data_offset Name of the element-address output register
 			 */
 			GetDataAddr(std::string_view reg_offset, std::string_view reg_row,
 				std::string_view reg_col_sparse, size_t row_sz_, std::string_view reg_data_offset)
@@ -920,12 +930,12 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版本）
-			 * @param reg_offset 数据表起始偏移寄存器 ID
-			 * @param reg_row 行号寄存器 ID
-			 * @param reg_col_sparse 稀疏槽位寄存器 ID
-			 * @param row_sz_ 每行的槽位数
-			 * @param reg_data_offset 元素地址输出寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param reg_offset Register ID of the data-table start offset
+			 * @param reg_row Register ID of the row index
+			 * @param reg_col_sparse Register ID of the sparse slot
+			 * @param row_sz_ Number of slots per row
+			 * @param reg_data_offset Register ID of the element-address output
 			 */
 			GetDataAddr(size_t reg_offset, size_t reg_row,
 				size_t reg_col_sparse, size_t row_sz_, size_t reg_data_offset)
@@ -938,15 +948,15 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 计算矩阵元素存储地址
-			 * @param state 系统状态向量
+			 * @brief Computes the storage address of a matrix element
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 			/**
-			 * @brief CUDA 计算矩阵元素存储地址
-			 * @param state CUDA 稀疏状态
+			 * @brief CUDA: computes the storage address of a matrix element
+			 * @param state CUDA sparse state
 			 */
 			void operator()(CuSparseState& state) const;
 #endif
@@ -957,38 +967,38 @@ namespace qram_simulator
 		|offset>|i>|s_j>|a_{ij}>
 		*/
 		/**
-		 * @brief 稀疏矩阵 oracle 一号：矩阵元素查询（自伴）
-		 * @details 按（行 i，行内稀疏槽位 s_j）查询 QRAM 数据表，加载对应的量化
-		 *          矩阵元素 a_{ij}，即 |offset>|i>|s_j>|0> -> |offset>|i>|s_j>|a_{ij}>。
-		 *          元素地址由 GetDataAddr 计算（offset + row_size*i + s_j），
-		 *          加载后再反计算地址寄存器，保持整体自伴。
+		 * @brief Sparse-matrix oracle No. 1: matrix-element query (self-adjoint)
+		 * @details Queries the QRAM data table by (row i, in-row sparse slot s_j) and loads the corresponding
+		 *          quantized matrix element a_{ij}, i.e. |offset>|i>|s_j>|0> -> |offset>|i>|s_j>|a_{ij}>.
+		 *          The element address is computed by GetDataAddr (offset + row_size*i + s_j);
+		 *          after the load the address register is uncomputed again, keeping the whole self-adjoint.
 		 */
 		struct SparseMatrixOracle1 : SelfAdjointOperator
 		{
 			using SelfAdjointOperator::operator();
 			using SelfAdjointOperator::dag;
 
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 数据表偏移寄存器名称 */
+			/** @brief Name of the data-table offset register */
 			std::string reg_offset;
-			/** @brief 行号寄存器名称 */
+			/** @brief Name of the row-index register */
 			std::string reg_row;
-			/** @brief 稀疏槽位寄存器名称（元素在行紧凑存储中的位置） */
+			/** @brief Name of the sparse-slot register (the element's position in the row's compact storage) */
 			std::string reg_col_id; // position in the sparse-compact storage
-			/** @brief 查询结果（量化元素）输出寄存器名称 */
+			/** @brief Name of the query-result (quantized element) output register */
 			std::string reg_output;
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_size;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram QRAM 电路指针
-			 * @param reg_offset 数据表偏移寄存器名称
-			 * @param reg_row 行号寄存器名称
-			 * @param reg_col_id 稀疏槽位寄存器名称
-			 * @param reg_output 查询结果输出寄存器名称
-			 * @param row_size_ 每行的槽位数
+			 * @brief Constructor
+			 * @param qram Pointer to the QRAM circuit
+			 * @param reg_offset Name of the data-table offset register
+			 * @param reg_row Name of the row-index register
+			 * @param reg_col_id Name of the sparse-slot register
+			 * @param reg_output Name of the query-result output register
+			 * @param row_size_ Number of slots per row
 			 */
 			SparseMatrixOracle1(qram_qutrit::QRAMCircuit* qram,
 				std::string_view reg_offset,
@@ -998,11 +1008,11 @@ namespace qram_simulator
 				size_t row_size_);
 
 			/**
-			 * @brief 元素查询的正向实现（同时作为 dagger 实现）
-			 * @param state 系统状态向量
-			 * @details 计算 data_addr = offset + row_size*i + s_j，
-			 *          QRAM 加载元素到输出寄存器后再次调用 GetDataAddr
-			 *          反计算地址寄存器。
+			 * @brief Forward implementation of the element query (also serves as the dagger implementation)
+			 * @param state System state vector
+			 * @details Computes data_addr = offset + row_size*i + s_j,
+			 *          loads the element into the output register via QRAM, then calls GetDataAddr again
+			 *          to uncompute the address register.
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const
@@ -1015,9 +1025,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 元素查询的 dagger 实现
-			 * @param state 系统状态向量
-			 * @details 算子自伴，直接复用正向实现。
+			 * @brief Dagger implementation of the element query
+			 * @param state System state vector
+			 * @details The operator is self-adjoint and directly reuses the forward implementation.
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const
@@ -1033,38 +1043,39 @@ namespace qram_simulator
 		|offset>|i>|s_j>
 		*/
 		/**
-		 * @brief 稀疏矩阵 oracle 二号：列下标到稀疏槽位的转换
-		 * @details 通过量子二分查找，把矩阵列下标 j 转换为该元素在行紧凑存储中的
-		 *          稀疏槽位 s_j，即 |offset>|i>|j> -> |offset>|i>|s_j>。
-		 *          行的稀疏表首地址由 GetRowAddr 计算；查找得到的是稀疏表内的
-		 *          绝对地址，需经 QRAM 加载列下标并减去行首地址还原为槽位编号。
+		 * @brief Sparse-matrix oracle No. 2: conversion from column index to sparse slot
+		 * @details Via quantum binary search, converts the matrix column index j into the sparse slot s_j of that
+		 *          element in the row's compact storage, i.e. |offset>|i>|j> -> |offset>|i>|s_j>.
+		 *          The start address of the row's sparse table is computed by GetRowAddr; the search yields the
+		 *          absolute address within the sparse table, so the column index is restored to a slot number by
+		 *          loading it via QRAM and subtracting the row-start address.
 		 */
 		struct SparseMatrixOracle2 : BaseOperator
 		{
 			using BaseOperator::operator();
 			using BaseOperator::dag;
 
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 稀疏表偏移寄存器名称 */
+			/** @brief Name of the sparse-table offset register */
 			std::string reg_sparse_offset;
-			/** @brief 行号寄存器名称 */
+			/** @brief Name of the row-index register */
 			std::string reg_row;
-			/** @brief 列号寄存器名称（矩阵中的实际列下标） */
+			/** @brief Name of the column-index register (the actual column index in the matrix) */
 			std::string reg_col; // the column in the matrix
-			/** @brief 二分查找结果寄存器名称 */
+			/** @brief Name of the binary-search result register */
 			std::string reg_search_result;
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_size;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram QRAM 电路指针
-			 * @param reg_sparse_offset 稀疏表偏移寄存器名称
-			 * @param reg_row_ 行号寄存器名称
-			 * @param reg_col_ 列号寄存器名称
-			 * @param reg_search_result_ 二分查找结果寄存器名称
-			 * @param row_size 每行的槽位数
+			 * @brief Constructor
+			 * @param qram Pointer to the QRAM circuit
+			 * @param reg_sparse_offset Name of the sparse-table offset register
+			 * @param reg_row_ Name of the row-index register
+			 * @param reg_col_ Name of the column-index register
+			 * @param reg_search_result_ Name of the binary-search result register
+			 * @param row_size Number of slots per row
 			 */
 			SparseMatrixOracle2(qram_qutrit::QRAMCircuit* qram,
 				std::string_view reg_sparse_offset,
@@ -1074,11 +1085,12 @@ namespace qram_simulator
 				size_t row_size);
 
 			/**
-			 * @brief 列下标到稀疏槽位转换的正向实现
-			 * @param state 系统状态向量
-			 * @details 依次：GetRowAddr 计算行稀疏表首地址 -> 量子二分查找
-			 *          列下标所在槽位 -> QRAM 加载还原 -> 交换与减去行首地址，
-			 *          使列号寄存器最终持有槽位编号 s_j；实现自带详细步骤注释。
+			 * @brief Forward implementation of the column-index to sparse-slot conversion
+			 * @param state System state vector
+			 * @details Steps in order: GetRowAddr computes the row's sparse-table start address -> quantum binary
+			 *          search locates the slot holding the column index -> QRAM load restores it -> swap and subtract
+			 *          the row-start address, so the column register finally holds the slot number s_j; the
+			 *          implementation carries detailed step-by-step comments.
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const
@@ -1112,9 +1124,10 @@ namespace qram_simulator
 
 
 			/**
-			 * @brief 列下标到稀疏槽位转换的 dagger 实现
-			 * @param state 系统状态向量
-			 * @details 按正向实现的逆序执行，把稀疏槽位 s_j 还原为列下标 j。
+			 * @brief Dagger implementation of the column-index to sparse-slot conversion
+			 * @param state System state vector
+			 * @details Executes the forward implementation's steps in reverse, restoring the sparse slot s_j back
+			 *          into the column index j.
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const
@@ -1145,36 +1158,37 @@ namespace qram_simulator
 		*/
 
 		/**
-		 * @brief 由稀疏槽位计算列下标（非原地，QRAM 查询实现）
-		 * @details |offset>|l>|z> -> |offset>|l>|z + k>：
-		 *          以稀疏表偏移加槽位 l 为地址查询 QRAM，得到对应的列下标 k
-		 *          并累加（XOR）到目标寄存器，查询后反计算地址寄存器。
+		 * @brief Computes the column index from the sparse slot (out-of-place, QRAM-query implementation)
+		 * @details |offset>|l>|z> -> |offset>|l>|z + k>:
+		 *          queries the QRAM at the address sparse-table offset plus slot l, obtains the corresponding column
+		 *          index k and accumulates (XORs) it into the target register; the address register is uncomputed
+		 *          after the query.
 		 */
 		struct SparseMatrixOracle2_ComputeCol : BaseOperator
 		{
 			using BaseOperator::operator();
 
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 稀疏表偏移寄存器名称 */
+			/** @brief Name of the sparse-table offset register */
 			std::string sparse_offset;
-			/** @brief 列下标寄存器名称（查询输出） */
+			/** @brief Name of the column-index register (query output) */
 			std::string k; // j
-			/** @brief 稀疏槽位寄存器名称 */
+			/** @brief Name of the sparse-slot register */
 			std::string l; // s_j
-			/** @brief 临时地址寄存器名称 */
+			/** @brief Name of the temporary address register */
 			std::string addr_offset;
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_size;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram QRAM 电路指针
-			 * @param sparse_offset 稀疏表偏移寄存器名称
-			 * @param k 列下标寄存器名称
-			 * @param l 稀疏槽位寄存器名称
-			 * @param addr_offset 临时地址寄存器名称
-			 * @param row_size 每行的槽位数
+			 * @brief Constructor
+			 * @param qram Pointer to the QRAM circuit
+			 * @param sparse_offset Name of the sparse-table offset register
+			 * @param k Name of the column-index register
+			 * @param l Name of the sparse-slot register
+			 * @param addr_offset Name of the temporary address register
+			 * @param row_size Number of slots per row
 			 */
 			SparseMatrixOracle2_ComputeCol(qram_qutrit::QRAMCircuit* qram,
 				std::string_view sparse_offset,
@@ -1184,8 +1198,8 @@ namespace qram_simulator
 				size_t row_size);
 
 			/**
-			 * @brief 应用列下标计算
-			 * @param state 系统状态向量
+			 * @brief Applies the column-index computation
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 		};
@@ -1198,35 +1212,35 @@ namespace qram_simulator
 		|offset>|k>|z + l>
 		*/
 		/**
-		 * @brief 由列下标计算稀疏槽位（非原地，量子二分查找实现）
-		 * @details |offset>|k>|z> -> |offset>|k>|z + l>：
-		 *          在行稀疏表区间内以列下标 k 为目标做量子二分查找，
-		 *          将命中的槽位地址（含表偏移）累加到 l 后再减去偏移，
-		 *          还原为相对槽位编号。
+		 * @brief Computes the sparse slot from the column index (out-of-place, quantum-binary-search implementation)
+		 * @details |offset>|k>|z> -> |offset>|k>|z + l>:
+		 *          performs a quantum binary search over the row's sparse-table interval with the column index k as
+		 *          the target, accumulates the hit slot address (including the table offset) into l, and then
+		 *          subtracts the offset to restore the relative slot number.
 		 */
 		struct SparseMatrixOracle2_ComputeSparsity : BaseOperator
 		{
 			using BaseOperator::operator();
 			using BaseOperator::dag;
 
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 稀疏表偏移寄存器名称 */
+			/** @brief Name of the sparse-table offset register */
 			std::string sparse_offset;
-			/** @brief 列下标寄存器名称 */
+			/** @brief Name of the column-index register */
 			std::string k; // j
-			/** @brief 稀疏槽位寄存器名称 */
+			/** @brief Name of the sparse-slot register */
 			std::string l; // s_j
-			/** @brief 每行的槽位数 */
+			/** @brief Number of slots per row */
 			size_t row_size;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram QRAM 电路指针
-			 * @param sparse_offset 稀疏表偏移寄存器名称
-			 * @param k 列下标寄存器名称
-			 * @param l 稀疏槽位寄存器名称
-			 * @param row_size 每行的槽位数
+			 * @brief Constructor
+			 * @param qram Pointer to the QRAM circuit
+			 * @param sparse_offset Name of the sparse-table offset register
+			 * @param k Name of the column-index register
+			 * @param l Name of the sparse-slot register
+			 * @param row_size Number of slots per row
 			 */
 			SparseMatrixOracle2_ComputeSparsity(
 				qram_qutrit::QRAMCircuit* qram,
@@ -1236,63 +1250,63 @@ namespace qram_simulator
 				size_t row_size);
 
 			/**
-			 * @brief 应用稀疏槽位计算
-			 * @param state 系统状态向量
+			 * @brief Applies the sparse-slot computation
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 		};
 
 		// prepare from |j> to |\psi_j>
 		/**
-		 * @brief CKS 量子行走的状态准备算子 T
-		 * @details 对行下标 j 制备该行的"平方根振幅"叠加态：
-		 *          |j>|0> -> Σ_k sqrt(A_{j,s_k}) |j>|k>（k 为行内稀疏槽位）。
-		 *          流程：对槽位寄存器 k 做 Hadamard 均匀叠加 -> Oracle1 加载量化
-		 *          元素 d[j,k] -> Oracle2 的 dagger 把 k 由槽位映射为实际列下标 ->
-		 *          GetQWRotateAngle + CondRot_Fixed_Bool 完成以 sqrt(A_{j,k}) 为
-		 *          比例的条件旋转 -> 依次反计算各 oracle 恢复寄存器。
+		 * @brief State-preparation operator T of the CKS quantum walk
+		 * @details For the row index j, prepares the row's "square-root amplitude" superposition:
+		 *          |j>|0> -> Σ_k sqrt(A_{j,s_k}) |j>|k> (k is the in-row sparse slot).
+		 *          Workflow: apply Hadamard to the slot register k to form a uniform superposition -> Oracle1 loads
+		 *          the quantized element d[j,k] -> the dagger of Oracle2 maps k from the slot to the actual column
+		 *          index -> GetQWRotateAngle + CondRot_Fixed_Bool perform the conditional rotation with ratio
+		 *          sqrt(A_{j,k}) -> uncompute each oracle in turn to restore the registers.
 		 */
 		struct T : BaseOperator
 		{
 			using BaseOperator::operator();
 			using BaseOperator::dag;
 
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 数据表偏移寄存器名称 */
+			/** @brief Name of the data-table offset register */
 			std::string reg_data_offset;
-			/** @brief 稀疏表偏移寄存器名称 */
+			/** @brief Name of the sparse-table offset register */
 			std::string reg_sparse_offset;
-			/** @brief 行号寄存器名称 */
+			/** @brief Name of the row-index register */
 			std::string reg_j;
-			/** @brief 布尔旗标 b1 寄存器名称 */
+			/** @brief Name of the Boolean flag b1 register */
 			std::string reg_b1;
-			/** @brief 槽位 / 列号寄存器名称 */
+			/** @brief Name of the slot / column-index register */
 			std::string reg_k;
-			/** @brief 布尔旗标 b2 寄存器名称（条件旋转目标） */
+			/** @brief Name of the Boolean flag b2 register (target of the conditional rotation) */
 			std::string reg_b2;
-			/** @brief 二分查找结果寄存器名称 */
+			/** @brief Name of the binary-search result register */
 			std::string reg_search_result;
-			/** @brief 每行的非零元（槽位）数 */
+			/** @brief Number of non-zero elements (slots) per row */
 			size_t nnz_col;
-			/** @brief 临时数据寄存器的位宽（取地址位宽与元素位宽的较大值） */
+			/** @brief Bit width of the temporary data register (max of the address width and the element width) */
 			size_t data_size;
-			/** @brief 指向稀疏矩阵 */
+			/** @brief Pointer to the sparse matrix */
 			const SparseMatrix* mat;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ QRAM 电路指针
-			 * @param reg_data_offset_ 数据表偏移寄存器名称
-			 * @param reg_sparse_offset_ 稀疏表偏移寄存器名称
-			 * @param reg_j_ 行号寄存器名称
-			 * @param reg_b1_ 布尔旗标 b1 寄存器名称
-			 * @param reg_k_ 槽位 / 列号寄存器名称
-			 * @param reg_b2_ 布尔旗标 b2 寄存器名称
-			 * @param reg_search_result_ 二分查找结果寄存器名称
-			 * @param nnz_col_ 每行的非零元（槽位）数
-			 * @param data_size_ 临时数据寄存器的位宽
-			 * @param mat_ 稀疏矩阵指针
+			 * @brief Constructor
+			 * @param qram_ Pointer to the QRAM circuit
+			 * @param reg_data_offset_ Name of the data-table offset register
+			 * @param reg_sparse_offset_ Name of the sparse-table offset register
+			 * @param reg_j_ Name of the row-index register
+			 * @param reg_b1_ Name of the Boolean flag b1 register
+			 * @param reg_k_ Name of the slot / column-index register
+			 * @param reg_b2_ Name of the Boolean flag b2 register
+			 * @param reg_search_result_ Name of the binary-search result register
+			 * @param nnz_col_ Number of non-zero elements (slots) per row
+			 * @param data_size_ Bit width of the temporary data register
+			 * @param mat_ Pointer to the sparse matrix
 			 */
 			T(qram_qutrit::QRAMCircuit* qram_,
 				std::string_view reg_data_offset_,
@@ -1310,10 +1324,10 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 状态准备 T 的正向实现
-			 * @param system_states 系统状态向量
-			 * @details 函数体内以逐行态注释标注了每一步寄存器变换
-			 *          （Hadamard 叠加、oracle 加载 / 映射、条件旋转与反计算）。
+			 * @brief Forward implementation of the state preparation T
+			 * @param system_states System state vector
+			 * @details Inside the function body, per-line state comments mark each step's register transformation
+			 *          (Hadamard superposition, oracle loading / mapping, conditional rotation, and uncomputation).
 			 */
 			template<typename Ty>
 			void impl(Ty& system_states) const
@@ -1356,10 +1370,10 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 状态准备 T 的 dagger 实现
-			 * @param system_states 系统状态向量
-			 * @details 按正向流程的逆序反计算（含逆条件旋转），
-			 *          并插入 CheckNan / ClearZero / CheckNormalization 校验。
+			 * @brief Dagger implementation of the state preparation T
+			 * @param system_states System state vector
+			 * @details Uncomputes in the reverse order of the forward workflow (including the inverse conditional
+			 *          rotation), and inserts CheckNan / ClearZero / CheckNormalization checks.
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& system_states) const
@@ -1409,34 +1423,35 @@ namespace qram_simulator
 		// =============================================================================
 
 		/**
-		 * @brief 单步量子行走算子（CKS 行走）
-		 * @details 行走算符 W = T† · P0 · T · Swap 的电路实现：P0 为对行走辅助
-		 *          寄存器 (b1, k, b2, k_comp) 全零态的相位翻转，
-		 *          Swap 交换 (j, b1, j_comp) 与 (k, b2, k_comp) 的行列角色。
-		 *          行走的谱由矩阵的本征值决定，其幂次 W^(2j+1) 的矩阵元对应
-		 *          矩阵的 Chebyshev 多项式，供 LCU 容器组合逼近目标函数。
+		 * @brief Single-step quantum walk operator (CKS walk)
+		 * @details Circuit implementation of the walk operator W = T† · P0 · T · Swap: P0 is the phase flip on the
+		 *          all-zero state of the walk auxiliary registers (b1, k, b2, k_comp),
+		 *          and Swap exchanges the row/column roles of (j, b1, j_comp) and (k, b2, k_comp).
+		 *          The walk's spectrum is determined by the matrix's eigenvalues; the matrix elements of its powers
+		 *          W^(2j+1) correspond to Chebyshev polynomials of the matrix, which the LCU container combines to
+		 *          approximate the target function.
 		 */
 		struct QuantumWalk : BaseOperator
 		{
-			/** @brief 行走相关的寄存器名称（j/b1/k/b2/j_comp/k_comp 及数据、稀疏偏移） */
+			/** @brief Names of the walk-related registers (j/b1/k/b2/j_comp/k_comp plus data and sparse offsets) */
 			std::string j, b1, k, b2, j_comp, k_comp, data_offset, sparse_offset;
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 稀疏矩阵副本 */
+			/** @brief Copy of the sparse matrix */
 			SparseMatrix mat;
 
 			/**
-			 * @brief 构造函数
-			 * @param qram_ QRAM 电路指针
-			 * @param j_ 行号寄存器名称
-			 * @param b1_ 布尔旗标 b1 寄存器名称
-			 * @param k_ 列号寄存器名称
-			 * @param b2_ 布尔旗标 b2 寄存器名称
-			 * @param j_comp_ j 侧辅助寄存器名称
-			 * @param k_comp_ k 侧辅助寄存器名称
-			 * @param data_offset_ 数据表偏移寄存器名称
-			 * @param sparse_offset_ 稀疏表偏移寄存器名称
-			 * @param mat_ 稀疏矩阵
+			 * @brief Constructor
+			 * @param qram_ Pointer to the QRAM circuit
+			 * @param j_ Name of the row-index register
+			 * @param b1_ Name of the Boolean flag b1 register
+			 * @param k_ Name of the column-index register
+			 * @param b2_ Name of the Boolean flag b2 register
+			 * @param j_comp_ Name of the j-side auxiliary register
+			 * @param k_comp_ Name of the k-side auxiliary register
+			 * @param data_offset_ Name of the data-table offset register
+			 * @param sparse_offset_ Name of the sparse-table offset register
+			 * @param mat_ Sparse matrix
 			 */
 			QuantumWalk(
 				qram_qutrit::QRAMCircuit* qram_,
@@ -1454,9 +1469,9 @@ namespace qram_simulator
 			{}
 
 			/**
-			 * @brief 应用单步量子行走
-			 * @param system_states 系统状态向量
-			 * @details 依次执行 T† -> 相位翻转 P0 -> T -> 行列交换（Swap）。
+			 * @brief Applies the single-step quantum walk
+			 * @param system_states System state vector
+			 * @details Executes in order: T† -> phase flip P0 -> T -> row/column swap (Swap).
 			 */
 			template<typename Ty>
 			void impl(Ty& system_states) const
@@ -1495,9 +1510,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 单步量子行走的 dagger 实现
-			 * @param system_states 系统状态向量
-			 * @note 未实现，调用时抛出异常。
+			 * @brief Dagger implementation of the single-step quantum walk
+			 * @param system_states System state vector
+			 * @note Not implemented; throws an exception when called.
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& system_states) const
@@ -1509,49 +1524,51 @@ namespace qram_simulator
 		};
 
 		/**
-		 * @brief 多步量子行走管理器
-		 * @details 负责行走所需寄存器环境的创建与 n 步行走态的制备：
-		 *          初始化时按稀疏矩阵布局创建（或接入）QRAM 电路并登记行走寄存器
-		 *          （j/b1/k/b2/j_comp/k_comp 及数据、稀疏偏移寄存器）；
-		 *          MakeNStepState 先做 Hadamard 均匀输入与首步行走（T · Swap · T†），
-		 *          随后迭代单步行走（相位翻转 + T + Swap + T†），制备与行走幂次
-		 *          对应的量子态，供 LCU 容器按 Chebyshev 系数组合。
+		 * @brief Multi-step quantum walk manager
+		 * @details Creates the register environment needed by the walk and prepares the n-step walk state:
+		 *          at initialization it creates (or attaches to) the QRAM circuit according to the sparse-matrix
+		 *          layout and registers the walk registers
+		 *          (j/b1/k/b2/j_comp/k_comp plus the data and sparse offset registers);
+		 *          MakeNStepState first applies the uniform Hadamard input and the first walk step (T · Swap · T†),
+		 *          then iterates single walk steps (phase flip + T + Swap + T†), preparing the quantum state that
+		 *          corresponds to the walk's power, for the LCU container to combine with Chebyshev coefficients.
 		 */
 		template<typename Ty = SparseState>
 		class QuantumWalkNSteps
 		{
 		public:
-			/** @brief 数据表偏移寄存器名称 */
+			/** @brief Name of the data-table offset register */
 			std::string data_offset = "data_offset";
-			/** @brief 稀疏表偏移寄存器名称 */
+			/** @brief Name of the sparse-table offset register */
 			std::string sparse_offset = "sparse_offset";
-			/** @brief 行号（输入向量）寄存器名称 */
+			/** @brief Name of the row-index (input vector) register */
 			std::string j = "row_id";
-			/** @brief 布尔旗标 b1 寄存器名称 */
+			/** @brief Name of the Boolean flag b1 register */
 			std::string b1 = "reg_b1";
-			/** @brief 列号寄存器名称 */
+			/** @brief Name of the column-index register */
 			std::string k = "col_id";
-			/** @brief 布尔旗标 b2 寄存器名称 */
+			/** @brief Name of the Boolean flag b2 register */
 			std::string b2 = "reg_b2";
-			/** @brief j 侧辅助寄存器名称 */
+			/** @brief Name of the j-side auxiliary register */
 			std::string j_comp = "j_comp";
-			/** @brief k 侧辅助寄存器名称 */
+			/** @brief Name of the k-side auxiliary register */
 			std::string k_comp = "k_comp";
-			/** @brief 稀疏矩阵副本 */
+			/** @brief Copy of the sparse matrix */
 			SparseMatrix mat;
-			/** @brief QRAM 地址位宽、元素量化位宽、稀疏表偏移、矩阵阶数与每行非零元数 */
+			/** @brief QRAM address width, element quantization width, sparse-table offset, matrix order, and
+			 *  non-zeros per row */
 			size_t addr_size, data_size, offset, n_row, nnz_col;
-			/** @brief 默认寄存器位宽（地址位宽与元素位宽的较大值） */
+			/** @brief Default register width (max of the address width and the element width) */
 			size_t default_register_size;
-			/** @brief QRAM 电路指针 */
+			/** @brief Pointer to the QRAM circuit */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 建议的状态规模预留常量 */
+			/** @brief Suggested state-size reserve constant */
 			constexpr static int suggest_reserve = 1024000;
 
 			/**
-			 * @brief 构造函数（接入外部 QRAM 电路）
-			 * @param mat_ 稀疏矩阵
-			 * @param qram_ 外部 QRAM 电路指针（生命周期由调用方管理）
+			 * @brief Constructor (attaching to an external QRAM circuit)
+			 * @param mat_ Sparse matrix
+			 * @param qram_ Pointer to the external QRAM circuit (lifetime managed by the caller)
 			 */
 			QuantumWalkNSteps(const SparseMatrix& mat_,
 				qram_qutrit::QRAMCircuit* qram_)
@@ -1568,9 +1585,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造函数（内部创建 QRAM 电路）
-			 * @param mat_ 稀疏矩阵（按其紧凑布局构建 QRAM 内存）
-			 * @note 由本对象持有 QRAM 电路并在析构时释放。
+			 * @brief Constructor (internally creates the QRAM circuit)
+			 * @param mat_ Sparse matrix (QRAM memory is built from its compact layout)
+			 * @note The QRAM circuit is owned by this object and released on destruction.
 			 */
 			QuantumWalkNSteps(const SparseMatrix& mat_)
 			{
@@ -1588,8 +1605,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 析构函数
-			 * @note QRAM 电路由本对象删除，接入外部电路的场景需自行保证所有权约定。
+			 * @brief Destructor
+			 * @note The QRAM circuit is deleted by this object; when attaching an external circuit, ownership
+			 *          conventions must be ensured by the caller.
 			 */
 			~QuantumWalkNSteps()
 			{
@@ -1597,8 +1615,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 获取输入向量所在的寄存器名称
-			 * @return 行号寄存器 j 的名称
+			 * @brief Gets the name of the register holding the input vector
+			 * @return The name of the row-index register j
 			 */
 			std::string GetVecInputReg() const
 			{
@@ -1606,8 +1624,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 获取输入寄存器的初始化位宽
-			 * @return log2(n_row)，即表示行号所需的位数
+			 * @brief Gets the initialization width of the input register
+			 * @return log2(n_row), i.e. the number of bits needed to represent the row index
 			 */
 			size_t get_init_size() const
 			{
@@ -1615,9 +1633,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 登记行走所需的全部寄存器
-			 * @details 在 System 中注册数据 / 稀疏偏移寄存器与
-			 *          j/b1/k/b2/j_comp/k_comp 行走寄存器。
+			 * @brief Registers all registers needed by the walk
+			 * @details Registers the data / sparse offset registers and the
+			 *          j/b1/k/b2/j_comp/k_comp walk registers in System.
 			 */
 			void InitEnvironment()
 			{
@@ -1633,8 +1651,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 创建初始系统状态
-			 * @return 初始化了稀疏偏移寄存器（置为矩阵稀疏表偏移）的系统状态
+			 * @brief Creates the initial system state
+			 * @return A system state with the sparse offset register initialized (set to the matrix's sparse-table
+			 *          offset)
 			 */
 			Ty CreateSys()
 			{
@@ -1644,11 +1663,11 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 制备 n 步量子行走的系统状态
-			 * @param n_steps 行走步数（0 表示仅做 Hadamard 均匀叠加）
-			 * @return 行走 n 步后的系统状态
-			 * @details 流程：创建状态 -> 对 j 寄存器做 Hadamard 均匀输入 ->
-			 *          首步行走（T · Swap · T†）-> 迭代 n_steps-1 次单步行走。
+			 * @brief Prepares the system state of an n-step quantum walk
+			 * @param n_steps Number of walk steps (0 means only the uniform Hadamard superposition is applied)
+			 * @return The system state after n walk steps
+			 * @details Workflow: create the state -> apply the uniform Hadamard input on the j register ->
+			 *          first walk step (T · Swap · T†) -> iterate n_steps-1 single walk steps.
 			 */
 			Ty MakeNStepState(size_t n_steps)
 			{
@@ -1671,9 +1690,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 行走的首步（不含相位翻转）
-			 * @param system_states 系统状态向量
-			 * @details 执行 T -> 行列交换（Swap）-> T†（不含相位翻转）。
+			 * @brief First step of the walk (without the phase flip)
+			 * @param system_states System state vector
+			 * @details Executes T -> row/column swap (Swap) -> T† (without the phase flip).
 			 */
 			void FirstStep(Ty& system_states)
 			{
@@ -1690,10 +1709,10 @@ namespace qram_simulator
 					.dag(system_states);
 			}
 			/**
-			 * @brief 单步行走的实现
-			 * @param system_states 系统状态向量
-			 * @details 执行相位翻转 P0 -> T -> 行列交换（Swap）-> T†，
-			 *          即行走算符的单个幂次。
+			 * @brief Implementation of a single walk step
+			 * @param system_states System state vector
+			 * @details Executes phase flip P0 -> T -> row/column swap (Swap) -> T†,
+			 *          i.e. a single power of the walk operator.
 			 */
 			void StepImplOneStep(Ty& system_states)
 			{
@@ -1717,10 +1736,10 @@ namespace qram_simulator
 				CheckNan()(system_states);
 			}
 			/**
-			 * @brief 推进两步行走
-			 * @param system_states 系统状态向量
-			 * @details 连续执行两次单步行走，对应 LCU 展开中步数每次增加 2
-			 *          （2j+1 -> 2(j+1)+1）。
+			 * @brief Advances the walk by two steps
+			 * @param system_states System state vector
+			 * @details Executes two consecutive single walk steps, matching the LCU expansion where the number of
+			 *          steps increases by 2 each time (2j+1 -> 2(j+1)+1).
 			 */
 			void Step(Ty& system_states)
 			{
@@ -1731,36 +1750,37 @@ namespace qram_simulator
 		};
 
 		/**
-		 * @brief CKS 线性系统求解的 LCU 容器（通用版本）
-		 * @details 以线性组合 Σ_j c_j · W^(2j+1)（j = 0..j0）逼近矩阵 Chebyshev
-		 *          级数对应的目标算子：每一项由 QuantumWalkNSteps 独立制备对应
-		 *          步数的行走态，按系数与符号累加进当前态并归并去重。
-		 *          展开阶数 b = kappa^2 · log(kappa/eps)，
-		 *          截断点 j0 = sqrt(b · log(4b/eps))。
+		 * @brief LCU container for CKS linear-system solving (general version)
+		 * @details Approximates the target operator corresponding to the matrix's Chebyshev series by the linear
+		 *          combination Σ_j c_j · W^(2j+1) (j = 0..j0): each term's walk state, with its corresponding number
+		 *          of steps, is prepared independently by QuantumWalkNSteps, then accumulated into the current state
+		 *          by coefficient and sign, and merged with deduplication.
+		 *          Expansion order b = kappa^2 · log(kappa/eps),
+		 *          truncation point j0 = sqrt(b · log(4b/eps)).
 		 */
 		struct LCU_Container
 		{
-			/** @brief 已累加的 LCU 组合态 */
+			/** @brief The accumulated LCU combined state */
 			std::vector<System> current_state;
-			/** @brief 条件数 kappa */
+			/** @brief Condition number kappa */
 			double kappa;
-			/** @brief 目标精度 eps */
+			/** @brief Target precision eps */
 			double eps;
-			/** @brief Chebyshev 展开阶数参数 b */
+			/** @brief Chebyshev expansion-order parameter b */
 			size_t b;
-			/** @brief LCU 求和截断点 */
+			/** @brief LCU summation truncation point */
 			size_t j0;
-			/** @brief 多步量子行走管理器 */
+			/** @brief Multi-step quantum walk manager */
 			QuantumWalkNSteps<std::vector<System>> quantum_walk_obj;
-			/** @brief Chebyshev 系数计算器 */
+			/** @brief Chebyshev coefficient calculator */
 			ChebyshevPolynomialCoefficient chebyshev_obj;
 
 			/**
-			 * @brief 构造函数
-			 * @param mat 稀疏矩阵
-			 * @param kappa_ 条件数
-			 * @param eps_ 目标精度
-			 * @details 计算 b 与 j0 并初始化行走寄存器环境。
+			 * @brief Constructor
+			 * @param mat Sparse matrix
+			 * @param kappa_ Condition number
+			 * @param eps_ Target precision
+			 * @details Computes b and j0 and initializes the walk register environment.
 			 */
 			LCU_Container(const SparseMatrix& mat, double kappa_, double eps_) :
 				quantum_walk_obj(mat),
@@ -1773,8 +1793,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 获取输入向量所在的寄存器名称
-			 * @return 行走管理器的输入寄存器名称
+			 * @brief Gets the name of the register holding the input vector
+			 * @return The walk manager's input register name
 			 */
 			auto GetInputVecReg()
 			{
@@ -1782,24 +1802,24 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 制备第 j 项对应的行走态
-			 * @param j 项下标
-			 * @return 行走 2j+1 步后的系统状态
+			 * @brief Prepares the walk state corresponding to the j-th term
+			 * @param j Term index
+			 * @return The system state after 2j+1 walk steps
 			 */
 			std::vector<System> state_of_j(size_t j);
 
 			/**
-			 * @brief 将新状态按系数累加进 LCU 组合态
-			 * @param new_state 待累加的状态
-			 * @param coef Chebyshev 系数
-			 * @param sign 是否取负号（奇数 j 项）
+			 * @brief Accumulates a new state, scaled by its coefficient, into the LCU combined state
+			 * @param new_state The state to accumulate
+			 * @param coef Chebyshev coefficient
+			 * @param sign Whether to take the negative sign (odd-j terms)
 			 */
 			void add(std::vector<System> new_state, double coef, bool sign);
 
 			/**
-			 * @brief 执行完整的 LCU 迭代
-			 * @details 遍历 j = 0..j0：制备行走 2j+1 步的状态、按系数与符号
-			 *          累加，并在每轮做排序归并以控制状态规模。
+			 * @brief Runs the full LCU iteration
+			 * @details Iterates j = 0..j0: prepares the state after 2j+1 walk steps, accumulates it by coefficient
+			 *          and sign, and sort-merges each round to keep the state size under control.
 			 */
 			void iterate();
 		};
@@ -1813,42 +1833,42 @@ namespace qram_simulator
 		*/
 
 		/**
-		 * @brief CKS 线性系统求解的 LCU 容器（无噪声优化版本）
-		 * @details 在同一份行走态上原地迭代而不为每个 LCU 项复制状态，
-		 *          因此仅适用于无噪声模拟。ExternalInput 注入输入并完成首步
-		 *          行走；Step 逐项推进 LCU 迭代（j 从 0 到 j0，系数之和 a 作为
-		 *          LCU 归一化因子）；PartialTrace 对行走辅助寄存器做后选择，
-		 *          给出成功概率。
+		 * @brief LCU container for CKS linear-system solving (noise-free optimized version)
+		 * @details Iterates in place on a single walk state instead of copying the state for each LCU term,
+		 *          hence it only applies to noise-free simulation. ExternalInput injects the input and completes
+		 *          the first walk step; Step advances the LCU iteration term by term (j from 0 to j0, with the
+		 *          coefficient sum a as the LCU normalization factor); PartialTrace post-selects on the walk
+		 *          auxiliary registers and yields the success probability.
 		 */
 		template<typename StateTy = SparseState>
 		struct LCU_Container_NoiseFree
 		{
-			/** @brief 已累加的 LCU 组合态 */
+			/** @brief The accumulated LCU combined state */
 			StateTy current_state;
-			/** @brief 当前行走态（在各 LCU 项间原地推进） */
+			/** @brief The current walk state (advanced in place across LCU terms) */
 			StateTy step_state;
-			/** @brief 多步量子行走管理器 */
+			/** @brief Multi-step quantum walk manager */
 			QuantumWalkNSteps<StateTy> quantum_walk_obj;
-			/** @brief 条件数 kappa */
+			/** @brief Condition number kappa */
 			double kappa;
-			/** @brief 目标精度 eps */
+			/** @brief Target precision eps */
 			double eps;
-			/** @brief Chebyshev 展开阶数参数 b */
+			/** @brief Chebyshev expansion-order parameter b */
 			size_t b;
-			/** @brief LCU 求和截断点 */
+			/** @brief LCU summation truncation point */
 			size_t j0;
 			size_t j = 0; // iteration variable
-			/** @brief 已累加的 Chebyshev 系数之和（LCU 归一化因子） */
+			/** @brief The accumulated sum of Chebyshev coefficients (LCU normalization factor) */
 			double a = 0;
-			/** @brief Chebyshev 系数计算器 */
+			/** @brief Chebyshev coefficient calculator */
 			ChebyshevPolynomialCoefficient chebyshev_obj;
 
 			/**
-			 * @brief 构造函数
-			 * @param mat 稀疏矩阵
-			 * @param kappa 条件数
-			 * @param eps 目标精度
-			 * @details 计算 b 与 j0、初始化行走寄存器环境并创建行走态。
+			 * @brief Constructor
+			 * @param mat Sparse matrix
+			 * @param kappa Condition number
+			 * @param eps Target precision
+			 * @details Computes b and j0, initializes the walk register environment, and creates the walk state.
 			 */
 			LCU_Container_NoiseFree(const SparseMatrix& mat, double kappa, double eps) :
 				quantum_walk_obj(mat),
@@ -1862,8 +1882,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 获取输入向量所在的寄存器名称
-			 * @return 行走管理器的输入寄存器名称
+			 * @brief Gets the name of the register holding the input vector
+			 * @return The walk manager's input register name
 			 */
 			auto GetInputVecReg() const
 			{
@@ -1871,8 +1891,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 获取 QRAM 地址位宽
-			 * @return 行走管理器的 addr_size
+			 * @brief Gets the QRAM address width
+			 * @return The walk manager's addr_size
 			 */
 			size_t get_addr_size() const
 			{
@@ -1880,8 +1900,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 注入外部输入（默认构造参数版本）
-			 * @details 在输入寄存器上应用输入算子 Ty，清理零振幅后执行首步行走。
+			 * @brief Injects an external input (default-construction version)
+			 * @details Applies the input operator Ty on the input register, clears zero amplitudes, then runs the
+			 *          first walk step.
 			 */
 			template<typename Ty>
 			void ExternalInput()
@@ -1893,9 +1914,10 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 注入外部输入（带附加参数版本）
-			 * @param args 转发给输入算子 Ty 构造函数的附加参数
-			 * @details 在输入寄存器上应用输入算子 Ty，清理零振幅后执行首步行走。
+			 * @brief Injects an external input (version with extra arguments)
+			 * @param args Extra arguments forwarded to the constructor of the input operator Ty
+			 * @details Applies the input operator Ty on the input register, clears zero amplitudes, then runs the
+			 *          first walk step.
 			 */
 			template<typename Ty, typename ...Args>
 			void ExternalInput(Args &&...args)
@@ -1907,9 +1929,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 注入外部输入（算子实例版本）
-			 * @param op 作用于输入寄存器的输入算子
-			 * @details 应用输入算子，清理零振幅后执行首步行走。
+			 * @brief Injects an external input (operator-instance version)
+			 * @param op The input operator applied to the input register
+			 * @details Applies the input operator, clears zero amplitudes, then runs the first walk step.
 			 */
 			void ExternalInput_V2(const BaseOperator& op)
 			{
@@ -1920,10 +1942,11 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 推进一个 LCU 项
-			 * @return 尚未到达截断点时返回 true，迭代结束返回 false
-			 * @details j 非 0 时先把行走态推进两步（步数 2j+1），
-			 *          再累加系数到 a 并把当前行走态按系数与符号加入组合态。
+			 * @brief Advances the LCU by one term
+			 * @return Returns true while the truncation point has not been reached, false when the iteration is over
+			 * @details When j is non-zero, first advances the walk state by two steps (step count 2j+1),
+			 *          then accumulates the coefficient into a and adds the current walk state, scaled by the
+			 *          coefficient and sign, into the combined state.
 			 */
 			bool Step() {
 				if (j <= j0) {
@@ -1942,10 +1965,10 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 将状态按系数累加进 LCU 组合态
-			 * @param new_state 待累加的状态
-			 * @param coef Chebyshev 系数
-			 * @param sign 是否取负号（奇数 j 项）
+			 * @brief Accumulates the state, scaled by its coefficient, into the LCU combined state
+			 * @param new_state The state to accumulate
+			 * @param coef Chebyshev coefficient
+			 * @param sign Whether to take the negative sign (odd-j terms)
 			 */
 			void Add(const StateTy& new_state, double coef, bool sign)
 			{
@@ -1969,13 +1992,13 @@ namespace qram_simulator
 			// }
 
 			/**
-			 * @brief 计算后选择成功概率（内部实现）
-			 * @param state 系统状态向量（会被部分迹选择修改）
-			 * @return LCU 后选择的成功概率
-			 * @details 对行走辅助寄存器（b1、k、b2、j_comp、k_comp、偏移寄存器）
-			 *          全零且 j 落在 [0, n_row) 的分支做部分迹选择，
-			 *          结合 LCU 归一化因子 a 得到成功概率
-			 *          （PartialTraceSelect 返回 1/sqrt(p)）。
+			 * @brief Computes the post-selection success probability (internal implementation)
+			 * @param state System state vector (modified by the partial-trace selection)
+			 * @return The LCU post-selection success probability
+			 * @details Applies the partial-trace selection to branches where the walk auxiliary registers
+			 *          (b1, k, b2, j_comp, k_comp, and the offset registers) are all zero and j lies in [0, n_row),
+			 *          and combines it with the LCU normalization factor a to obtain the success probability
+			 *          (PartialTraceSelect returns 1/sqrt(p)).
 			 */
 			double _impl_partial_trace(StateTy& state) const
 			{
@@ -1997,9 +2020,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 计算后选择成功概率（破坏性版本）
-			 * @return 成功概率
-			 * @note 会修改 current_state。
+			 * @brief Computes the post-selection success probability (destructive version)
+			 * @return The success probability
+			 * @note Modifies current_state.
 			 */
 			double PartialTrace()
 			{
@@ -2007,8 +2030,8 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 计算后选择成功概率（非破坏性版本）
-			 * @return (后选择后的状态副本, 成功概率)
+			 * @brief Computes the post-selection success probability (non-destructive version)
+			 * @return (A copy of the post-selected state, the success probability)
 			 */
 			std::tuple<StateTy, double> PartialTrace_Nondestructive()  const
 			{
@@ -2021,45 +2044,46 @@ namespace qram_simulator
 
 		/* Directly use the theory to validate */
 		/**
-		 * @brief CKS 线性系统求解的经典理论验证容器
-		 * @details 直接用稠密矩阵按 Chebyshev 三项递推
-		 *          T_{n+1} = 2·A'·T_n - T_{n-1} 计算行走幂次对应的向量
-		 *          （A' 为按量化幅度与 nnz_col 归一化后的稠密矩阵），
-		 *          与量子实现的 LCU 组合对照，用于经典层面验证算法正确性。
+		 * @brief Classical theory-verification container for CKS linear-system solving
+		 * @details Directly computes, with the dense matrix and the Chebyshev three-term recurrence
+		 *          T_{n+1} = 2·A'·T_n - T_{n-1}, the vector corresponding to each power of the walk
+		 *          (A' is the dense matrix normalized by the quantization scale and nnz_col),
+		 *          to be compared against the quantum implementation's LCU combination, verifying the
+		 *          algorithm's correctness at the classical level.
 		 */
 		struct LCU_Container_Theory
 		{
-			/** @brief 稀疏矩阵 */
+			/** @brief Sparse matrix */
 			SparseMatrix mat;
-			/** @brief 归一化后的稠密矩阵 */
+			/** @brief The normalized dense matrix */
 			DenseMatrix<complex_t> densemat;
-			/** @brief 条件数 kappa */
+			/** @brief Condition number kappa */
 			double kappa;
-			/** @brief 目标精度 eps */
+			/** @brief Target precision eps */
 			double eps;
-			/** @brief Chebyshev 展开阶数参数 b */
+			/** @brief Chebyshev expansion-order parameter b */
 			size_t b;
-			/** @brief LCU 求和截断点 */
+			/** @brief LCU summation truncation point */
 			size_t j0;
 			size_t j = 0; // iteration variable
-			/** @brief 已累加的 Chebyshev 系数之和（LCU 归一化因子） */
+			/** @brief The accumulated sum of Chebyshev coefficients (LCU normalization factor) */
 			double a = 0;
-			/** @brief Chebyshev 系数计算器 */
+			/** @brief Chebyshev coefficient calculator */
 			ChebyshevPolynomialCoefficient chebyshev_obj;
-			/** @brief 已累加的 LCU 组合向量 */
+			/** @brief The accumulated LCU combined vector */
 			DenseVector<complex_t> current_state;
-			/** @brief 当前行走幂次对应的向量 */
+			/** @brief The vector corresponding to the current walk power */
 			DenseVector<complex_t> step_state;
 			DenseVector<complex_t> vec0; // for chebyshev iteration
 			DenseVector<complex_t> vec1; // for chebyshev iteration
 
 			/**
-			 * @brief 构造函数
-			 * @param mat_ 稀疏矩阵
-			 * @param kappa_ 条件数
-			 * @param eps_ 目标精度
-			 * @details 构建归一化稠密矩阵，并以均匀归一化向量初始化
-			 *          Chebyshev 递推的前两项（vec0、vec1）。
+			 * @brief Constructor
+			 * @param mat_ Sparse matrix
+			 * @param kappa_ Condition number
+			 * @param eps_ Target precision
+			 * @details Builds the normalized dense matrix and initializes the first two terms of the Chebyshev
+			 *          recurrence (vec0, vec1) with a uniformly normalized vector.
 			 */
 			LCU_Container_Theory(const SparseMatrix& mat_, double kappa_, double eps_) :
 				mat(mat_),
@@ -2083,10 +2107,10 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 将向量按系数累加进 LCU 组合向量
-			 * @param new_state 待累加的向量
-			 * @param coef Chebyshev 系数
-			 * @param sign 是否取负号（奇数 j 项）
+			 * @brief Accumulates the vector, scaled by its coefficient, into the LCU combined vector
+			 * @param new_state The vector to accumulate
+			 * @param coef Chebyshev coefficient
+			 * @param sign Whether to take the negative sign (odd-j terms)
 			 */
 			inline void Add(const DenseVector<complex_t>& new_state,
 				double coef, bool sign)
@@ -2101,42 +2125,42 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造当前 LCU 项对应的行走幂次向量
-			 * @return Chebyshev 递推得到的 T(2j+1) 向量
-			 * @details j = 0 时返回初始的 vec1；否则按三项递推推进两步，
-			 *          对应量子行走每次调用 Step 前进两步。
+			 * @brief Builds the walk-power vector corresponding to the current LCU term
+			 * @return The T(2j+1) vector obtained from the Chebyshev recurrence
+			 * @details For j = 0, returns the initial vec1; otherwise advances two steps via the three-term
+			 *          recurrence, matching the quantum walk advancing two steps per Step() call.
 			 */
 			DenseVector<complex_t> MakeStepState();
 
 			/**
-			 * @brief 推进一个 LCU 项
-			 * @return 尚未到达截断点时返回 true，迭代结束返回 false
+			 * @brief Advances the LCU by one term
+			 * @return Returns true while the truncation point has not been reached, false when the iteration is over
 			 */
 			bool Step();
 
 			/**
-			 * @brief 获取最终解向量与成功概率
-			 * @return (归一化解向量, 成功概率 = ||current||^2 / a^2)
+			 * @brief Gets the final solution vector and the success probability
+			 * @return (Normalized solution vector, success probability = ||current||^2 / a^2)
 			 */
 			std::pair<DenseVector<complex_t>, double> GetOutput() const;
 		};
 
 
 		/**
-		 * @brief 线性系统求解的经典参考实现（全 1 右端项）
-		 * @param mat 稀疏矩阵
-		 * @return 归一化的解向量（复数）
-		 * @details 以全 1 向量为右端项调用带右端项版本。
+		 * @brief Classical reference implementation of linear-system solving (all-ones right-hand side)
+		 * @param mat Sparse matrix
+		 * @return The normalized solution vector (complex)
+		 * @details Calls the version with a right-hand side, using the all-ones vector as the right-hand side.
 		 */
 		std::vector<complex_t> my_linear_solver_reference(const SparseMatrix& mat);
 
 		/**
-		 * @brief 线性系统求解的经典参考实现（指定右端项）
-		 * @param mat 稀疏矩阵
-		 * @param vec 右端项向量
-		 * @return 归一化的解向量（复数）
-		 * @details 用 Eigen 稀疏线性求解器求 A x = vec 后按 2 范数归一化，
-		 *          作为量子算法结果的经典对照。
+		 * @brief Classical reference implementation of linear-system solving (with a given right-hand side)
+		 * @param mat Sparse matrix
+		 * @param vec Right-hand-side vector
+		 * @return The normalized solution vector (complex)
+		 * @details Solves A x = vec with the Eigen sparse linear solver and normalizes by the 2-norm,
+		 *          serving as the classical reference for the quantum algorithm's result.
 		 */
 		std::vector<complex_t> my_linear_solver_reference(const SparseMatrix& mat, const DenseVector<double>& vec);
 

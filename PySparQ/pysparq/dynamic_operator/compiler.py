@@ -1,11 +1,11 @@
 """
-运行时 C++ 代码编译系统
+Runtime C++ code compilation system
 
-提供动态编译用户自定义 C++ 算子的功能，支持：
-- 自动生成代码框架
-- 调用 g++ 编译为共享库 (.so)
-- 代码哈希缓存机制，避免重复编译
-- 编译错误捕获和格式化
+Provides the ability to compile user-defined C++ operators at runtime, with support for:
+- Automatic code skeleton generation
+- Invoking g++ to build a shared library (.so)
+- Code hash based caching to avoid redundant compilation
+- Compilation error capture and formatting
 """
 
 import hashlib
@@ -20,7 +20,7 @@ from typing import Optional, Tuple
 
 
 class CompilationError(Exception):
-    """编译错误异常"""
+    """Compilation error exception."""
 
     def __init__(self, message: str, stderr: str = "", returncode: int = 0):
         super().__init__(message)
@@ -30,14 +30,14 @@ class CompilationError(Exception):
     def __str__(self) -> str:
         msg = super().__str__()
         if self.stderr:
-            msg += f"\n\n编译器输出:\n{self.stderr}"
+            msg += f"\n\nCompiler output:\n{self.stderr}"
         return msg
 
 
 class CompilerConfig:
-    """编译器配置"""
+    """Compiler configuration."""
 
-    # 默认代码框架模板
+    # Default code skeleton template
     DEFAULT_TEMPLATE = """#include "basic_components.h"
 #include <vector>
 #include <complex>
@@ -59,9 +59,10 @@ extern "C" const char* get_operator_name() {{
 }}
 """
 
-    # Python 增强模板 - 包含支持 ctypes 调用的辅助函数
-    # 关键：通过 state._cpp_ptr()（pysparq._core.SparseState 中暴露）获取 C++ SparseState* 指针，
-    # ctypes 将其作为 c_void_p 传递，确保指针值正确传递且 ABI 一致。
+    # Python-enhanced template - includes helper functions that support ctypes calls
+    # Key point: the C++ SparseState* pointer is obtained via state._cpp_ptr()
+    # (exposed by pysparq._core.SparseState); ctypes passes it as c_void_p, ensuring
+    # the pointer value is transferred correctly and the ABI stays consistent.
     PYTHON_TEMPLATE = """#include "basic_components.h"
 #include <vector>
 #include <complex>
@@ -82,23 +83,23 @@ extern "C" const char* get_operator_name() {{
     return "{CLASS_NAME}";
 }}
 
-// Python 调用辅助函数 - 应用算子到 SparseState
-// Python 侧通过 state._cpp_ptr() 获取 C++ SparseState* 指针，
-// ctypes 将其作为 ctypes.c_void_p 传递。
+// Python call helper - applies the operator to a SparseState
+// The Python side obtains the C++ SparseState* pointer via state._cpp_ptr(),
+// which ctypes passes as ctypes.c_void_p.
 extern "C" void apply_operator(BaseOperator* op, SparseState* state) {{
     if (op && state) {{
         (*op)(*state);
     }}
 }}
 
-// Python 调用辅助函数 - 应用 dagger
+// Python call helper - applies the dagger
 extern "C" void apply_operator_dag(BaseOperator* op, SparseState* state) {{
     if (op && state) {{
         op->dag(*state);
     }}
 }}
 
-// 获取基类类型
+// Returns the base class type
 extern "C" const char* get_base_class() {{
     return "{BASE_CLASS}";
 }}
@@ -116,17 +117,17 @@ extern "C" const char* get_base_class() {{
         template: Optional[str] = None,
     ):
         """
-        初始化编译器配置
+        Initialize the compiler configuration
 
         Args:
-            cxx: C++ 编译器命令（默认 g++）
-            std: C++ 标准版本（默认 c++17）
-            opt_level: 优化级别（默认 O2）
-            include_paths: 额外的头文件搜索路径
-            lib_paths: 额外的库文件搜索路径
-            libraries: 需要链接的库
-            extra_flags: 额外的编译器标志
-            template: 自定义代码模板
+            cxx: C++ compiler command (default g++)
+            std: C++ standard version (default c++17)
+            opt_level: Optimization level (default O2)
+            include_paths: Extra header search paths
+            lib_paths: Extra library search paths
+            libraries: Libraries to link against
+            extra_flags: Extra compiler flags
+            template: Custom code template
         """
         self.cxx = cxx
         self.std = std
@@ -138,27 +139,27 @@ extern "C" const char* get_base_class() {{
         self.template = template or self.DEFAULT_TEMPLATE
 
     def get_compile_flags(self) -> list:
-        """生成编译器标志列表"""
+        """Generate the list of compiler flags."""
         flags = [
             f"-std={self.std}",
             f"-{self.opt_level}",
-            "-fPIC",  # 位置无关代码（共享库必需）
-            "-shared",  # 生成共享库
+            "-fPIC",  # Position-independent code (required for shared libraries)
+            "-shared",  # Produce a shared library
         ]
 
-        # 添加头文件搜索路径
+        # Add header search paths
         for path in self.include_paths:
             flags.append(f"-I{path}")
 
-        # 添加库文件搜索路径
+        # Add library search paths
         for path in self.lib_paths:
             flags.append(f"-L{path}")
 
-        # 添加链接的库
+        # Add libraries to link
         for lib in self.libraries:
             flags.append(f"-l{lib}")
 
-        # 添加额外标志
+        # Add extra flags
         flags.extend(self.extra_flags)
 
         return flags
@@ -166,19 +167,19 @@ extern "C" const char* get_base_class() {{
 
 def compute_code_hash(cpp_code: str, class_name: str, config: CompilerConfig) -> str:
     """
-    计算代码哈希值，用于缓存
+    Compute the code hash used for caching
 
-    哈希包括：代码内容、类名、编译器版本和配置
+    The hash covers: code content, class name, compiler version, and configuration
 
     Args:
-        cpp_code: 用户 C++ 代码
-        class_name: 算子类名
-        config: 编译器配置
+        cpp_code: User C++ code
+        class_name: Operator class name
+        config: Compiler configuration
 
     Returns:
-        16 字符的十六进制哈希字符串
+        A 16-character hexadecimal hash string
     """
-    # 获取编译器版本信息（影响 ABI）
+    # Obtain compiler version info (it affects the ABI)
     compiler_version = ""
     try:
         result = subprocess.run(
@@ -188,11 +189,11 @@ def compute_code_hash(cpp_code: str, class_name: str, config: CompilerConfig) ->
             timeout=5,
         )
         if result.returncode == 0:
-            compiler_version = result.stdout.strip()[:100]  # 取前100字符
+            compiler_version = result.stdout.strip()[:100]  # Keep the first 100 characters
     except Exception:
         pass
 
-    # 组合哈希内容
+    # Combine the hash content
     hash_content = "|".join([
         cpp_code,
         class_name,
@@ -207,28 +208,28 @@ def compute_code_hash(cpp_code: str, class_name: str, config: CompilerConfig) ->
 
 def find_project_root() -> Optional[Path]:
     """
-    查找项目根目录或已安装的包目录
+    Locate the project root directory or the installed package directory
 
-    对于已安装的包，目录结构为:
-    - site-packages/pysparq/ (Python包)
-    - site-packages/include/ (头文件，包含 basic_components.h)
+    For an installed package, the directory layout is:
+    - site-packages/pysparq/ (Python package)
+    - site-packages/include/ (headers, including basic_components.h)
 
-    对于源代码目录 (SparQSim 仓库):
-    - 项目根目录包含 extern/qram-simulator/ (C++ 核心 submodule) 和 PySparQ/
+    For a source checkout (the SparQSim repository):
+    - The project root contains extern/qram-simulator/ (C++ core submodule) and PySparQ/
 
     Returns:
-        项目根目录路径或已安装的包目录，未找到返回 None
+        The project root path or the installed package directory; None if not found
     """
     current = Path(__file__).resolve().parent
 
-    # 检查是否在已安装的包中 (site-packages/pysparq/dynamic_operator)
-    # 在这种情况下，头文件在 site-packages/include/
+    # Check whether we are inside an installed package (site-packages/pysparq/dynamic_operator)
+    # In that case, the headers live in site-packages/include/
     for parent in [current] + list(current.parents):
-        # 已安装的包的情况：检查 include/basic_components.h 是否存在
-        # 这确保是完整的头文件目录，而不是 PySparQ/include（只有绑定头文件）
+        # Installed package case: check whether include/basic_components.h exists
+        # This ensures it is the full header directory, not PySparQ/include (binding headers only)
         if (parent / "include" / "basic_components.h").exists() and (parent / "pysparq").exists():
             return parent
-        # 源代码目录的情况：qram-simulator submodule + PySparQ/
+        # Source checkout case: qram-simulator submodule + PySparQ/
         if (parent / "extern" / "qram-simulator").exists() and (parent / "PySparQ").exists():
             return parent
     return None
@@ -242,22 +243,22 @@ def generate_cpp_source(
     config: Optional[CompilerConfig] = None,
 ) -> str:
     """
-    生成完整的 C++ 源文件
+    Generate the complete C++ source file
 
     Args:
-        cpp_code: 用户提供的 C++ 代码（包含类定义）
-        class_name: 算子类名
-        ctor_params: 构造函数参数声明（如 "int n, double theta"）
-        ctor_args: 构造函数参数调用（如 "n, theta"）
-        config: 编译器配置（使用模板）
+        cpp_code: User-provided C++ code (containing the class definition)
+        class_name: Operator class name
+        ctor_params: Constructor parameter declarations (e.g. "int n, double theta")
+        ctor_args: Constructor call arguments (e.g. "n, theta")
+        config: Compiler configuration (provides the template)
 
     Returns:
-        完整的 C++ 源代码字符串
+        The complete C++ source code string
     """
     cfg = config or CompilerConfig()
     template = cfg.template
 
-    # 替换模板变量
+    # Substitute template variables
     source = template.format(
         USER_CPP_CODE=cpp_code,
         CLASS_NAME=class_name,
@@ -279,47 +280,47 @@ def compile_cpp_code(
     verbose: bool = False,
 ) -> str:
     """
-    编译 C++ 代码为共享库
+    Compile C++ code into a shared library
 
     Args:
-        cpp_code: 用户提供的 C++ 代码（包含类定义）
-        class_name: 算子类名
-        cache_dir: 缓存目录（默认使用系统临时目录）
-        ctor_params: 构造函数参数声明
-        ctor_args: 构造函数参数调用
-        config: 编译器配置
-        project_root: 项目根目录（自动检测）
-        verbose: 是否输出详细日志
+        cpp_code: User-provided C++ code (containing the class definition)
+        class_name: Operator class name
+        cache_dir: Cache directory (defaults to the system temporary directory)
+        ctor_params: Constructor parameter declarations
+        ctor_args: Constructor call arguments
+        config: Compiler configuration
+        project_root: Project root directory (auto-detected)
+        verbose: Whether to print verbose logs
 
     Returns:
-        编译后的共享库路径 (.so 文件)
+        Path of the compiled shared library (.so file)
 
     Raises:
-        CompilationError: 编译失败
-        FileNotFoundError: 找不到编译器
+        CompilationError: Compilation failed
+        FileNotFoundError: Compiler not found
     """
     cfg = config or CompilerConfig()
 
-    # 自动检测项目根目录
+    # Auto-detect the project root directory
     if project_root is None:
         detected_root = find_project_root()
         if detected_root is None:
             raise RuntimeError(
-                "无法自动检测项目根目录，请手动指定 project_root 参数"
+                "Failed to auto-detect the project root directory; please specify the project_root parameter manually"
             )
         project_root = str(detected_root)
 
     project_root_path = Path(project_root)
 
-    # 检查是否是已安装的包（头文件在 include/ 目录下）
+    # Check whether this is an installed package (headers under the include/ directory)
     installed_include = project_root_path / "include"
     if installed_include.exists():
-        # 已安装的包情况：头文件已经在统一的 include/ 目录下
+        # Installed package case: the headers are already under the unified include/ directory
         if str(installed_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(installed_include))
     else:
-        # 源代码目录情况：SparQ 框架头文件在本仓库根下，
-        # QRAM 核心（QRAM/Common/ThirdParty）在 extern/qram-simulator/ 下
+        # Source checkout case: SparQ framework headers live at this repository's root,
+        # while the QRAM core (QRAM/Common/ThirdParty) lives under extern/qram-simulator/
         core_root = project_root_path / "extern" / "qram-simulator"
 
         sparq_include = project_root_path / "SparQ" / "include"
@@ -338,39 +339,39 @@ def compile_cpp_code(
         if common_include.exists() and str(common_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(common_include))
 
-        # 添加 Eigen 头文件路径
+        # Add the Eigen header path
         eigen_include = core_root / "ThirdParty" / "eigen-3.4.0"
         if eigen_include.exists() and str(eigen_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(eigen_include))
 
-        # 添加 fmt 头文件路径
+        # Add the fmt header path
         fmt_include = core_root / "ThirdParty" / "fmt" / "include"
         if fmt_include.exists() and str(fmt_include) not in cfg.include_paths:
             cfg.include_paths.insert(0, str(fmt_include))
 
-    # 计算哈希值
+    # Compute the code hash
     code_hash = compute_code_hash(cpp_code, class_name, cfg)
 
-    # 确定缓存目录
+    # Determine the cache directory
     if cache_dir is None:
         cache_dir = os.path.join(tempfile.gettempdir(), "pysparq_dynamic_ops")
 
     os.makedirs(cache_dir, exist_ok=True)
 
-    # 生成库文件名
+    # Generate the library file name
     lib_filename = f"{class_name}_{code_hash}.so"
     lib_path = os.path.join(cache_dir, lib_filename)
 
-    # 检查缓存
+    # Check the cache
     if os.path.exists(lib_path):
         if verbose:
-            print(f"[compiler] 使用缓存: {lib_path}")
+            print(f"[compiler] Using cache: {lib_path}")
         return lib_path
 
-    # 生成完整源代码
+    # Generate the complete source code
     full_source = generate_cpp_source(cpp_code, class_name, ctor_params, ctor_args, cfg)
 
-    # 创建临时源文件
+    # Create a temporary source file
     source_filename = f"{class_name}_{code_hash}.cpp"
     source_path = os.path.join(cache_dir, source_filename)
 
@@ -378,76 +379,76 @@ def compile_cpp_code(
         f.write(full_source)
 
     if verbose:
-        print(f"[compiler] 源文件: {source_path}")
-        print(f"[compiler] 目标库: {lib_path}")
+        print(f"[compiler] Source file: {source_path}")
+        print(f"[compiler] Target library: {lib_path}")
 
-    # 检查编译器
+    # Check for the compiler
     if not shutil.which(cfg.cxx):
-        raise FileNotFoundError(f"找不到 C++ 编译器: {cfg.cxx}")
+        raise FileNotFoundError(f"C++ compiler not found: {cfg.cxx}")
 
-    # 构建编译命令
+    # Build the compile command
     cmd = [cfg.cxx] + cfg.get_compile_flags() + ["-o", lib_path, source_path]
 
     if verbose:
-        print(f"[compiler] 编译命令: {' '.join(cmd)}")
+        print(f"[compiler] Compile command: {' '.join(cmd)}")
 
-    # 执行编译
+    # Run the compilation
     try:
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
-            timeout=120,  # 2分钟超时
+            timeout=120,  # 2-minute timeout
         )
     except subprocess.TimeoutExpired:
-        raise CompilationError("编译超时（超过2分钟）")
+        raise CompilationError("Compilation timed out (exceeded 2 minutes)")
     except Exception as e:
-        raise CompilationError(f"编译器执行失败: {e}")
+        raise CompilationError(f"Compiler execution failed: {e}")
 
-    # 检查编译结果
+    # Check the compilation result
     if result.returncode != 0:
-        # 格式化错误信息
+        # Format the error message
         formatted_error = format_compile_error(result.stderr, source_path)
         raise CompilationError(
-            f"编译失败 (返回码: {result.returncode})",
+            f"Compilation failed (return code: {result.returncode})",
             stderr=formatted_error,
             returncode=result.returncode,
         )
 
-    # 编译成功，删除源文件（可选，保留用于调试）
+    # Compilation succeeded; optionally delete the source file (kept for debugging)
     # os.remove(source_path)
 
     if verbose:
-        print(f"[compiler] 编译成功: {lib_path}")
+        print(f"[compiler] Compilation succeeded: {lib_path}")
 
     return lib_path
 
 
 def format_compile_error(stderr: str, source_path: str) -> str:
     """
-    格式化编译错误输出
+    Format compiler error output
 
-    - 简化文件路径
-    - 高亮错误行
-    - 提取关键错误信息
+    - Simplifies file paths
+    - Highlights error lines
+    - Extracts the key error information
 
     Args:
-        stderr: 编译器标准错误输出
-        source_path: 源文件路径
+        stderr: Compiler standard error output
+        source_path: Source file path
 
     Returns:
-        格式化后的错误信息
+        The formatted error message
     """
     if not stderr:
-        return "未知编译错误"
+        return "Unknown compilation error"
 
     lines = stderr.strip().split("\n")
     formatted_lines = []
 
-    # 错误模式匹配
+    # Error pattern matching
     error_patterns = [
-        r"(.*?):(\d+):(\d+):\s*(error|warning):\s*(.*)",  # GCC/Clang 格式
-        r"(.*?):\s*(error|warning)\s*\w*:\s*(.*)",  # 另一种格式
+        r"(.*?):(\d+):(\d+):\s*(error|warning):\s*(.*)",  # GCC/Clang format
+        r"(.*?):\s*(error|warning)\s*\w*:\s*(.*)",  # Another format
     ]
 
     for line in lines:
@@ -455,13 +456,13 @@ def format_compile_error(stderr: str, source_path: str) -> str:
         if not line:
             continue
 
-        # 简化路径
+        # Simplify paths
         if source_path in line:
             line = line.replace(source_path, "<source>")
 
         formatted_lines.append(line)
 
-    # 提取错误摘要
+    # Extract an error summary
     errors = []
     warnings = []
 
@@ -471,37 +472,37 @@ def format_compile_error(stderr: str, source_path: str) -> str:
         elif "warning:" in line.lower():
             warnings.append(line)
 
-    # 构建输出
+    # Build the output
     output = []
 
     if errors:
-        output.append(f"错误 ({len(errors)} 个):")
-        for err in errors[:5]:  # 只显示前5个错误
+        output.append(f"Errors ({len(errors)}):")
+        for err in errors[:5]:  # Show only the first 5 errors
             output.append(f"  - {err}")
         if len(errors) > 5:
-            output.append(f"  ... 还有 {len(errors) - 5} 个错误")
+            output.append(f"  ... {len(errors) - 5} more error(s)")
 
     if warnings:
-        output.append(f"\n警告 ({len(warnings)} 个):")
-        for warn in warnings[:3]:  # 只显示前3个警告
+        output.append(f"\nWarnings ({len(warnings)}):")
+        for warn in warnings[:3]:  # Show only the first 3 warnings
             output.append(f"  - {warn}")
 
     if not errors and not warnings:
-        output.append("编译器输出:")
-        output.extend(formatted_lines[:20])  # 最多20行
+        output.append("Compiler output:")
+        output.extend(formatted_lines[:20])  # At most 20 lines
 
     return "\n".join(output)
 
 
 def clear_cache(cache_dir: Optional[str] = None) -> int:
     """
-    清除编译缓存
+    Clear the compilation cache
 
     Args:
-        cache_dir: 缓存目录（默认使用系统临时目录）
+        cache_dir: Cache directory (defaults to the system temporary directory)
 
     Returns:
-        删除的文件数量
+        The number of deleted files
     """
     if cache_dir is None:
         cache_dir = os.path.join(tempfile.gettempdir(), "pysparq_dynamic_ops")
@@ -525,13 +526,13 @@ def clear_cache(cache_dir: Optional[str] = None) -> int:
 
 def get_cache_info(cache_dir: Optional[str] = None) -> dict:
     """
-    获取缓存信息
+    Get cache information
 
     Args:
-        cache_dir: 缓存目录
+        cache_dir: Cache directory
 
     Returns:
-        包含缓存统计信息的字典
+        A dictionary with cache statistics
     """
     if cache_dir is None:
         cache_dir = os.path.join(tempfile.gettempdir(), "pysparq_dynamic_ops")
@@ -565,7 +566,7 @@ def get_cache_info(cache_dir: Optional[str] = None) -> dict:
     return info
 
 
-# ========== 便捷函数 ==========
+# ========== Convenience functions ==========
 
 def quick_compile(
     class_code: str,
@@ -573,15 +574,15 @@ def quick_compile(
     verbose: bool = False,
 ) -> str:
     """
-    快速编译 C++ 算子代码
+    Quickly compile C++ operator code
 
     Args:
-        class_code: 包含类定义的 C++ 代码
-        class_name: 类名
-        verbose: 是否输出详细日志
+        class_code: C++ code containing the class definition
+        class_name: Class name
+        verbose: Whether to print verbose logs
 
     Returns:
-        共享库文件路径
+        The shared library file path
     """
     return compile_cpp_code(
         cpp_code=class_code,

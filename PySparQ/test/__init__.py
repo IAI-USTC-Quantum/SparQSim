@@ -1,1 +1,1 @@
-"""PySparQ 测试包"""
+"""PySparQ test package"""

@@ -26,7 +26,7 @@ jobs:
   python-tests:
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    # Gitea 也会扫描 .github/workflows,但其 runner 访问不了 github.com → 仅 GitHub 上游执行
+    # Gitea also scans .github/workflows, but its runner cannot reach github.com → run on the GitHub upstream only
     if: github.repository_owner == 'IAI-USTC-Quantum'
     strategy:
       fail-fast: false
@@ -45,8 +45,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: pip
 
-    # scikit-build-core 用 Ninja generator，需要 cl 在 PATH 中
-    #（裸 windows runner 的 pwsh 不带 MSVC 环境）
+    # scikit-build-core uses the Ninja generator, which needs cl on PATH
+    # (the bare windows runner's pwsh has no MSVC environment)
     - uses: ilammy/msvc-dev-cmd@v1
       if: runner.os == 'Windows'
 
@@ -62,8 +62,9 @@ jobs:
       run: python -c "import pysparq; pysparq.test_import()"
 
     - name: Run pytest
-      # Windows runner 的 Strawberry Perl 带 mingw g++：JIT 能编译但产物
-      # 依赖的 MinGW 运行时 DLL（libstdc++-6 等）不在 PATH，ctypes 加载
-      # 失败。JIT 测试在 Linux job 全量执行；Windows 的 JIT 原生支持
-      # 留待 dynamic_operator 后续适配。
+      # The Windows runner's Strawberry Perl ships a mingw g++: JIT compilation
+      # works, but the MinGW runtime DLLs the artifact depends on
+      # (libstdc++-6 etc.) are not on PATH, so ctypes loading fails.
+      # JIT tests run in full in the Linux job; native JIT support on Windows
+      # is deferred until dynamic_operator is adapted for it.
       run: pytest PySparQ/test/ -v ${{ runner.os == 'Windows' && '--ignore=PySparQ/test/test_dynamic_operator.py --ignore=PySparQ/test/test_doc_examples.py' || '' }}

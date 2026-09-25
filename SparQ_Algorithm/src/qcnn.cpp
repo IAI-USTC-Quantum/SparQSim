@@ -1,7 +1,7 @@
 ﻿/**
  * @file qcnn.cpp
- * @brief 量子卷积网络实现
- * @details 实现 qcnn.h 中声明的 QCNN 算子（当前被 #if false 整体禁用）
+ * @brief Quantum convolutional neural network implementation
+ * @details Implements the QCNN operators declared in qcnn.h (currently disabled as a whole via #if false)
  */
 #if false
 
@@ -14,17 +14,17 @@
 
 namespace qram_simulator {
 	namespace CNN {
-		//4*4卷积
+		//4*4 convolution
 		std::vector<double> convolve4x4(const std::vector<double>& image, const std::vector<double>& kernel) {
 			std::vector<double> result;
 
-			// 检查输入图像和卷积核的大小是否正确
+			// Check that the input image and kernel sizes are correct
 			if (image.size() != 784 || kernel.size() != 16) {
 				std::cerr << "Invalid input size!" << std::endl;
 				return result;
 			}
 
-			// 执行4x4卷积操作
+			// Perform the 4x4 convolution
 			for (int i = 0; i <= 24; i += 1) {
 				for (int j = 0; j <= 24; j += 1) {
 					double sum = 0.0;
@@ -39,7 +39,7 @@ namespace qram_simulator {
 
 			return result;
 		}
-		//找到大于input的最小power(2,n)
+		//Find the smallest power(2,n) greater than input
 		int findpow2(int input) {
 			for (int i = 0; i < 20; i++) {
 				if (pow2(i) > input)
@@ -48,7 +48,7 @@ namespace qram_simulator {
 			return 0;
 		}
 
-		//将卷积转换为矩阵乘法
+		//Convert the convolution to matrix multiplication
 		std::vector<double> img2col(std::vector<double>& input, int kernel_size) {
 			int pic_size = sqrt(input.size());
 			std::vector<std::vector<double>> img(pic_size, std::vector<double>(pic_size));
@@ -117,15 +117,15 @@ namespace qram_simulator {
 
 			return result;
 		}
-		//长度不等于pow(2,size)的整数序列补0
+		//Zero-pad integer sequences whose length is not pow(2,size)
 
 		class khan_Matrix {
 		private:
-			std::vector<std::vector<double>> m;  // 存储矩阵的数据
+			std::vector<std::vector<double>> m;  // stores the matrix data
 		public:
-			// 构造函数
+			// Constructor
 			khan_Matrix(int rows, int cols) : m(rows, std::vector<double>(cols)) {}
-			// 从std::vector<double>创建Matrix
+			// Create a Matrix from std::vector<double>
 			khan_Matrix(int rows, int cols, const std::vector<double>& vec) : m(rows, std::vector<double>(cols)) {
 				if (rows * cols != vec.size()) {
 					throw std::invalid_argument("The size of the vector does not match the size of the matrix");
@@ -136,16 +136,16 @@ namespace qram_simulator {
 					}
 				}
 			}
-			// 设置矩阵元素的值
+			// Set a matrix element value
 			void setElement(int row, int col, double value) {
 				m[row][col] = value;
 			}
-			// 获取矩阵元素的值
+			// Get a matrix element value
 			double getElement(int row, int col) const {
 				return m[row][col];
 			}
 
-			// 矩阵加法
+			// Matrix addition
 			khan_Matrix add(const khan_Matrix& other) const {
 				int rows = m.size();
 				int cols = m[0].size();
@@ -158,7 +158,7 @@ namespace qram_simulator {
 				return result;
 			}
 
-			// 矩阵减法
+			// Matrix subtraction
 			khan_Matrix subtract(const khan_Matrix& other) const {
 				int rows = m.size();
 				int cols = m[0].size();
@@ -171,7 +171,7 @@ namespace qram_simulator {
 				return result;
 			}
 
-			// 矩阵乘法
+			// Matrix multiplication
 			khan_Matrix multiply(const khan_Matrix& other) const {
 				int rows = m.size();
 				int cols = other.m[0].size();
@@ -189,7 +189,7 @@ namespace qram_simulator {
 				return result;
 			}
 
-			// 矩阵转置
+			// Matrix transpose
 			khan_Matrix transpose() const {
 				int rows = m.size();
 				int cols = m[0].size();
@@ -202,7 +202,7 @@ namespace qram_simulator {
 				return result;
 			}
 
-			// 矩阵放缩
+			// Matrix scaling
 
 			khan_Matrix scale(double factor) {
 				int rows = m.size();
@@ -216,7 +216,7 @@ namespace qram_simulator {
 				return result;
 			}
 
-			// 将矩阵转换为std::vector<double>
+			// Convert the matrix to std::vector<double>
 			std::vector<double> toVector() const {
 				std::vector<double> result;
 				for (const auto& row : m) {
@@ -238,7 +238,7 @@ namespace qram_simulator {
 			return newMemory;
 		}
 
-		//作弊拿结果为(i,j)的概率
+		//Cheat to get the probability of the result at (i,j)
 		double getProb(std::vector<System>& state, int i, int j) {
 			double prob = 0;
 			for (auto& s : state) {
@@ -262,7 +262,7 @@ namespace qram_simulator {
 			return prob;
 		}
 
-		//条件旋转矩阵
+		//Conditional rotation matrix
 		u22_t conrotfunc_P(size_t x_, double norm) {
 			std::array<std::complex<double>, 4> ret;
 			double x = reinterpret_cast<double&>(x_);
@@ -274,7 +274,7 @@ namespace qram_simulator {
 			return ret;
 		}
 
-		//条件旋转逆矩阵
+		//Inverse conditional rotation matrix
 		u22_t conrotfunc_P_inv(size_t x, double norm) {
 			std::array<std::complex<double>, 4> ret;
 			ret[0] = x * 1.0 / sqrt(norm);
@@ -478,7 +478,7 @@ namespace qram_simulator {
 			}
 		}
 
-		//相位翻转
+		//Phase flip
 		void AllPhaseFlip::operator()(std::vector<System>& state) const
 		{
 			profiler _("AllPhaseFlip");

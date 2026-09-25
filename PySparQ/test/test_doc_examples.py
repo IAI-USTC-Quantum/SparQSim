@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-文档示例测试
+Documentation example tests
 
-验证所有文档中的示例代码可正常编译和运行。
+Verify that all example code from the documentation compiles and runs correctly.
 """
 
 import pytest
@@ -11,13 +11,14 @@ import sys
 import os
 import math
 
-# JIT 编译依赖 g++（见 CONTRIBUTING）；无编译器环境（如无 MinGW 的
-# Windows runner）整模块跳过，而非逐用例报错
+# JIT compilation depends on g++ (see CONTRIBUTING); skip the whole module in
+# environments without a compiler (e.g. a Windows runner without MinGW),
+# rather than failing case by case
 if not shutil.which("g++"):
     pytest.skip("g++ not available — doc example JIT tests skipped",
                 allow_module_level=True)
 
-# 添加项目根目录到路径
+# Add the project root directory to the path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
@@ -31,14 +32,14 @@ from pysparq.dynamic_operator import (
 
 
 class TestControlledPhaseExample:
-    """测试受控相位门示例"""
+    """Test the controlled phase gate example"""
 
     def setup_method(self):
-        """每个测试前清理缓存"""
+        """Clear the cache before each test"""
         clear_cache()
 
     def test_compile_controlled_phase(self):
-        """测试受控相位门编译"""
+        """Test compilation of the controlled phase gate"""
         cpp_code = """
         class ControlledPhase : public BaseOperator {
             size_t control_reg;
@@ -80,20 +81,20 @@ class TestControlledPhaseExample:
         assert ControlledPhase is not None
         assert ControlledPhase.__name__ == "ControlledPhase"
 
-        # 测试实例创建
+        # Test instance creation
         op = ControlledPhase(control_reg=0, target_reg=1, phase=math.pi/4)
         assert op is not None
         assert "ControlledPhase" in repr(op)
 
 
 class TestQuantumWalkExample:
-    """测试量子游走示例"""
+    """Test the quantum walk example"""
 
     def setup_method(self):
         clear_cache()
 
     def test_compile_quantum_walk_step(self):
-        """测试量子游走步进算子编译"""
+        """Test compilation of the quantum walk step operator"""
         cpp_code = """
         class QuantumWalkStep : public SelfAdjointOperator {
             size_t position_reg;
@@ -134,13 +135,13 @@ class TestQuantumWalkExample:
 
 
 class TestGroverOracleExample:
-    """测试 Grover Oracle 示例"""
+    """Test the Grover oracle example"""
 
     def setup_method(self):
         clear_cache()
 
     def test_compile_mark_oracle(self):
-        """测试标记 Oracle 编译"""
+        """Test compilation of the marking oracle"""
         cpp_code = """
         class MarkOracle : public SelfAdjointOperator {
             size_t data_reg;
@@ -171,19 +172,19 @@ class TestGroverOracleExample:
         assert MarkOracle is not None
         assert MarkOracle.__name__ == "MarkOracle"
 
-        # 测试实例创建
+        # Test instance creation
         op = MarkOracle(data_reg=0, target_value=5)
         assert op is not None
 
 
 class TestHamiltonianEvolutionExample:
-    """测试哈密顿量演化示例"""
+    """Test the Hamiltonian evolution example"""
 
     def setup_method(self):
         clear_cache()
 
     def test_compile_hamiltonian_evolution(self):
-        """测试哈密顿量演化算子编译"""
+        """Test compilation of the Hamiltonian evolution operator"""
         cpp_code = """
         class HamiltonianEvolution : public BaseOperator {
             size_t reg_id;
@@ -225,19 +226,19 @@ class TestHamiltonianEvolutionExample:
         assert HamiltonianEvolution is not None
         assert HamiltonianEvolution.__name__ == "HamiltonianEvolution"
 
-        # 测试实例创建
+        # Test instance creation
         op = HamiltonianEvolution(reg_id=0, coupling_strength=0.5, time=1.0)
         assert op is not None
 
 
 class TestMultiEntangleExample:
-    """测试多寄存器纠缠门示例"""
+    """Test the multi-register entanglement gate example"""
 
     def setup_method(self):
         clear_cache()
 
     def test_compile_multi_entangle(self):
-        """测试多寄存器纠缠门编译"""
+        """Test compilation of the multi-register entanglement gate"""
         cpp_code = """
         class MultiEntangleOp : public SelfAdjointOperator {
             size_t reg_a;
@@ -272,7 +273,7 @@ class TestMultiEntangleExample:
 
 
 class TestCaching:
-    """测试缓存机制"""
+    """Test the caching mechanism"""
 
     def setup_method(self):
         clear_cache()
@@ -281,7 +282,7 @@ class TestCaching:
         clear_cache()
 
     def test_cache_hit(self):
-        """测试缓存命中"""
+        """Test a cache hit"""
         cpp_code = """
         class CachedOp : public SelfAdjointOperator {
             size_t reg_id;
@@ -291,7 +292,7 @@ class TestCaching:
         };
         """
 
-        # 第一次编译
+        # First compilation
         OpClass1 = compile_operator(
             name="CachedOp",
             cpp_code=cpp_code,
@@ -300,7 +301,7 @@ class TestCaching:
         )
         lib_path1 = OpClass1._lib_path
 
-        # 第二次编译相同代码
+        # Second compilation of the same code
         OpClass2 = compile_operator(
             name="CachedOp",
             cpp_code=cpp_code,
@@ -309,11 +310,11 @@ class TestCaching:
         )
         lib_path2 = OpClass2._lib_path
 
-        # 应该使用相同的缓存库
+        # Should reuse the same cached library
         assert lib_path1 == lib_path2
 
     def test_cache_info(self):
-        """测试缓存信息获取"""
+        """Test cache info retrieval"""
         info = get_cache_info()
         assert "cache_dir" in info
         assert "so_count" in info
@@ -321,17 +322,17 @@ class TestCaching:
 
 
 class TestErrorHandling:
-    """测试错误处理"""
+    """Test error handling"""
 
     def setup_method(self):
         clear_cache()
 
     def test_compilation_error(self):
-        """测试编译错误处理"""
+        """Test compilation error handling"""
         bad_cpp_code = """
         class BadOp : public BaseOperator {
             void operator()(std::vector<System>& state) const override {
-                undefined_function();  // 未定义函数
+                undefined_function();  // undefined function
             }
         };
         """
@@ -344,7 +345,7 @@ class TestErrorHandling:
             )
 
     def test_invalid_base_class(self):
-        """测试无效基类"""
+        """Test an invalid base class"""
         with pytest.raises(ValueError) as exc_info:
             compile_operator(
                 name="TestOp",
@@ -354,7 +355,7 @@ class TestErrorHandling:
         assert "base_class" in str(exc_info.value)
 
     def test_empty_name(self):
-        """测试空名称"""
+        """Test an empty name"""
         with pytest.raises(ValueError):
             compile_operator(
                 name="",
@@ -362,7 +363,7 @@ class TestErrorHandling:
             )
 
     def test_empty_code(self):
-        """测试空代码"""
+        """Test empty code"""
         with pytest.raises(ValueError):
             compile_operator(
                 name="TestOp",
@@ -371,13 +372,13 @@ class TestErrorHandling:
 
 
 class TestDocstringExamples:
-    """测试文档中的代码示例"""
+    """Test the code examples from the documentation"""
 
     def setup_method(self):
         clear_cache()
 
     def test_basic_flip_operator(self):
-        """测试基本翻转算子示例（来自文档）"""
+        """Test the basic flip operator example (from the documentation)"""
         cpp_code = """
         class FlipOp : public SelfAdjointOperator {
             size_t reg_id;
@@ -403,7 +404,7 @@ class TestDocstringExamples:
         assert "FlipOp" in repr(op)
 
     def test_phase_gate_operator(self):
-        """测试相位门示例（来自文档）"""
+        """Test the phase gate example (from the documentation)"""
         cpp_code = """
         class PhaseGate : public BaseOperator {
             size_t reg_id;
@@ -438,7 +439,7 @@ class TestDocstringExamples:
         assert op is not None
 
 
-# ============ 运行测试 ============
+# ============ Run tests ============
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

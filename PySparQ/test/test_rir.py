@@ -224,7 +224,7 @@ class TestArithmetic:
         ]
         doc = program("main", [module("main", [register("x", 4)], body)])
         result = ps.run_rir(doc)
-        # x = 0b0011；视图值 3 + 1 在 2 bit 视图内回绕为 0 -> x = 0
+        # x = 0b0011; view value 3 + 1 wraps to 0 within the 2-bit view -> x = 0
         assert result.amplitudes == {(0,): pytest.approx(1.0)}
 
     def test_add_const_high_slice(self):
@@ -243,7 +243,7 @@ class TestArithmetic:
             ],
         )
         result = ps.run_rir(program("main", [wrap]))
-        # 高位视图 0b11 + 1 回绕为 0 -> x = 0
+        # high-slice view 0b11 + 1 wraps to 0 -> x = 0
         assert result.amplitudes == {(0,): pytest.approx(1.0)}
 
     def test_controlled_add_const(self):

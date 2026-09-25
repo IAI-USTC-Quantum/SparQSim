@@ -1,13 +1,13 @@
 """
-块编码算法测试。
+Block encoding algorithm tests.
 
-测试内容：
-- get_tridiagonal_matrix, get_u_plus, get_u_minus: 经典矩阵函数
-- PlusOneAndOverflow: 加一和溢出操作
-- BlockEncodingTridiagonal: 三对角矩阵块编码
-- BlockEncodingViaQRAM: QRAM 块编码
+Tested content:
+- get_tridiagonal_matrix, get_u_plus, get_u_minus: classical matrix functions
+- PlusOneAndOverflow: increment and overflow operations
+- BlockEncodingTridiagonal: block encoding of tridiagonal matrices
+- BlockEncodingViaQRAM: QRAM block encoding
 
-参考: test/CPUTest/CommonTest/CorrectnessTest_BlockEncoding.inl
+Reference: test/CPUTest/CommonTest/CorrectnessTest_BlockEncoding.inl
 """
 
 import pytest
@@ -26,7 +26,7 @@ PlusOneAndOverflow = ps.PlusOneAndOverflow
 
 
 class TestUtilityFunctions:
-    """测试经典矩阵工具函数。"""
+    """Test classical matrix utility functions."""
 
     def test_get_tridiagonal_matrix_diagonal(self):
         alpha, beta, dim = 2.0, 1.0, 4
@@ -90,7 +90,7 @@ class TestUtilityFunctions:
 
 
 class TestPlusOneAndOverflow:
-    """测试加一和溢出操作。"""
+    """Test increment and overflow operations."""
 
     def test_increment_no_overflow(self, fresh_system):
         ps.System.add_register("main", ps.UnsignedInteger, 2)
@@ -143,7 +143,7 @@ class TestPlusOneAndOverflow:
         assert state.basis_states[0].get(overflow_id).value == initial_overflow
 
     def test_multiple_increments(self, fresh_system):
-        """多次加一操作。"""
+        """Multiple increment operations."""
         ps.System.add_register("main", ps.UnsignedInteger, 2)
         ps.System.add_register("overflow", ps.Boolean, 1)
 
@@ -167,7 +167,7 @@ class TestPlusOneAndOverflow:
 
 
 class TestBlockEncodingTridiagonal:
-    """测试三对角矩阵块编码。"""
+    """Test block encoding of tridiagonal matrices."""
 
     def test_basic_encoding_execution(self, fresh_system):
         n_bits = 2
@@ -268,7 +268,7 @@ class TestBlockEncodingTridiagonal:
 
 
 class TestBlockEncodingViaQRAM:
-    """测试 QRAM 块编码。"""
+    """Test QRAM block encoding."""
 
     @pytest.mark.slow
     def test_simple_matrix_encoding(self, fresh_system):
@@ -329,7 +329,7 @@ class TestBlockEncodingViaQRAM:
 
 
 class TestBlockEncodingIntegration:
-    """块编码集成测试。"""
+    """Block encoding integration tests."""
 
     def test_prep_state_computation(self):
         n_bits = 2
