@@ -76,6 +76,12 @@ set(SPARQSIM_INCLUDE_DIRS
 )
 include_directories(${SPARQSIM_INCLUDE_DIRS})
 
+# Python 扩展是共享模块（.so/.pyd）；Linux 上链入的静态库
+# （SparQ_Algorithm / SparQ_Simulator 及 submodule 的核心库）必须以
+# -fPIC 编译，否则链接报 "relocation R_X86_64_PC32 ... recompile
+# with -fPIC"（Windows/MSVC 无此概念，本地不复现）。
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # The C++ core from the submodule: provides SparQ_Common, SparQ_QRAMSimulator
 # and fmt, and installs the core headers into the flat include/ layout.
 add_subdirectory(extern/qram-simulator)

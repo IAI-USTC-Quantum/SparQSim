@@ -46,10 +46,17 @@ jobs:
       run: |
         "${{ env.pythonLocation }}/bin/python" -m pip install -r docs/sphinx/requirements.txt
 
-    - name: Install Doxygen
+    - name: Install Doxygen and pandoc
+      # pandoc：nbsphinx 渲染 notebooks 必需（ubuntu runner 未预装）
       run: |
         sudo apt-get update
-        sudo apt-get install -y doxygen
+        sudo apt-get install -y doxygen pandoc
+
+    # 编译 C++ 扩展并安装 pysparq，让 autoapi 能导入完整包
+    # （缺 _core 时 pysparq.dynamic_operator / rir 等页面全部导入失败）
+    - name: Build and install pysparq
+      run: |
+        "${{ env.pythonLocation }}/bin/python" -m pip install .
 
     - name: Build Sphinx Documentation
       run: |

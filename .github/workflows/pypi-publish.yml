@@ -42,6 +42,10 @@ jobs:
         with:
           cmake-version: '3.26.x'
 
+      # Windows：给 cibuildwheel 子进程注入 MSVC 环境（Ninja 需要 cl）
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
