@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-25
+
 ### Added
 - **`LICENSE`**：补齐 Apache-2.0 全文（pyproject 与 README 此前已声明该许可，
   GitHub 许可检测由此生效）
