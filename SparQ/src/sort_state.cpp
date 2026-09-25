@@ -1,3 +1,8 @@
+/**
+ * @file sort_state.cpp
+ * @brief 状态排序实现
+ * @details 实现 sort_state.h 中声明的基态排序算子（按激活寄存器键排序/合并）
+ */
 #include "sort_state.h"
 
 namespace qram_simulator

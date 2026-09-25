@@ -1,4 +1,9 @@
-﻿#if false
+﻿/**
+ * @file qcnn.cpp
+ * @brief 量子卷积网络实现
+ * @details 实现 qcnn.h 中声明的 QCNN 算子（当前被 #if false 整体禁用）
+ */
+#if false
 
 #include "hamiltonian_simulation.h"
 #include "matrix.h"

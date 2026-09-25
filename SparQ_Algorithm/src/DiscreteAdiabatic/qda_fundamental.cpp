@@ -1,8 +1,19 @@
+/**
+ * @file qda_fundamental.cpp
+ * @brief QDA 基础组件的实现
+ * @details 实现 QDADebugger 的经典参考解计算（Hermitian 扩展矩阵 A_f、理想
+ *          初/终态向量、中间本征态）与 GetOutput 的后选择读出
+ */
+
 #include "DiscreteAdiabatic/qda_fundamental.h"
 
 namespace qram_simulator {
 	namespace QDA {
 
+		/**
+		 * @brief 计算 Hermitian 扩展插值矩阵 A_f
+		 * @return 2n×2n 矩阵 [[(1-f)I, fA], [fA†, -(1-f)I]]
+		 */
 		DenseMatrix<double> QDADebugger::get_matrix_Af()
 		{
 			size_t newSize = 2 * row_size;
@@ -23,6 +34,10 @@ namespace qram_simulator {
 			return Af;
 		}
 
+		/**
+		 * @brief 理想初态向量 |0⟩⊗|b⟩
+		 * @return 2n 维向量，前 n 个分量为 b
+		 */
 		DenseVector<double> QDADebugger::get_vector_0b()
 		{
 			size_t newSize = 2 * row_size;
@@ -34,6 +49,10 @@ namespace qram_simulator {
 			return vec;
 		}
 
+		/**
+		 * @brief 理想向量 |1⟩⊗|b⟩
+		 * @return 2n 维向量，后 n 个分量为 b
+		 */
 		DenseVector<double> QDADebugger::get_vector_1b()
 		{
 			size_t newSize = 2 * row_size;
@@ -45,6 +64,13 @@ namespace qram_simulator {
 			return vec;
 		}
 
+		/**
+		 * @brief 计算中间时刻 s 的理想本征态（保真度参考态）
+		 * @param is_PD 是否正定情形（当前实现未使用）
+		 * @return 长度 4n 的实数向量（按主寄存器 + 辅助位布局补零，便于与量子态对比）
+		 * @details f(s) ≈ 0 时返回初态 |0⟩⊗|b⟩；f(s) ≈ 1 时返回 A x = b 的归一化解
+		 *          （置于 |1⟩ 分支）；否则求解 A_f y = (|0⟩⊗|b⟩) 的归一化解
+		 */
 		std::vector<double> QDADebugger::get_mid_eigenstate(bool is_PD)
 		{
 			if (fs < epsilon) {
@@ -80,6 +106,14 @@ namespace qram_simulator {
 			
 		}
 
+		/**
+		 * @brief 从系统状态向量提取后选择子空间
+		 * @param state 系统状态向量
+		 * @return {归一化振幅向量（索引 = main_reg 值 + anc_1·2^n + anc_4·2^(n+1)）,
+		 *          成功概率}
+		 * @details 筛选 anc_registers 中所有寄存器取值均为 0 的分支，
+		 *          振幅按命中分支权重和归一化
+		 */
 		std::pair<std::vector<complex_t>, double> GetOutput::operator()(const std::vector<System>& state) const
 		{
 			profiler _("GetOutput");

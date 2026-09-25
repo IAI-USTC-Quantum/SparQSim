@@ -1,3 +1,8 @@
+/**
+ * @file quantum_arithmetic.cpp
+ * @brief 量子算术实现
+ * @details 实现 quantum_arithmetic.h 中声明的加减乘除模、移位、比较、交换等量子算术算子
+ */
 #include "quantum_arithmetic.h"
 
 namespace qram_simulator

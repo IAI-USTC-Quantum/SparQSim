@@ -1,3 +1,8 @@
+/**
+ * @file qft.cpp
+ * @brief 量子傅里叶变换实现
+ * @details 实现 qft.h 中声明的 QFT、InverseQFT、QFT_Full
+ */
 #include "qft.h"
 #include "system_operations.h"
 

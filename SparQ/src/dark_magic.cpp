@@ -1,3 +1,8 @@
+/**
+ * @file dark_magic.cpp
+ * @brief 暗魔法算子实现
+ * @details 实现 dark_magic.h 中声明的特殊优化算子（针对特定电路结构的手工优化路径）
+ */
 #include "dark_magic.h"
 
 namespace qram_simulator

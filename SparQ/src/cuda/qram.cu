@@ -1,3 +1,8 @@
+/**
+ * @file qram.cu
+ * @brief qram 的 CUDA 并行实现
+ * @details 以 thrust 设备向量与 CUDA 内核实现 qram.h 中声明的 QRAMLoad、QRAMLoadFast、QRAMInputGenerator（含噪声模型注入）（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ */
 #include "qram.h"
 #include "cuda_utils.cuh"
 #include "cuda/basic_components.cuh"

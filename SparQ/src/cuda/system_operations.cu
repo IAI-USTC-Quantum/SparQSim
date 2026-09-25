@@ -1,3 +1,8 @@
+/**
+ * @file system_operations.cu
+ * @brief system_operations 的 CUDA 并行实现
+ * @details 以 thrust 设备向量与 CUDA 内核实现 system_operations.h 中声明的 AddRegister、RemoveRegister、SplitRegister、CombineRegister、Push、Pop 等（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ */
 #include "system_operations.h"
 #include "cuda_utils.cuh"
 #include "quantum_arithmetic.h"

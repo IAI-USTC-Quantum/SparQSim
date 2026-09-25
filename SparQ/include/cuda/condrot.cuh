@@ -1,3 +1,13 @@
+/**
+ * @file condrot.cuh
+ * @brief 条件旋转算子的 CUDA 实现
+ * @details 实现 CondRot_General_Bool_Fast<Callable>::operator()(CuSparseState&)
+ *          的 GPU 路径：先按键排序并统计唯一键分组，对"分支孤单"（同一键下
+ *          只有 out=0 或 out=1 一个分支）的组分裂出新分支，对"成对"（out=0/1
+ *          两分支共存）的组直接做 2x2 酉混合，全程在 thrust 设备向量上并行。
+ *          与 CPU 侧 SparQ/include/condrot.h 的语义保持一致
+ */
+
 #pragma once
 
 #include "basic_components.cuh"
@@ -6,14 +16,35 @@
 
 namespace qram_simulator {
 
+	/**
+	 * @namespace qram_simulator::condrot_general_gpu_detail
+	 * @brief 条件旋转 GPU 实现的内部细节（内核与辅助仿函数）
+	 */
 	namespace condrot_general_gpu_detail {
+		/**
+		 * @brief 设备侧角度函数包装器
+		 * @details 把返回 u22_t（2x2 复矩阵）的 CPU 可调用对象包装为
+		 *          __device__ 侧向裸 double 数组（按 [实,虚] 交错展开 8 元素）
+		 *          写矩阵的仿函数，供 CUDA 内核使用
+		 * @tparam Callable 返回 u22_t 的角度函数类型
+		 */
 		template<typename Callable>
 		struct CuAngleFunction
 		{
+			/** @brief 被包装的角度函数 */
 			Callable func;
 
+			/**
+			 * @brief 构造函数
+			 * @param f 角度函数
+			 */
 			CuAngleFunction(Callable f) : func(f) {}
 
+			/**
+			 * @brief 计算输入值 v 对应的 2x2 酉矩阵并展开到裸数组
+			 * @param v 输入寄存器值
+			 * @param mat 输出数组（8 元素：4 个矩阵元的实部/虚部交错）
+			 */
 			__device__ void operator()(size_t v, double* mat) const {
 				u22_t mat_u22 = func(v);
 				mat[0] = mat_u22[0].real();
@@ -28,6 +59,21 @@ namespace qram_simulator {
 		};
 
 		// CUDA kernel: Hadamard_Bool::operate_alone_zero + Hadamard_Bool::operate_alone_one
+		/**
+		 * @brief 单分支组的条件旋转内核
+		 * @details 处理同一输入键下只存在一个 out 取值的"孤单"组：
+		 *          在状态数组尾部分裂出一个 out 位翻转的新基态，
+		 *          按 2x2 酉矩阵（由角度函数按输入值计算）混合原/新基态振幅
+		 * @tparam CuAngleFunction 设备侧角度函数类型
+		 * @param state 基态数组（设备指针）
+		 * @param nsize 单分支组数
+		 * @param unq_s 唯一键分组表（设备指针，前 nsize 项为单分支组）
+		 * @param old_size 扩容前的基础态数（新基态从该下标起追加）
+		 * @param in_id 输入寄存器 ID
+		 * @param out_id 输出（布尔）寄存器 ID
+		 * @param in_size 输入寄存器位宽
+		 * @param func 设备侧角度函数
+		 */
 		template<typename CuAngleFunction>
 		__global__ void CondRot_General_Bool_operate_alone(System* state, size_t nsize, unq_ele* unq_s, size_t old_size,
 			int in_id, int out_id, size_t in_size, CuAngleFunction func)
@@ -81,6 +127,21 @@ namespace qram_simulator {
 			}
 		}
 
+		/**
+		 * @brief 成对分支组的条件旋转内核
+		 * @details 处理同一输入键下 out=0/1 两分支共存的组：
+		 *          直接对相邻的 (my_loc, my_loc+1) 两基态做 2x2 酉混合，
+		 *          无需分裂新基态
+		 * @tparam CuAngleFunction 设备侧角度函数类型
+		 * @param state 基态数组（设备指针）
+		 * @param nsize 成对组数
+		 * @param unq_s 唯一键分组表（设备指针，自 num_one 起为成对组）
+		 * @param old_size 扩容前的基础态数（此内核不使用，仅保持接口一致）
+		 * @param in_id 输入寄存器 ID
+		 * @param out_id 输出（布尔）寄存器 ID
+		 * @param in_size 输入寄存器位宽
+		 * @param func 设备侧角度函数
+		 */
 		template<typename CuAngleFunction>
 		__global__ void CondRot_General_Bool_operate_pair(System* state, size_t nsize, unq_ele* unq_s, size_t old_size,
 			int in_id, int out_id, size_t in_size, CuAngleFunction func)
@@ -117,6 +178,14 @@ namespace qram_simulator {
 		}
 	}
 
+	/**
+	 * @brief CondRot_General_Bool_Fast 的 GPU 执行入口
+	 * @details 流程：状态迁上 GPU → 按 out 位外键排序 → 统计唯一键分组 →
+	 *          扩容状态数组（容纳单分支组分裂出的新基态）→ 分别启动
+	 *          operate_alone / operate_pair 内核 → 清除零振幅分支并更新规模统计
+	 * @tparam Callable 角度函数类型（返回 u22_t）
+	 * @param state GPU 稀疏态
+	 */
 	template<typename Callable>
 	void CondRot_General_Bool_Fast<Callable>::operator()(CuSparseState& state) const
 	{

@@ -1,3 +1,8 @@
+/**
+ * @file debugger.cpp
+ * @brief 调试与校验算子实现
+ * @details 实现 debugger.h 中声明的 CheckNormalization、CheckNan、StatePrint、CheckDuplicateKey 等调试算子
+ */
 #include "debugger.h"
 #include "sort_state.h"
 

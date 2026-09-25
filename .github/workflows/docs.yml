@@ -1,19 +1,23 @@
 name: Documentation
 
-# Build the Sphinx (Python) documentation; C++ Doxygen docs live in the
-# QRAM-Simulator repository.
+# Build the Sphinx documentation (Python + C++ API via Doxygen/Breathe);
+# the QRAM-Simulator submodule keeps its own Doxygen HTML in its repository.
 on:
   push:
     branches: [ "main", "develop" ]
     paths:
       - 'docs/**'
       - 'PySparQ/**'
+      - 'SparQ/**'
+      - 'SparQ_Algorithm/**'
       - 'README.md'
   pull_request:
     branches: [ "main", "develop" ]
     paths:
       - 'docs/**'
       - 'PySparQ/**'
+      - 'SparQ/**'
+      - 'SparQ_Algorithm/**'
       - 'README.md'
 
 concurrency:
@@ -41,6 +45,11 @@ jobs:
     - name: Install Documentation Dependencies
       run: |
         "${{ env.pythonLocation }}/bin/python" -m pip install -r docs/sphinx/requirements.txt
+
+    - name: Install Doxygen
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen
 
     - name: Build Sphinx Documentation
       run: |

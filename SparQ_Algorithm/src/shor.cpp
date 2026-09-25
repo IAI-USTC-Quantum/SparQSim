@@ -1,3 +1,8 @@
+/**
+ * @file shor.cpp
+ * @brief Shor 因数分解实现
+ * @details 实现 shor.h 中声明的 ExpMod、Shor、SemiClassicalShor 与连分数后处理函数
+ */
 #include "shor.h"
 
 namespace qram_simulator

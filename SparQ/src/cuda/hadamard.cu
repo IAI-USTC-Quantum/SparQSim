@@ -1,3 +1,8 @@
+/**
+ * @file hadamard.cu
+ * @brief hadamard 的 CUDA 并行实现
+ * @details 以 thrust 设备向量与 CUDA 内核实现 hadamard.h 中声明的 Hadamard_Int / Hadamard_Int_Full / Hadamard_Bool / Hadamard_Int_Partial（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ */
 #include "hadamard.h"
 #include "system_operations.h"
 #include "cuda_utils.cuh"

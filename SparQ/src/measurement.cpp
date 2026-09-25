@@ -1,3 +1,8 @@
+/**
+ * @file measurement.cpp
+ * @brief 测量实现
+ * @details 实现 measurement.h 中声明的 MeasureZ、Reset、Probability（中间电路测量/复位/概率查询）
+ */
 #include "measurement.h"
 
 namespace qram_simulator

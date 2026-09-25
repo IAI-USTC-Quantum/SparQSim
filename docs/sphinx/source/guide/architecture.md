@@ -1,81 +1,113 @@
-# QRAM Simulator 架构
+# SparQSim 架构
 
-本文档描述 QRAM Simulator 项目的整体架构、设计哲学和核心模块。
+本文档描述 SparQSim 仓库（SparQ 框架之家）的整体架构、仓库分工和核心模块。
 
 ## 概述
 
 ### 项目目标
 
-QRAM Simulator 是一个用于模拟**量子随机存取存储器（QRAM）**和**稀疏态量子计算**的高性能模拟器。它旨在为量子算法研究者和开发者提供一个能够：
+SparQ 是一个用于模拟**量子随机存取存储器（QRAM）**和**稀疏态量子计算**的高性能模拟器框架。它旨在为量子算法研究者和开发者提供：
 
 - 高效模拟大规模量子系统的工具（利用稀疏态表示）
 - 精确建模 QRAM 电路的行为和噪声影响
-- CUDA/GPU 后端保留在代码中，但当前 CMake 暂时屏蔽 GPU 构建，默认走 CPU-only 路径
-- 提供简洁的 Python API 便于快速原型开发
+- 寄存器级编程范式：直接对整数/布尔寄存器做算术与逻辑操作，无需手工分解到门
+- 完整的算法库（Grover、Shor、态制备、块编码、哈密顿量模拟、离散绝热 QDA 等）
+- 简洁的 Python API（`pysparq`）便于快速原型开发
 
-### 设计哲学
+### 仓库分工
 
-1. **稀疏态优先**：利用量子态的稀疏性，将存储和计算复杂度从指数级降低到与纠缠程度成正比
-2. **模块化设计**：清晰的模块边界，便于扩展和维护
-3. **性能与易用性并重**：C++ 核心提供性能，Python 绑定提供易用性
-4. **噪声感知**：原生支持去极化和退相干噪声模型
+依赖方向：**SparQSim → QRAM-Simulator**。本仓库承载 SparQ C++ 框架
+（`SparQ/` 稀疏态模拟器 + `SparQ_Algorithm/` 算法库 + 全部 Python 绑定与算法类实验）；
+QRAM 基座（Common + QRAM + ThirdParty）在
+[QRAM-Simulator 仓库](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)独立发版，
+本仓库以 git submodule（相对 URL `../QRAM-Simulator.git`）引用并编译。
 
-## 核心模块
+## 目录结构
 
 ```
-QRAM-Simulator/
-├── Common/           # 共享基础设施
-├── SparQ/            # 稀疏态模拟器核心
-├── QRAM/             # QRAM 电路实现
-├── SparQ_Algorithm/  # 高层量子算法
-├── PySparQ/          # Python 绑定
-├── Experiments/      # 实验代码
-└── ThirdParty/       # 第三方依赖（Eigen）
+SparQSim/
+├── SparQ/                  # SparQ C++ 稀疏态模拟器（伞形目标 SparQ 在根 CMake 定义）
+│   ├── include/            # 公共 API 头文件（含 cuda/ GPU 后端，暂被 CMake 屏蔽）
+│   └── src/                # 实现（含 src/cuda/ GPU 内核）
+├── SparQ_Algorithm/        # 高层算法 C++ 库
+│   ├── include/            # grover / shor / 态制备 / 块编码 / 哈密顿模拟 / QDA
+│   └── src/
+├── PySparQ/                # pybind11 富绑定 + 纯 Python 包
+│   ├── core.cpp            # _core 模块绑定（约 1500 行）
+│   ├── include/            # 绑定层辅助头（core.h、BindUtils.h）
+│   ├── pysparq/            # Python 包：operators/ algorithms/ rir conformance dynamic_operator
+│   └── test/               # pytest 套件（含外部消费者 API 契约测试）
+├── Experiments/            # 量子算法 C++ 实验（QDA/Grover/QFT/Shor/QCNN/CKS/GHZ 等）
+├── examples/               # C++ 与 Python 示例（SPARQ_BUILD_EXAMPLES 门控 C++ 部分）
+├── test/                   # C++ 测试（SPARQ_BUILD_TESTS 门控）
+├── extern/qram-simulator/  # QRAM 基座 submodule（Common + QRAM + ThirdParty，勿直接修改）
+├── docs/                   # Sphinx 文档 + Doxygen（C++ API）+ 算法转译指南
+└── pyproject.toml          # pysparq 包（scikit-build-core + setuptools-scm）
 ```
-
-### Common/ - 共享基础设施
-
-**职责**：提供跨模块的通用工具和数据结构
-
-| 文件 | 功能 |
-|------|------|
-| `basic.h` | 基础数学工具、复数运算、哈希函数 |
-| `matrix.h` | 稀疏/稠密矩阵的 Eigen 封装和扩展 |
-| `logger.h` | 日志系统，支持分级日志和性能计时 |
-| `error_handler.h` | 统一的错误处理和异常定义 |
-| `typedefs.h` | 项目通用类型别名（QIndex、Complex 等） |
 
 ### SparQ/ - 稀疏态模拟器核心
 
-**职责**：实现稀疏态量子模拟的核心功能
+**职责**：实现稀疏态量子模拟的核心功能（寄存器管理、门、测量、QRAM、量子算术）。
 
-**核心类**：
+**核心类**（均在 `qram_simulator` 命名空间下，声明于 `SparQ/include/basic_components.h`）：
 
-- **`System`**：单个计算基态，包含复数振幅 ``amplitude`` 和寄存器值数组 ``registers``
+- **`System`**：单个计算基态，包含复数振幅 ``amplitude`` 和寄存器值数组 ``registers``；
+  同时以静态成员维护全局寄存器表（名称、类型、位宽），是寄存器级编程的枢纽
+- **`StateStorage`**：量子寄存器存储单元
 - **`SparseState`**：稀疏量子态，托管 ``std::vector<System>``，默认构造创建 ``|0...0⟩`` 初态
-- **`BaseOperator`**：算子的统一接口，支持复合算子和条件算子
-- **`SelfAdjointOperator`**：自伴算子（``dag() == operator()``），如 Hadamard、Pauli-X
+- **`BaseOperator`**：算子的统一接口（``operator()`` / ``dag()``，含 CPU/GPU 重载），支持复合算子和条件算子
+- **`SelfAdjointOperator`**：自伴算子基类（``dag() == operator()``），如 Hadamard、Pauli-X
 
-### QRAM/ - QRAM 电路实现
+**主要头文件模块**：
 
-**核心类**：
+| 头文件 | 内容 |
+|--------|------|
+| `basic_components.h` | System / SparseState / BaseOperator 等核心数据结构 |
+| `basic_gates.h` | Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 等标准门 |
+| `hadamard.h` | 整数寄存器 Hadamard（叠加态生成） |
+| `qft.h` | QFT / InverseQFT / QFT_Full |
+| `measurement.h` | 中间电路测量 MeasureZ / Reset / Probability |
+| `partial_trace.h` | 部分迹与读出 |
+| `qram.h` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
+| `quantum_arithmetic.h` | 加减乘除模、移位、比较等约 50 个量子算术算子 |
+| `system_operations.h` | AddRegister / RemoveRegister / Split / Combine / Push / Pop 等 |
+| `condrot.h` / `rot.h` | 条件旋转、一般酉旋转与态制备 |
+| `debugger.h` | CheckNormalization / CheckNan / StatePrint 等调试算子 |
 
-- **`QRAMCircuit`（qutrit/qubit）**：QRAM 电路实现
-  - 地址线和数据线位数配置
-  - 时步逻辑：生成 QRAM 操作序列
-  - 噪声模型：支持去极化和退相干噪声
+### SparQ_Algorithm/ - 高层算法库
 
-- **`CuQRAMCircuit`**（CUDA 版本）：代码保留，当前 CMake 暂时屏蔽 GPU 构建
+组合核心原语实现完整量子算法，每个算法对应 `Experiments/` 中的 C++ 实验
+与 `PySparQ/pysparq/algorithms/` 中的 Python 实现（对照关系见
+[docs/algorithm-implementation.md](../algorithm-implementation.md)）：
 
-### PySparQ/ - Python 绑定
+- **grover.h**：QRAM oracle 驱动的 Grover 搜索（含振幅放大与量子计数）
+- **shor.h**：Shor 因数分解（标准版 + 半经典版）
+- **state_preparation.h**：基于 QRAM 的态制备
+- **BlockEncoding/**：三对角矩阵块编码、基于 QRAM 的块编码
+- **DiscreteAdiabatic/**：离散绝热（QDA）线性方程组求解器
+- **hamiltonian_simulation.h**：量子行走 / LCU / 稀疏矩阵 oracle / QSVT 哈密顿量模拟
+- **qcnn.h**：量子卷积网络（当前被 `#if false` 整体禁用）
 
-通过 pybind11 提供完整 Python API，包括：
+### PySparQ/ - Python 绑定与纯 Python 层
 
-- `QuantumState` → Python 类
-- `QuantumGate` 及其子类 → Python 类
-- `QRAMCircuit_qutrit/qubit` → Python 类
-- 所有算子（`QRAMLoad`、`QRAMLoadFast` 等）
-- 类型提示文件（`_core.pyi`）提供 IDE 支持
+通过 pybind11（`PySparQ/core.cpp` → 编译为 ``pysparq._core``）暴露核心 C++ API，
+再由纯 Python 包 ``pysparq`` 组织：
+
+- ``pysparq/operators/``：算子基类与条件控制 mixin
+- ``pysparq/algorithms/``：纯 Python 算法层（Grover、Shor、QDA、CKS、态制备、块编码）
+- ``pysparq/rir.py``：RIR 解释器（QECC.Lang 中间表示）
+- ``pysparq/dynamic_operator/``：运行时 JIT 编译 C++ 动态算子（含独立的 loader）
+- ``pysparq/conformance.py``：一致性校验工具
+
+``qram_simulator`` 薄绑定不在本仓库——它由 QRAM-Simulator 核心仓独立打包发布
+（`pip install qram-simulator`）。
+
+### extern/qram-simulator/ - QRAM 基座（submodule）
+
+QRAM 电路核心（``QRAMCircuit`` 的 qutrit/qubit 实现、``CuQRAMCircuit``）与
+Common 基础设施（数学工具、矩阵封装、随机数引擎、错误处理）。
+**此目录属于另一仓库，不要在本仓库内直接修改**；升级方式是
+`git submodule update --remote` 后提交新 pin。
 
 ## 量子态表示
 
@@ -96,6 +128,7 @@ QRAM-Simulator/
 ```
 
 **关键特性**：
+
 - 内存使用：O(k × r)，k 为非零基态数，r 为寄存器数
 - 对比稠密表示的 O(2^n)，可实现更大规模的模拟
 - 寄存器级操作：AddRegister ≈ ⊗|0⟩，RemoveRegister ≈ PartialTrace
@@ -124,20 +157,20 @@ QRAM-Simulator/
 
 ## 扩展性
 
-### 添加新量子门
+### 添加新量子门 / 算子
 
-1. 在 `SparQ/include/` 创建新的头文件
-2. 继承 `QuantumGate` 或 `SparseGate` 基类
-3. 在 `SparQ/src/` 实现 `apply()` 方法
+1. 在 `SparQ/include/` 创建头文件，继承 `BaseOperator`（一般算子）或
+   `SelfAdjointOperator`（自伴算子），实现 `operator()` 与（如非自伴）`dag()`
+2. 在 `SparQ/src/` 同名 .cpp 实现；可利用 `ClassControllable` 宏获得条件控制能力
+3. 需要暴露给 Python 时，在 `PySparQ/core.cpp` 添加绑定，并同步 `_core.pyi` 类型提示
 
 ### 添加新算法
 
-1. 在 `SparQ_Algorithm/include/` 创建算法头文件
-2. 继承 `QuantumAlgorithm` 基类
-3. 实现 `prepare()`、`run()` 和 `measure()` 方法
+1. 在 `SparQ_Algorithm/include/` 创建算法头文件，组合核心算子实现
+2. （可选）在 `Experiments/` 添加 C++ 实验入口，在 `PySparQ/pysparq/algorithms/`
+   添加 Python 实现，并在 `docs/algorithm-implementation.md` 登记对照关系
 
-### 添加 Python 绑定
+### 构建选项
 
-1. 在 `PySparQ/src/pybind_wrapper.cpp` 添加绑定代码
-2. 在 `_core.pyi` 添加类型提示
-3. 重新构建 PySparQ 模块
+- `SPARQ_BUILD_TESTS` / `SPARQ_BUILD_EXPERIMENTS` / `SPARQ_BUILD_EXAMPLES`：CMake 门控，默认 OFF
+- CUDA/GPU 后端：代码保留在 `SparQ/include/cuda/` 与 `SparQ/src/cuda/`，当前 CMake 暂时屏蔽 GPU 构建

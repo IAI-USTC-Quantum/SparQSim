@@ -153,14 +153,14 @@ namespace qram_simulator
 		/**
 		 * @brief 构造函数（名称版本）
 		 * @param reg_in 寄存器名称
-		 * @param vec_ 目标态向量
+		 * @param vec 目标态向量
 		 */
 		Rot_GeneralStatePrep(std::string_view reg_in, const std::vector<complex_t> &vec);
 
 		/**
 		 * @brief 构造函数（ID 版本）
 		 * @param reg_in 寄存器 ID
-		 * @param vec_ 目标态向量
+		 * @param vec 目标态向量
 		 */
 		Rot_GeneralStatePrep(size_t reg_in, const std::vector<complex_t> &vec);
 

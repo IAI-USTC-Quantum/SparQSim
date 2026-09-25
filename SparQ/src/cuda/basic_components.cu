@@ -1,3 +1,8 @@
+/**
+ * @file basic_components.cu
+ * @brief basic_components 的 CUDA 并行实现
+ * @details 以 thrust 设备向量与 CUDA 内核实现 basic_components.h 中声明的 System 全局寄存器管理、StateStorage 存储与状态归并/移除等核心数据结构（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ */
 #include "cuda/basic_components.cuh"
 #include "cuda_utils.cuh"
 

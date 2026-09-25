@@ -16,10 +16,18 @@ sys.path.insert(0, str(project_root / "PySparQ"))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "PySparQ"
+project = "SparQ"
 copyright = "2021-2026, IAI-USTC-Quantum"
 author = "IAI-USTC-Quantum"
-release = "0.0.1"
+
+# 版本号动态读取：优先取已安装 pysparq 包的 setuptools-scm 版本，
+# 文档独立构建（未安装 pysparq）时回退为 "dev"。
+try:
+    from importlib.metadata import version as _package_version
+
+    release = _package_version("pysparq")
+except Exception:
+    release = "dev"
 
 # 中文文档设置
 language = "zh_CN"
@@ -38,9 +46,9 @@ extensions = [
     "sphinx_copybutton",
     "autoapi.extension",
     "nbsphinx",
+    "breathe",
 ]
 
-templates_path = ["_templates"]
 exclude_patterns = [
     "_build",
     "Thumbs.db",
@@ -52,7 +60,7 @@ exclude_patterns = [
 
 html_theme = "furo"
 html_static_path = ["_static"]
-html_title = "PySparQ 文档"
+html_title = "SparQ 文档"
 
 # Theme options for furo
 html_theme_options = {
@@ -66,10 +74,16 @@ html_theme_options = {
     },
     "sidebar_hide_name": False,
     "navigation_with_keys": True,
-    "source_repository": "https://github.com/IAI-USTC-Quantum/QRAM-Simulator/",
+    "source_repository": "https://github.com/IAI-USTC-Quantum/SparQSim/",
     "source_branch": "main",
     "source_directory": "docs/sphinx/source/",
 }
+
+# -- Options for Breathe (C++ API via Doxygen XML) ----------------------------
+# XML 由 docs/doxygen/Doxyfile 生成（docs/sphinx/Makefile 的 html 目标自动执行），
+# 路径相对于本 conf.py 所在目录。
+breathe_projects = {"SparQ": "../../doxygen/build/xml"}
+breathe_default_project = "SparQ"
 
 # -- Options for MyST parser -------------------------------------------------
 # https://myst-parser.readthedocs.io/en/latest/configuration.html

@@ -1,3 +1,8 @@
+/**
+ * @file partial_trace.cpp
+ * @brief 部分迹与读出实现
+ * @details 实现 partial_trace.h 中声明的 PartialTrace、Select、SelectRange
+ */
 #include "partial_trace.h"
 
 namespace qram_simulator

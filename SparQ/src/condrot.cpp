@@ -1,3 +1,8 @@
+/**
+ * @file condrot.cpp
+ * @brief 条件旋转算子实现
+ * @details 实现 condrot.h 中声明的 CondRot_Rational_Bool、CondRot_General_Bool_Fast 等条件旋转算子
+ */
 #include "condrot.h"
 #include "system_operations.h"
 

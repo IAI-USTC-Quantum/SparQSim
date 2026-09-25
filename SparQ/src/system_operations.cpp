@@ -1,4 +1,9 @@
-﻿#include "system_operations.h"
+﻿/**
+ * @file system_operations.cpp
+ * @brief 寄存器/系统操作实现
+ * @details 实现 system_operations.h 中声明的 AddRegister、RemoveRegister、SplitRegister、CombineRegister、Push、Pop 等
+ */
+#include "system_operations.h"
 #include "quantum_arithmetic.h"
 
 namespace qram_simulator

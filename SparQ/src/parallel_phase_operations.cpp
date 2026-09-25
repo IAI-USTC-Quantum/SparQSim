@@ -1,3 +1,8 @@
+/**
+ * @file parallel_phase_operations.cpp
+ * @brief 并行相位操作实现
+ * @details 实现 parallel_phase_operations.h 中声明的并行相位类算子（多基态同时施加相位）
+ */
 #include "parallel_phase_operations.h"
 #include "matrix.h"
 

@@ -1,3 +1,12 @@
+/**
+ * @file core.cpp
+ * @brief PySparQ 核心 Python 绑定模块（_core）实现
+ * @details 通过 PYBIND11_MODULE 将 SparQ 核心库导出到 Python：
+ *          System/SparseState 与寄存器管理、基础量子门、测量/复位/概率查询、
+ *          偏迹、QFT、QRAM、量子算术与比较、状态排序、系统级操作等；
+ *          具体绑定内容按各头文件分节标记组织（如 hadamard.h、measurement.h 等）
+ */
+
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-value"

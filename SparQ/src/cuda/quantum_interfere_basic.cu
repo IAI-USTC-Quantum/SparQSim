@@ -1,3 +1,8 @@
+/**
+ * @file quantum_interfere_basic.cu
+ * @brief quantum_interfere_basic 的 CUDA 并行实现
+ * @details 以 thrust 设备向量与 CUDA 内核实现 quantum_interfere_basic.h 中声明的稀疏态排序、去重、按位分组等干涉基础操作（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ */
 #include "quantum_interfere_basic.h"
 #include "cuda_utils.cuh"
 #include "cuda/quantum_interfere_basic.cuh"
