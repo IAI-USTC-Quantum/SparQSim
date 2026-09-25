@@ -405,29 +405,29 @@ class TestQuantumWalkFidelity:
         A = np.array([[1.0, -4.0], [-4.0, 3.0]])
         mat = SparseMatrix.from_dense(A, data_size=8)
 
-        # 归一化矩阵
+        # Normalize the matrix
         A_norm = A / np.linalg.norm(A, ord=2)
 
-        # 初始向量 |b⟩ (均匀叠加)
+        # Initial vector |b⟩ (uniform superposition)
         b = np.ones(mat.n_row) / np.sqrt(mat.n_row)
 
-        # 构建量子游走环境
+        # Build the quantum walk environment
         qram, addr_size, nnz_col, n_row, qram_data = CKS_build_walk_environment(mat)
         data_size = mat.data_size
 
-        # 对每一步验证 fidelity
+        # Verify fidelity at each step
         for step in range(1, 6):
-            # 理论态: T_n(A)|b⟩
+            # Theoretical state: T_n(A)|b⟩
             target = chebyshev_n(step, A_norm, b)
             target = normalize_vector(target)
             target_amps = {i: complex(v, 0) for i, v in enumerate(target)}
 
-            # 量子态: 执行 step 次量子游走
+            # Quantum state: run the quantum walk `step` times
             state = CKS_init_walk_state(qram, addr_size, data_size, nnz_col, b)
             for _ in range(step):
                 CKS_apply_walk_step(qram, addr_size, data_size, nnz_col, n_row, state, mat, qram_data)
 
-            # 提取 main_reg (row_id) 振幅
+            # Extract main_reg (row_id) amplitudes
             import pysparq as ps
             row_id = ps.System.get_id("row_id")
             state_amps = {}
@@ -439,37 +439,37 @@ class TestQuantumWalkFidelity:
             assert fidelity >= 0.999, f"Step {step}: fidelity = {fidelity}"
 
     def test_lcu_linear_solver_fidelity(self, fresh_system):
-        """测试 LCU 线性求解器的 fidelity。
+        """Test the fidelity of the LCU linear system solver.
 
-        对应 C++ linear_solver_theory_compare_test: fidelity >= 0.999
+        Corresponds to C++ linear_solver_theory_compare_test: fidelity >= 0.999
         """
-        # 构造简单的线性系统
+        # Construct a simple linear system
         A = np.array([[2, 1], [1, 2]], dtype=float)
         b = np.array([1, 1], dtype=float)
 
-        # 经典解
+        # Classical solution
         x_classical = np.linalg.solve(A, b)
         x_classical = x_classical / np.linalg.norm(x_classical)
 
-        # 归一化 A 和 b
+        # Normalize A and b
         A_norm = A / np.linalg.norm(A, ord=2)
         b_norm = b / np.linalg.norm(b)
         kappa = float(np.linalg.norm(A_norm, ord=2) / np.linalg.norm(np.linalg.pinv(A_norm), ord=2))
 
-        # 构建量子游走环境
+        # Build the quantum walk environment
         mat = SparseMatrix.from_dense(A_norm, data_size=8)
         qram, addr_size, nnz_col, n_row, qram_data = CKS_build_walk_environment(mat)
         data_size = mat.data_size
 
-        # 初始化量子态
+        # Initialize the quantum state
         initial_state = CKS_init_walk_state(qram, addr_size, data_size, nnz_col, b_norm)
 
-        # 运行 LCU 循环
+        # Run the LCU loop
         final_state = CKS_run_lcu_loop(
             qram, addr_size, data_size, nnz_col, n_row,
             initial_state, kappa=kappa, eps=1e-3, mat=mat, qram_data=qram_data)
 
-        # 提取 main_reg 振幅
+        # Extract main_reg amplitudes
         import pysparq as ps
         row_id = ps.System.get_id("row_id")
         state_amps = {}
@@ -477,7 +477,7 @@ class TestQuantumWalkFidelity:
             val = int(basis.get(row_id).value)
             state_amps[val] = state_amps.get(val, 0) + basis.amplitude
 
-        # 对齐维数
+        # Align dimensions
         target_amps = {i: complex(x_classical[i], 0) for i in range(len(x_classical))}
 
         fidelity = get_fidelity(state_amps, target_amps)
@@ -490,11 +490,11 @@ class TestQuantumWalkFidelity:
 
 
 class TestAgainstCppReference:
-    """与 C++ 参考实现对比的回归测试。"""
+    """Regression tests compared against the C++ reference implementation."""
 
     def test_chebyshev_coef_consistency(self):
-        """验证 Chebyshev 系数与 C++ 实现的一致性。"""
-        # 使用不同 b 值测试
+        """Verify Chebyshev coefficient consistency with the C++ implementation."""
+        # Test with different b values
         test_cases = [
             (5, list(range(5))),
             (10, list(range(10))),
@@ -505,23 +505,23 @@ class TestAgainstCppReference:
         for b, indices in test_cases:
             cheb = ChebyshevPolynomialCoefficient(b)
 
-            # 系数应该非负且递减（大部分情况下）
+            # Coefficients should be non-negative and decreasing (in most cases)
             prev_coef = float("inf")
             for j in indices:
                 coef = cheb.coef(j)
                 assert coef >= 0, f"b={b}, j={j}: coefficient should be non-negative"
-                # 系数通常递减，但不严格
+                # Coefficients usually decrease, but not strictly
                 assert coef <= prev_coef + 0.1, f"b={b}, j={j}: unexpected coefficient increase"
                 prev_coef = coef
 
     def test_rotation_matrix_symmetry(self):
-        """验证旋转矩阵的结构对称性。"""
+        """Verify the structural symmetry of rotation matrices."""
         mat_data_size = 8
 
         for v in range(0, 256, 32):
             mat = get_coef_positive_only(mat_data_size, v, 0, 0)
 
-            # 结构: [[x, -y], [y, x]]
+            # Structure: [[x, -y], [y, x]]
             x, neg_y, y, x2 = mat
             assert abs(x - x2) < 1e-10, "Diagonal elements should be equal"
             assert abs(neg_y + y) < 1e-10, "Off-diagonal should be negatives"

@@ -1,14 +1,14 @@
 """
-QDA 线性求解器测试。
+QDA linear system solver tests.
 
-测试内容：
-- compute_fs: 插值参数计算
-- compute_rotation_matrix: 旋转矩阵计算
-- chebyshev_T: Chebyshev 多项式
-- dolph_chebyshev: Dolph-Chebyshev 滤波器
-- compute_fourier_coeffs: Fourier 系数计算
+Tested content:
+- compute_fs: interpolation parameter computation
+- compute_rotation_matrix: rotation matrix computation
+- chebyshev_T: Chebyshev polynomials
+- dolph_chebyshev: Dolph-Chebyshev filter
+- compute_fourier_coeffs: Fourier coefficient computation
 
-参考: test/CPUTest/CommonTest/CorrectnessTest_QDA_CompareList.inl
+Reference: test/CPUTest/CommonTest/CorrectnessTest_QDA_CompareList.inl
 """
 
 import pytest
@@ -26,36 +26,36 @@ from pysparq.algorithms.qda_solver import (
 
 
 class TestComputeFs:
-    """测试插值参数计算。"""
+    """Test interpolation parameter computation."""
 
     def test_fs_at_zero(self):
-        """f(0) 应该为 0。"""
+        """f(0) should be 0."""
         fs = compute_fs(0.0, kappa=10.0, p=0.5)
         assert abs(fs) < 1e-10
 
     def test_fs_at_one(self):
-        """f(1) 应该为 1。"""
+        """f(1) should be 1."""
         fs = compute_fs(1.0, kappa=10.0, p=0.5)
         assert abs(fs - 1.0) < 1e-10
 
     def test_fs_monotonic(self):
-        """f(s) 应该单调递增。"""
+        """f(s) should be monotonically increasing."""
         kappa, p = 10.0, 0.5
         prev_fs = compute_fs(0.0, kappa, p)
 
         for s in np.linspace(0.1, 1.0, 10):
             fs = compute_fs(s, kappa, p)
-            assert fs >= prev_fs - 1e-10  # 允许数值误差
+            assert fs >= prev_fs - 1e-10  # allow numerical error
             prev_fs = fs
 
     def test_fs_kappa_one(self):
-        """当 kappa=1 时，f(s) 应该等于 s。"""
+        """When kappa=1, f(s) should equal s."""
         for s in [0.0, 0.25, 0.5, 0.75, 1.0]:
             fs = compute_fs(s, kappa=1.0, p=0.5)
             assert abs(fs - s) < 1e-10
 
     def test_fs_bounded(self):
-        """f(s) 应该在 [0, 1] 范围内。"""
+        """f(s) should be within the range [0, 1]."""
         for kappa in [2.0, 10.0, 100.0]:
             for p in [0.3, 0.5, 0.7]:
                 for s in np.linspace(0, 1, 20):
@@ -63,7 +63,7 @@ class TestComputeFs:
                     assert 0.0 <= fs <= 1.0
 
     def test_fs_different_kappa(self):
-        """测试不同条件数。"""
+        """Test different condition numbers."""
         s = 0.5
         p = 0.5
 
@@ -72,7 +72,7 @@ class TestComputeFs:
             assert 0.0 <= fs <= 1.0
 
     def test_fs_different_p(self):
-        """测试不同调度参数。"""
+        """Test different schedule parameters."""
         s = 0.5
         kappa = 10.0
 
