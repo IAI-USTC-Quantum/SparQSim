@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.svg" alt="SparQSim Banner" width="100%">
+</p>
+
 # SparQSim / pysparq
 
 [English](README.md) | 简体中文
