@@ -1,6 +1,8 @@
 {# Language switcher: maps the current page to its counterpart in the other
    language tree. Both trees share identical document names, so switching is
-   a plain ../zh/ <-> ../en/ path rewrite relative to the current page.
+   a plain ../zh/ <-> ../en/ path rewrite relative to the OUTPUT ROOT.
+   pathto(target, 1) emits the correct relative href for pages at any depth
+   (a literal ../zh/... href would land on /en/zh/... from nested pages).
    NOTE: the Jinja context exposes the BCP-47 form of the language setting
    ("zh-CN"), not the conf.py spelling ("zh_CN") — accept all spellings. #}
 <div class="sidebar-langswitch">
@@ -8,9 +10,9 @@
   {%- if language in ("zh_CN", "zh-CN", "zh") %}
   <strong>中文</strong>
   <span class="sidebar-langswitch-sep">·</span>
-  <a href="../en/{{ pagename }}{{ file_suffix|default('.html') }}">English</a>
+  <a href="{{ pathto('../en/' ~ pagename ~ (file_suffix|default('.html')), 1) }}">English</a>
   {%- else %}
-  <a href="../zh/{{ pagename }}{{ file_suffix|default('.html') }}">中文</a>
+  <a href="{{ pathto('../zh/' ~ pagename ~ (file_suffix|default('.html')), 1) }}">中文</a>
   <span class="sidebar-langswitch-sep">·</span>
   <strong>English</strong>
   {%- endif %}
