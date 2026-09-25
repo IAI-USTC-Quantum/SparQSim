@@ -1,12 +1,14 @@
 /**
  * @file quantum_interfere_basic.cuh
- * @brief GPU 侧稀疏态干涉基础组件
- * @details 提供稀疏态更新的 GPU 并行原语：按"除键外全等"分组（unq_ele 分区表 +
- *          unique_* 内核）、除键外排序（SortExceptKey_devfunc）、各类 thrust
- *          比较仿函数（按键比较 / 除键外比较 / 索引版）、状态哈希仿函数，
- *          以及分区表辅助（SortUniqueElements / EleNum_MoreThanOne / EleNum_NotFull）。
- *          是 condrot.cuh 等条件旋转 GPU 实现的公共底座，
- *          与 CPU 侧 SparQ/include/quantum_interfere_basic.h 的语义对应
+ * @brief GPU-side basic components for sparse-state interference
+ * @details Provides GPU parallel primitives for sparse state updates: grouping by
+ *          "all equal except the key" (unq_ele partition table + unique_* kernels),
+ *          sorting with the key excluded (SortExceptKey_devfunc), various thrust comparison
+ *          functors (compare by key / compare except key / index versions), a state hash functor,
+ *          and partition table helpers (SortUniqueElements / EleNum_MoreThanOne / EleNum_NotFull).
+ *          This is the common foundation of GPU implementations such as the controlled
+ *          rotation in condrot.cuh, and corresponds semantically to the CPU-side
+ *          SparQ/include/quantum_interfere_basic.h
  */
 
 #pragma once
@@ -19,9 +21,10 @@
 namespace qram_simulator {
 
     /**
-     * @brief 稀疏态分区描述单元
-     * @details 用于把按键（除某寄存器外全等的寄存器组合）排序后的状态序列
-     *          划分为连续分区，是 GPU 侧干涉/旋转操作按组处理的基础
+     * @brief Sparse state partition descriptor unit
+     * @details Used to divide the state sequence, sorted by key (the register combination that is
+     *          identical except for one register), into contiguous partitions; it is the basis for
+     *          group-wise processing in GPU-side interference/rotation operations
      */
     struct unq_ele {
         size_t sptr; /* The position of the first element of the partition */
@@ -30,28 +33,28 @@ namespace qram_simulator {
 
     /* GPU-version: SortExceptKey() */
     /**
-     * @brief 除 idi 寄存器外按键排序稀疏态（GPU 版 SortExceptKey）
-     * @param idi 作为键的寄存器 ID（排序时排除）
-     * @param state GPU 侧稀疏态（原地重排）
+     * @brief Sort the sparse state by key except register idi (GPU version of SortExceptKey)
+     * @param idi Register ID used as the key (excluded from the sort)
+     * @param state GPU-side sparse state (rearranged in place)
      */
     void SortExceptKey_devfunc(int idi, thrust::device_vector<System>& state);
 
     /**
-     * @brief 除 idi 寄存器外按键排序的"逻辑索引"版本（不搬动数据）
-     * @param idi 作为键的寄存器 ID（排序时排除）
-     * @param state GPU 侧稀疏态（只读）
-     * @return 排序后的下标索引向量（由缓存持有，重复调用复用）
+     * @brief "Logical index" version of the sort by key except register idi (does not move data)
+     * @param idi Register ID used as the key (excluded from the sort)
+     * @param state GPU-side sparse state (read-only)
+     * @return Vector of sorted indices (owned by a cache, reused on repeated calls)
      */
     const thrust::device_vector<size_t>& SortExceptKey_devfunc_logical(int idi, const thrust::device_vector<System>& state);
 
     /**
-     * @brief 设备侧比较两基态是否除 out_id 外全部激活寄存器相等
-     * @param a 左基态
-     * @param b 右基态
-     * @param out_id 排除的寄存器 ID
-     * @param mp_sz 寄存器表大小
-     * @param status_bitmap 激活状态位图
-     * @return 除 out_id 外激活寄存器值全部相等
+     * @brief Device-side comparison of whether two basis states are equal in all active registers except out_id
+     * @param a Left basis state
+     * @param b Right basis state
+     * @param out_id Excluded register ID
+     * @param mp_sz Register table size
+     * @param status_bitmap Activation status bitmap
+     * @return All active register values except out_id are equal
      */
     // compare two states
     __device__ inline bool compare_equal_dev(const System& a, const System& b, int out_id,
@@ -70,53 +73,65 @@ namespace qram_simulator {
     }
 
     /**
-     * @brief 在排序后的状态序列中标记各分区首元素（内核）
-     * @param dat 基态数组（设备指针）
-     * @param num 分区计数输出（设备指针，单个 size_t）
-     * @param nsize 基态总数
-     * @param regbit 键寄存器位宽（未用，保留参数）
-     * @param reg_stat 激活状态位图
-     * @param mpsz 寄存器表大小
-     * @param id 排除的键寄存器 ID
+     * @brief Mark the first element of each partition in the sorted state sequence (kernel)
+     * @param dat Basis-state array (device pointer)
+     * @param num Partition count output (device pointer, a single size_t)
+     * @param nsize Total number of basis states
+     * @param reg_stat Activation status bitmap
+     * @param mpsz Register table size
+     * @param id Excluded key register ID
      */
     // find first unique element of a sorted state series
     __global__ void unique_find_elem(System* dat, size_t* num, size_t nsize,
-        int regbit, size_t reg_stat, int mpsz, int id);
+        uint64_t reg_stat, int mpsz, int id);
 
     /**
-     * @brief 统计排序后各分区的元素个数（内核）
-     * @param dat 分区首标记数组（设备指针）
-     * @param uele 分区表输出（设备指针）
-     * @param nsize 标记数组长度
-     * @param nstate 基态总数
+     * @brief Mark the first element of each partition in the sorted state sequence (kernel, logical-index version)
+     * @param dat Basis-state array (device pointer)
+     * @param indices Logical ordering index array (device pointer)
+     * @param num Partition count output (device pointer, a single size_t)
+     * @param nsize Total number of basis states
+     * @param reg_stat Activation status bitmap
+     * @param mpsz Register table size
+     * @param id Excluded key register ID
+     */
+    __global__ void unique_find_elem(System* dat, const size_t* indices, size_t* num,
+        size_t nsize, uint64_t reg_stat, int mpsz, int id);
+
+    /**
+     * @brief Count the number of elements in each partition of the sorted sequence (kernel)
+     * @param dat Partition-first marker array (device pointer)
+     * @param uele Partition table output (device pointer)
+     * @param nsize Marker array length
+     * @param nstate Total number of basis states
      */
     // count number of each unique element
     __global__ void unique_count_elem(size_t* dat, unq_ele* uele, size_t nsize, size_t nstate);
 
     /**
-     * @brief 统计稀疏态按键分区（先排序后标记，直接排序版）
-     * @param state GPU 稀疏态
-     * @param uele 输出分区表
-     * @param id 排除的键寄存器 ID
+     * @brief Partition the sparse state by key (sort first, then mark; direct-sort version)
+     * @param state GPU sparse state
+     * @param uele Output partition table
+     * @param id Excluded key register ID
      */
     void Unique_count_elem(CuSparseState& state, thrust::device_vector<unq_ele>& uele, int id);
 
     /**
-     * @brief 统计稀疏态按键分区（复用逻辑索引版排序）
-     * @param state GPU 稀疏态
-     * @param indices 预先排好的逻辑索引（SortExceptKey_devfunc_logical 输出）
-     * @param uele 输出分区表
-     * @param id 排除的键寄存器 ID
+     * @brief Partition the sparse state by key (reusing the logical-index sort)
+     * @param state GPU sparse state
+     * @param indices Pre-sorted logical indices (output of SortExceptKey_devfunc_logical)
+     * @param uele Output partition table
+     * @param id Excluded key register ID
      */
     void Unique_count_elem(CuSparseState& state, const thrust::device_vector<size_t>& indices, thrust::device_vector<unq_ele>& uele, int id);
 
     /**
-     * @brief 设备侧基态比较：除 id 外按激活寄存器字典序小于，id 位作决胜
-     * @param lhs 左基态
-     * @param rhs 右基态
-     * @param mp_num 寄存器表大小
-     * @param status_bitmap 激活状态位图（函数内会清掉 id 位）
-     * @param id 键寄存器 ID（最后参与比较）
+     * @brief Device-side comparison: lexicographic less-than by active registers except id, id bit as tie-breaker
+     * @param lhs Left basis state
+     * @param rhs Right basis state
+     * @param mp_num Register table size
+     * @param status_bitmap Activation status bitmap (the id bit is cleared inside the function)
+     * @param id Key register ID (compared last)
      * @return lhs < rhs
      */
     HOST_DEVICE inline bool cu_compare_less(const System& lhs, const System& rhs, int mp_num, uint64_t status_bitmap, int id)
@@ -138,9 +153,9 @@ namespace qram_simulator {
     }
 
     /**
-     * @brief 除键外字典序小于的 thrust 仿函数
-     * @details 构造时缓存寄存器表大小与激活状态位图，
-     *          键寄存器 id 排在最后参与比较（稳定排序语义）
+     * @brief Thrust functor for lexicographic less-than with the key excluded
+     * @details Caches the register table size and the activation status bitmap at construction time;
+     *          the key register id is compared last (stable-sort semantics)
      */
     struct CuSystemLessExceptKey {
         int mp_num;
@@ -148,8 +163,8 @@ namespace qram_simulator {
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数
-         * @param id_ 键寄存器 ID
+         * @brief Constructor
+         * @param id_ Key register ID
          */
         CuSystemLessExceptKey(int id_)
             : id(id_), mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -157,10 +172,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较 lhs < rhs（除键外字典序，键位决胜）
-         * @param lhs 左基态
-         * @param rhs 右基态
-         * @return 是否小于
+         * @brief Compare lhs < rhs (lexicographic except key, key bit as tie-breaker)
+         * @param lhs Left basis state
+         * @param rhs Right basis state
+         * @return Whether less than
          */
         HOST_DEVICE bool operator()(const System& lhs, const System& rhs)
         {
@@ -169,9 +184,9 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 除键外字典序小于的 thrust 仿函数（索引版）
-     * @details 通过下标间接访问基态数组，配合 thrust::sequence 使用，
-     *          实现只搬动索引不搬动数据的"逻辑排序"
+     * @brief Thrust functor for lexicographic less-than with the key excluded (index version)
+     * @details Accesses the basis-state array indirectly through indices, used with thrust::sequence,
+     *          implementing a "logical sort" that moves only indices, not data
      */
     struct CuSystemLessExceptKey_Index {
         const System* objects;
@@ -180,9 +195,9 @@ namespace qram_simulator {
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数
-         * @param ptr 基态数组首指针
-         * @param id_ 键寄存器 ID
+         * @brief Constructor
+         * @param ptr Pointer to the start of the basis-state array
+         * @param id_ Key register ID
          */
         CuSystemLessExceptKey_Index(const System* ptr, int id_)
             : objects(ptr), id(id_), mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -190,10 +205,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较下标 left/right 指向的基态（除键外字典序）
-         * @param left 左下标
-         * @param right 右下标
-         * @return 是否小于
+         * @brief Compare the basis states pointed to by indices left/right (lexicographic except key)
+         * @param left Left index
+         * @param right Right index
+         * @return Whether less than
          */
         __host__ __device__ bool operator()(size_t left, size_t right) const {
             const System& lhs = objects[left];
@@ -205,12 +220,12 @@ namespace qram_simulator {
 
 
     /**
-     * @brief 设备侧基态比较：激活寄存器值全部相等
-     * @param lhs 左基态
-     * @param rhs 右基态
-     * @param mp_num 寄存器表大小
-     * @param status_bitmap 激活状态位图
-     * @return 激活寄存器值是否全部相等
+     * @brief Device-side basis-state comparison: all active register values equal
+     * @param lhs Left basis state
+     * @param rhs Right basis state
+     * @param mp_num Register table size
+     * @param status_bitmap Activation status bitmap
+     * @return Whether all active register values are equal
      */
     HOST_DEVICE inline bool cu_compare_equal(const System& lhs, const System& rhs, int mp_num, uint64_t status_bitmap)
     {
@@ -227,16 +242,17 @@ namespace qram_simulator {
     }
 
     /**
-     * @brief 除键外相等的 thrust 仿函数
-     * @details 构造时缓存寄存器表大小，并从激活位图中清掉键寄存器 id 位
+     * @brief Thrust functor for equality with the key excluded
+     * @details Caches the register table size at construction time and clears the key register
+     *          id bit from the activation bitmap
      */
     struct CuSystemEqualExceptKey {
         int mp_num;
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数（清掉键寄存器 id 的激活位）
-         * @param id 键寄存器 ID
+         * @brief Constructor (clears the activation bit of key register id)
+         * @param id Key register ID
          */
         CuSystemEqualExceptKey(int id)
             : mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -245,10 +261,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较两基态除键外是否相等
-         * @param lhs 左基态
-         * @param rhs 右基态
-         * @return 是否相等
+         * @brief Compare whether two basis states are equal except for the key
+         * @param lhs Left basis state
+         * @param rhs Right basis state
+         * @return Whether equal
          */
         HOST_DEVICE bool operator()(const System& lhs, const System& rhs)
         {
@@ -257,8 +273,8 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 除键外相等的 thrust 仿函数（索引版）
-     * @details 通过下标间接访问基态数组，配合逻辑排序使用
+     * @brief Thrust functor for equality with the key excluded (index version)
+     * @details Accesses the basis-state array indirectly through indices, used with the logical sort
      */
     struct CuSystemEqualExceptKey_Index {
         const System* objects;
@@ -266,9 +282,9 @@ namespace qram_simulator {
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数（清掉键寄存器 id 的激活位）
-         * @param ptr 基态数组首指针
-         * @param id 键寄存器 ID
+         * @brief Constructor (clears the activation bit of key register id)
+         * @param ptr Pointer to the start of the basis-state array
+         * @param id Key register ID
          */
         CuSystemEqualExceptKey_Index(const System* ptr, int id)
             : objects(ptr), mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -277,10 +293,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较下标 left/right 指向的基态除键外是否相等
-         * @param left 左下标
-         * @param right 右下标
-         * @return 是否相等
+         * @brief Compare whether the basis states pointed to by indices left/right are equal except for the key
+         * @param left Left index
+         * @param right Right index
+         * @return Whether equal
          */
         __host__ __device__ bool operator()(size_t left, size_t right) const {
             const System& lhs = objects[left];
@@ -291,12 +307,12 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 设备侧基态比较：存在激活寄存器取值不等
-     * @param lhs 左基态
-     * @param rhs 右基态
-     * @param mp_num 寄存器表大小
-     * @param status_bitmap 激活状态位图
-     * @return 是否存在不等位
+     * @brief Device-side basis-state comparison: an active register exists whose values differ
+     * @param lhs Left basis state
+     * @param rhs Right basis state
+     * @param mp_num Register table size
+     * @param status_bitmap Activation status bitmap
+     * @return Whether any differing register exists
      */
     HOST_DEVICE inline bool cu_compare_not_equal(const System& lhs, const System& rhs, int mp_num, uint64_t status_bitmap)
     {
@@ -313,16 +329,16 @@ namespace qram_simulator {
     }
 
     /**
-     * @brief 除键外不等的 thrust 仿函数（注意：语义为"存在任何不等位"）
-     * @details 构造时缓存寄存器表大小，并清掉键寄存器 id 的激活位
+     * @brief Thrust functor for inequality with the key excluded (note: semantics is "any unequal position exists")
+     * @details Caches the register table size at construction time and clears the key register id activation bit
      */
     struct CuSystemNotEqualExceptKey {
         int mp_num;
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数（清掉键寄存器 id 的激活位）
-         * @param id 键寄存器 ID
+         * @brief Constructor (clears the activation bit of key register id)
+         * @param id Key register ID
          */
         CuSystemNotEqualExceptKey(int id)
             : mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -331,10 +347,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较两基态是否存在除键外的不等位
-         * @param lhs 左基态
-         * @param rhs 右基态
-         * @return 是否存在不等位
+         * @brief Compare whether any unequal position except the key exists between two basis states
+         * @param lhs Left basis state
+         * @param rhs Right basis state
+         * @return Whether any unequal position exists
          */
         HOST_DEVICE bool operator()(const System& lhs, const System& rhs)
         {
@@ -343,8 +359,8 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 除键外不等的 thrust 仿函数（索引版）
-     * @details 通过下标间接访问基态数组，配合逻辑排序使用
+     * @brief Thrust functor for inequality with the key excluded (index version)
+     * @details Accesses the basis-state array indirectly through indices, used with the logical sort
      */
     struct CuSystemNotEqualExceptKey_Index {
         const System* objects;
@@ -352,9 +368,9 @@ namespace qram_simulator {
         uint64_t status_bitmap;
 
         /**
-         * @brief 构造函数（清掉键寄存器 id 的激活位）
-         * @param ptr 基态数组首指针
-         * @param id 键寄存器 ID
+         * @brief Constructor (clears the activation bit of key register id)
+         * @param ptr Pointer to the start of the basis-state array
+         * @param id Key register ID
          */
         CuSystemNotEqualExceptKey_Index(const System* ptr, int id)
             : objects(ptr), mp_num(System::name_register_map.size()), status_bitmap(System::reg_status_bitmap)
@@ -363,10 +379,10 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 比较下标 left/right 指向的基态是否存在不等位
-         * @param left 左下标
-         * @param right 右下标
-         * @return 是否存在不等位
+         * @brief Compare whether any unequal position exists between the basis states at indices left/right
+         * @param left Left index
+         * @param right Right index
+         * @return Whether any unequal position exists
          */
         __host__ __device__ bool operator()(size_t left, size_t right) const {
             const System& lhs = objects[left];
@@ -377,22 +393,22 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 仅按单个寄存器值比较小于的 thrust 仿函数
+     * @brief Thrust functor comparing less-than by a single register value only
      */
     struct CuSystemLessByKey {
         size_t id;
 
         /**
-         * @brief 构造函数
-         * @param id_ 键寄存器 ID
+         * @brief Constructor
+         * @param id_ Key register ID
          */
         CuSystemLessByKey(size_t id_) : id(id_) {}
 
         /**
-         * @brief 比较两基态键寄存器值
-         * @param lhs 左基态
-         * @param rhs 右基态
-         * @return lhs 键值 < rhs 键值
+         * @brief Compare the key register values of two basis states
+         * @param lhs Left basis state
+         * @param rhs Right basis state
+         * @return lhs key value < rhs key value
          */
         __host__ __device__ uint64_t operator()(const System& lhs, const System& rhs) const {
             return CuGet(lhs, id).value < CuGet(rhs, id).value;
@@ -400,26 +416,26 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 仅按单个寄存器值比较小于的 thrust 仿函数（索引版）
+     * @brief Thrust functor comparing less-than by a single register value only (index version)
      */
     struct CuSystemLessByKey_Index {
-        const System* objects; // 指向原始数据的指针
+        const System* objects; // Pointer to the raw data
         size_t idi;
 
         /**
-         * @brief 构造函数
-         * @param ptr 基态数组首指针
-         * @param id 键寄存器 ID
+         * @brief Constructor
+         * @param ptr Pointer to the start of the basis-state array
+         * @param id Key register ID
          */
         CuSystemLessByKey_Index(const System* ptr, size_t id) : objects(ptr), idi(id)
         {
         }
 
         /**
-         * @brief 比较下标 left/right 指向基态的键寄存器值
-         * @param left 左下标
-         * @param right 右下标
-         * @return 是否小于
+         * @brief Compare the key register values of the basis states pointed to by indices left/right
+         * @param left Left index
+         * @param right Right index
+         * @return Whether less than
          */
         __host__ __device__ bool operator()(size_t left, size_t right) const {
             const System& lhs = objects[left];
@@ -429,9 +445,9 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 基态按激活寄存器组合哈希的 thrust 仿函数
-     * @details 使用黄金比例乘法散列（FNV 风格混合），只计入
-     *          count_bitmap 标记的寄存器，供 thrust 去重/分组使用
+     * @brief Thrust functor hashing basis states by the combination of active registers
+     * @details Uses golden-ratio multiplicative hashing (FNV-style mixing); only registers
+     *          marked in count_bitmap are included, for thrust deduplication/grouping
      */
     /* For hash function */
     struct CuStateHashExceptKey {
@@ -440,8 +456,8 @@ namespace qram_simulator {
         size_t count_bitmap;
 
         /**
-         * @brief 构造函数
-         * @param bitmap 计入哈希的寄存器位图
+         * @brief Constructor
+         * @param bitmap Bitmap of registers included in the hash
          */
         CuStateHashExceptKey(size_t bitmap)
             : count_bitmap(bitmap)
@@ -450,9 +466,9 @@ namespace qram_simulator {
         }
 
         /**
-         * @brief 计算基态哈希值
-         * @param sys 基态
-         * @return 哈希值
+         * @brief Compute the hash value of a basis state
+         * @param sys Basis state
+         * @return Hash value
          */
         __host__ __device__ uint64_t operator()(const System& sys) const {
             const uint64_t prime = 0x9e3779b97f4a7c15;
@@ -469,26 +485,27 @@ namespace qram_simulator {
     };
 
     /**
-     * @brief 对分区表按分区大小排序
-     * @param dat 分区表（原地排序）
+     * @brief Sort the partition table by partition size
+     * @param dat Partition table (sorted in place)
      */
     /* Sort the unique elements */
     void SortUniqueElements(thrust::device_vector<unq_ele>& dat);
 
     /**
-     * @brief 求分区表中元素数大于 1 的分区个数
-     * @details 返回"成对/多分支"分区数（unique 分区表前段为多元素分区时的切分点）
-     * @param dat 分区表
-     * @return 元素数 > 1 的分区个数
+     * @brief Count the partitions in the partition table with more than 1 element
+     * @details Returns the number of "paired/multi-branch" partitions (the split point when the front
+     *          segment of the unique partition table holds multi-element partitions)
+     * @param dat Partition table
+     * @return Number of partitions with element count > 1
      */
     /* Get the partition point of <1> and <2> */
     size_t EleNum_MoreThanOne(thrust::device_vector<unq_ele>& dat);
 
     /**
-     * @brief 求分区表中元素数不足 full_size 的分区个数
-     * @param dat 分区表
-     * @param full_size 满员分区应有的元素数（如键寄存器为布尔时的 2）
-     * @return 元素数 < full_size 的分区个数
+     * @brief Count the partitions in the partition table with fewer than full_size elements
+     * @param dat Partition table
+     * @param full_size Element count a full partition should have (e.g. 2 when the key register is boolean)
+     * @return Number of partitions with element count < full_size
      */
     /* Get the partition point of <N-1> */
     size_t EleNum_NotFull(thrust::device_vector<unq_ele>& dat, size_t full_size);

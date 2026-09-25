@@ -1,7 +1,9 @@
 /**
  * @file debugger.cu
- * @brief debugger 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 debugger.h 中声明的 CheckNormalization、CheckNan、StatePrint、CheckDuplicateKey 等调试算子（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of debugger
+ * @details Implements with thrust device vectors and CUDA kernels the debug operators declared in debugger.h, such as
+ *          CheckNormalization, CheckNan, StatePrint, CheckDuplicateKey, etc. (GPU path; the GPU build is
+ *          temporarily disabled in CMake)
  */
 #include "debugger.h"
 #include "cuda_utils.cuh"
@@ -65,7 +67,7 @@ namespace qram_simulator {
 			thrust::plus<double>()
 		);
 
-		cudaDeviceSynchronize();
+		CUDA_CHECK(cudaDeviceSynchronize());
 
 		if ((!ignorable(factor - 1.0, threshold)) ||
 			(std::isnan(factor)))
@@ -135,7 +137,7 @@ namespace qram_simulator {
 			CheckNan_Functor()
 		);
 
-		cudaDeviceSynchronize();
+		CUDA_CHECK(cudaDeviceSynchronize());
 
 		if (has_nan)
 		{
@@ -161,7 +163,7 @@ namespace qram_simulator {
 			thrust::plus<double>()
 		);
 
-		cudaDeviceSynchronize();
+		CUDA_CHECK(cudaDeviceSynchronize());
 
 		fmt::print("Factor = {}\n", factor);
 	}
@@ -207,7 +209,7 @@ namespace qram_simulator {
 			TestRemovable_Functor(remove_value, register_id)
 		);
 
-		cudaDeviceSynchronize(); 
+		CUDA_CHECK(cudaDeviceSynchronize()); 
 
 		if (!all_same)
 		{

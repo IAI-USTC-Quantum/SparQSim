@@ -1,7 +1,9 @@
 /**
  * @file rot.cu
- * @brief rot 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 rot.h 中声明的 Rot_GeneralUnitary（一般酉旋转）与 Rot_GeneralStatePrep（一般态制备）（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of rot
+ * @details Implements Rot_GeneralUnitary (general unitary rotation) and Rot_GeneralStatePrep (general state
+ *          preparation) declared in rot.h with thrust device vectors and CUDA kernels (GPU path; GPU builds
+ *          are currently disabled in CMake)
  */
 #include "rot.h"
 #include "cuda_utils.cuh"
@@ -13,7 +15,7 @@ namespace qram_simulator {
     namespace rot_general_unitary_gpu_detail {
 
         __global__ void Rot_GeneralUnitary_Full_operate_not_full(System* state, size_t nsize, unq_ele* unq_s, size_t old_size, 
-            int id, size_t n_digits, thrust::complex<double>* mat)
+            int id, size_t n_digits, cu_complex_t* mat)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -42,7 +44,7 @@ namespace qram_simulator {
                     CuSystemAmplitude(state[my_loc + i])[1] = 0;
                 }
 
-                thrust::complex<double> tmp_mem[16];
+                cu_complex_t tmp_mem[16];
                 for (size_t i = 0; i < full_size; ++i)
                 {
                     tmp_mem[i] = 0.0;
@@ -66,7 +68,7 @@ namespace qram_simulator {
         }
 
         __global__ void Rot_GeneralUnitary_Full_operate_full(System* state, size_t nsize, unq_ele* unq_s, size_t old_size,
-            int id, size_t n_digits, thrust::complex<double>* mat)
+            int id, size_t n_digits, cu_complex_t* mat)
         {
             size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
             if (tid < nsize) {
@@ -76,7 +78,7 @@ namespace qram_simulator {
                 //size_t new_pos = old_size + tid * full_size;
                 size_t new_pos = my_loc;
 
-                thrust::complex<double> tmp_mem[16];
+                cu_complex_t tmp_mem[16];
                 for (size_t i = 0; i < full_size; ++i)
                 {
                     tmp_mem[i] = 0;
@@ -135,9 +137,9 @@ namespace qram_simulator {
             size_t nblock = 0;
 
             /* Transfer the matrix to gpu */
-            thrust::device_vector<thrust::complex<double>> mat_gpu(mat.data.size());
+            thrust::device_vector<cu_complex_t> mat_gpu(mat.data.size());
             thrust::copy(mat.data.begin(), mat.data.end(), mat_gpu.begin());
-            thrust::complex<double>* mat_ptr = mat_gpu.data().get();
+            cu_complex_t* mat_ptr = mat_gpu.data().get();
 
             if (num_not_full > 0)
             {
@@ -196,12 +198,12 @@ namespace qram_simulator {
             size_t nblock = 0;
 
             /* Transfer the matrix to gpu */
-            thrust::device_vector<thrust::complex<double>> mat_gpu(mat.data.size());
+            thrust::device_vector<cu_complex_t> mat_gpu(mat.data.size());
 
             auto mat_dag = dagger(mat);
 
             thrust::copy(mat_dag.data.begin(), mat_dag.data.end(), mat_gpu.begin());
-            thrust::complex<double>* mat_ptr = mat_gpu.data().get();
+            cu_complex_t* mat_ptr = mat_gpu.data().get();
 
             if (num_not_full > 0)
             {

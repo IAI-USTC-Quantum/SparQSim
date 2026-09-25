@@ -1,12 +1,13 @@
 /**
  * @file basic_components.cuh
- * @brief GPU 侧基础组件：寄存器值访问与稀疏态容器
- * @details 提供 CUDA 内核可直接使用的 __host__ __device__ 辅助函数：
- *          寄存器存储值的类型转换（无符号/有符号/浮点/布尔）、System 的
- *          寄存器与振幅访问、以及 GPU 稀疏态容器 CuSparseState
- *          （CPU/GPU 双驻留，按需迁移）与一组 thrust 仿函数
- *          （取模平方、归一化、基态比较/相等、零振幅判定）。
- *          与 CPU 侧 SparQ/include/basic_components.h 的数据结构保持同一内存布局
+ * @brief GPU-side basic components: register value access and sparse state container
+ * @details Provides __host__ __device__ helper functions directly usable by CUDA kernels:
+ *          type conversion of register stored values (unsigned/signed/floating-point/boolean),
+ *          register and amplitude access on System, and the GPU sparse state container
+ *          CuSparseState (CPU/GPU dual residency, migrated on demand) plus a set of thrust
+ *          functors (modulus squared, normalization, basis-state comparison/equality,
+ *          zero-amplitude predicate).
+ *          Keeps the same memory layout as the CPU-side data structures in SparQ/include/basic_components.h
  */
 
 #pragma once
@@ -17,59 +18,10 @@
 namespace qram_simulator {
 
 	/**
-	 * @brief 读取寄存器存储值并按位宽解释为无符号整数
-	 * @param storage 寄存器存储单元
-	 * @param size 寄存器位宽
-	 * @return 截断到位宽后的无符号值
-	 */
-	inline __host__ __device__ uint64_t cu_as_uint64(const StateStorage& storage, size_t size) {
-		uint64_t value = storage.value;
-		return value & width_mask(size);
-	}
-
-	/**
-	 * @brief 读取寄存器存储值并按定点格式解释为浮点数
-	 * @details 定点编码：最高位为符号位，其余为小数位，
-	 *          故真值 = 补码整数 / 2^{size-1}
-	 * @param storage 寄存器存储单元
-	 * @param size 寄存器位宽
-	 * @return 定点解码后的浮点值
-	 */
-	inline __host__ __device__ double cu_as_double(const StateStorage& storage, size_t size) {
-		uint64_t value = storage.value;
-		value &= width_mask(size);
-		return value / 2.0 / (1ULL << (size - 1));
-	}
-
-	/**
-	 * @brief 读取寄存器存储值并解释为布尔
-	 * @param storage 寄存器存储单元
-	 * @param size 寄存器位宽
-	 * @return 值非零时为 true
-	 */
-	inline __host__ __device__ bool cu_as_bool(const StateStorage& storage, size_t size) {
-		uint64_t value = storage.value;
-		value &= width_mask(size);
-		return bool(value);
-	}
-
-	/**
-	 * @brief 读取寄存器存储值并按位宽符号扩展为有符号整数
-	 * @param storage 寄存器存储单元
-	 * @param size 寄存器位宽（0 时返回 0）
-	 * @return 符号扩展后的有符号值
-	 */
-	inline __host__ __device__ int64_t cu_as_int64(const StateStorage& storage, size_t size) {
-		uint64_t value = storage.value;
-		value &= width_mask(size);
-		return size ? (int64_t)(value << (64 - size)) >> (64 - size) : 0;
-	}
-
-	/**
-	 * @brief 取 System 第 index 个寄存器存储单元（可写引用）
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @return 对应 StateStorage 的引用
+	 * @brief Get the index-th register storage cell of a System (writable reference)
+	 * @param system Basis state
+	 * @param index Register index
+	 * @return Reference to the corresponding StateStorage
 	 */
 	inline __host__ __device__ StateStorage& CuGet(System& system, size_t index)
 	{
@@ -77,10 +29,10 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取 System 第 index 个寄存器存储单元（只读）
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @return 对应 StateStorage 的副本
+	 * @brief Get the index-th register storage cell of a System (read-only)
+	 * @param system Basis state
+	 * @param index Register index
+	 * @return Copy of the corresponding StateStorage
 	 */
 	inline __host__ __device__ StateStorage CuGet(const System& system, size_t index)
 	{
@@ -88,57 +40,47 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取 System 第 index 个寄存器值并解释为无符号整数
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @param size 寄存器位宽
-	 * @return 无符号值
+	 * @brief Get the index-th register value of a System and interpret it as an unsigned integer
+	 * @details Reads the stored value and truncates it to the register width (width_mask)
+	 * @param system Basis state
+	 * @param index Register index
+	 * @param size Register bit width
+	 * @return Unsigned value
 	 */
 	inline __host__ __device__ uint64_t CuGetAsUint64(const System& system, size_t index, size_t size)
 	{
-		return cu_as_uint64(CuGet(system, index), size);
+		return CuGet(system, index).value & width_mask(size);
 	}
 
 	/**
-	 * @brief 取 System 第 index 个寄存器值并按定点解释为浮点数
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @param size 寄存器位宽
-	 * @return 定点解码后的浮点值
-	 */
-	inline __host__ __device__ double CuGetAsDouble(const System& system, size_t index, size_t size)
-	{
-		return cu_as_double(CuGet(system, index), size);
-	}
-
-	/**
-	 * @brief 取 System 第 index 个寄存器值并解释为布尔
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @param size 寄存器位宽
-	 * @return 布尔值
+	 * @brief Get the index-th register value of a System and interpret it as a boolean
+	 * @param system Basis state
+	 * @param index Register index
+	 * @param size Register bit width
+	 * @return Boolean value
 	 */
 	inline __host__ __device__ bool CuGetAsBool(const System& system, size_t index, size_t size)
 	{
-		return cu_as_bool(CuGet(system, index), size);
+		return bool(CuGet(system, index).value & width_mask(size));
 	}
 
 	/**
-	 * @brief 取 System 第 index 个寄存器值并符号扩展为有符号整数
-	 * @param system 基态
-	 * @param index 寄存器索引
-	 * @param size 寄存器位宽
-	 * @return 有符号值
+	 * @brief Get the index-th register value of a System and sign-extend it to a signed integer
+	 * @param system Basis state
+	 * @param index Register index
+	 * @param size Register bit width (returns 0 when the width is 0)
+	 * @return Signed value
 	 */
 	inline __host__ __device__ int64_t CuGetAsInt64(const System& system, size_t index, size_t size)
 	{
-		return cu_as_int64(CuGet(system, index), size);
+		uint64_t value = CuGet(system, index).value & width_mask(size);
+		return size ? (int64_t)(value << (64 - size)) >> (64 - size) : 0;
 	}
 
 	/**
-	 * @brief 取 System 振幅的裸 double 指针（可写，[0]=实部 [1]=虚部）
-	 * @param system 基态
-	 * @return 振幅实部/虚部的 double 指针
+	 * @brief Get a raw double pointer to a System's amplitude (writable, [0]=real part [1]=imaginary part)
+	 * @param system Basis state
+	 * @return Double pointer to the real/imaginary parts of the amplitude
 	 */
 	inline __host__ __device__ double* CuSystemAmplitude(System& system)
 	{
@@ -146,9 +88,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取 System 振幅的裸 const double 指针（只读）
-	 * @param system 基态
-	 * @return 振幅实部/虚部的 const double 指针
+	 * @brief Get a raw const double pointer to a System's amplitude (read-only)
+	 * @param system Basis state
+	 * @return Const double pointer to the real/imaginary parts of the amplitude
 	 */
 	inline __host__ __device__ const double* CuSystemAmplitude(const System& system)
 	{
@@ -156,9 +98,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取复数实部（可写引用）
-	 * @param c 复数
-	 * @return 实部引用
+	 * @brief Get the real part of a complex number (writable reference)
+	 * @param c Complex number
+	 * @return Reference to the real part
 	 */
 	inline __host__ __device__ double& cu_real(complex_t& c)
 	{
@@ -166,9 +108,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取复数实部（只读）
-	 * @param c 复数
-	 * @return 实部值
+	 * @brief Get the real part of a complex number (read-only)
+	 * @param c Complex number
+	 * @return Real part value
 	 */
 	inline __host__ __device__ double cu_real(const complex_t& c)
 	{
@@ -176,9 +118,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取复数虚部（可写引用）
-	 * @param c 复数
-	 * @return 虚部引用
+	 * @brief Get the imaginary part of a complex number (writable reference)
+	 * @param c Complex number
+	 * @return Reference to the imaginary part
 	 */
 	inline __host__ __device__ double& cu_imag(complex_t& c)
 	{
@@ -186,9 +128,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 取复数虚部（只读）
-	 * @param c 复数
-	 * @return 虚部值
+	 * @brief Get the imaginary part of a complex number (read-only)
+	 * @param c Complex number
+	 * @return Imaginary part value
 	 */
 	inline __host__ __device__ double cu_imag(const complex_t& c)
 	{
@@ -196,9 +138,9 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 计算基态振幅的模平方 |amp|²
-	 * @param s 基态
-	 * @return 模平方
+	 * @brief Compute the modulus squared |amp|² of a basis-state amplitude
+	 * @param s Basis state
+	 * @return Modulus squared
 	 */
 	inline __host__ __device__ double CuAbsSqr(const System& s)
 	{
@@ -208,34 +150,33 @@ namespace qram_simulator {
 
 
 	/**
-	 * @brief GPU 稀疏态容器（CPU/GPU 双驻留）
-	 * @details 以 _on_gpu 标记当前驻留侧：CPU 侧为 std::vector<System>，
-	 *          GPU 侧为 thrust::device_vector<System>；提供 move/copy 迁移与
-	 *          迭代器访问（迭代器访问前强制拉回 CPU）。
-	 *          拷贝/移动构造与赋值均按源侧选择性复制，避免无谓的设备传输。
-	 *          对应 CPU 侧的 SparseState（std::vector<System> 别名）
+	 * @brief GPU sparse state container (CPU/GPU dual residency)
+	 * @details Uses _on_gpu to mark the current residency side: CPU side is std::vector<System>,
+	 *          GPU side is thrust::device_vector<System>; provides move/copy migration and
+	 *          iterator access (iterator access forcibly pulls data back to the CPU first).
+	 *          Copy/move construction and assignment selectively copy according to the source
+	 *          side, avoiding unnecessary device transfers.
+	 *          Corresponds to the CPU-side SparseState (an alias of std::vector<System>)
 	 */
 	struct CuSparseState
 	{
-		/** @brief CPU 侧基态向量类型 */
+		/** @brief CPU-side basis-state vector type */
 		using vector_type = std::vector<System>;
 
-		/** @brief CPU 侧稀疏态数据 */
+		/** @brief CPU-side sparse state data */
 		std::vector<System> sparse_state_cpu;
-		/** @brief GPU 侧基态索引（排序/归并辅助） */
-		thrust::device_vector<size_t> gpu_indices;
-		/** @brief GPU 侧稀疏态数据 */
+		/** @brief GPU-side sparse state data */
 		thrust::device_vector<System> sparse_state_gpu;
 
-		/** @brief 当前是否驻留在 GPU */
+		/** @brief Whether currently resident on the GPU */
 		bool _on_gpu = false;
 
 		CuSparseState();
 		CuSparseState(size_t size);
 
 		/**
-		 * @brief 拷贝构造（按源驻留侧复制）
-		 * @param other 源容器
+		 * @brief Copy constructor (copies according to the source residency side)
+		 * @param other Source container
 		 */
 		CuSparseState(const CuSparseState& other)
 		{
@@ -252,8 +193,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 移动构造（按源驻留侧移动）
-		 * @param other 源容器
+		 * @brief Move constructor (moves according to the source residency side)
+		 * @param other Source container
 		 */
 		CuSparseState(CuSparseState&& other)
 		{
@@ -270,9 +211,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 拷贝赋值（按源驻留侧复制）
-		 * @param other 源容器
-		 * @return 自身引用
+		 * @brief Copy assignment (copies according to the source residency side)
+		 * @param other Source container
+		 * @return Reference to self
 		 */
 		CuSparseState& operator=(const CuSparseState& other)
 		{
@@ -290,9 +231,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 移动赋值（按源驻留侧移动）
-		 * @param other 源容器
-		 * @return 自身引用
+		 * @brief Move assignment (moves according to the source residency side)
+		 * @param other Source container
+		 * @return Reference to self
 		 */
 		CuSparseState& operator=(CuSparseState&& other)
 		{
@@ -310,8 +251,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 由 CPU 侧 SparseState 构造
-		 * @param other CPU 侧稀疏态
+		 * @brief Construct from a CPU-side SparseState
+		 * @param other CPU-side sparse state
 		 */
 		CuSparseState(const SparseState& other)
 		{
@@ -320,8 +261,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 由基态向量构造（CPU 驻留）
-		 * @param other 基态向量
+		 * @brief Construct from a basis-state vector (CPU residency)
+		 * @param other Basis-state vector
 		 */
 		CuSparseState(const std::vector<System>& other)
 		{
@@ -330,8 +271,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 由设备向量构造（GPU 驻留）
-		 * @param other GPU 侧基态向量
+		 * @brief Construct from a device vector (GPU residency)
+		 * @param other GPU-side basis-state vector
 		 */
 		CuSparseState(const thrust::device_vector<System>& other)
 		{
@@ -340,9 +281,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 由设备向量迭代器区间构造（GPU 驻留）
-		 * @param begin 起始迭代器
-		 * @param end 结束迭代器
+		 * @brief Construct from a device-vector iterator range (GPU residency)
+		 * @param begin Starting iterator
+		 * @param end Ending iterator
 		 */
 		CuSparseState(thrust::device_vector<System>::iterator begin, thrust::device_vector<System>::iterator end)
 		{
@@ -350,51 +291,51 @@ namespace qram_simulator {
 			_on_gpu = true;
 		}
 
-		/** @brief 把数据迁回 CPU（释放 GPU 显存） */
+		/** @brief Move the data back to the CPU (releases GPU device memory) */
 		void move_to_cpu();
 
-		/** @brief 把数据复制回 CPU（保留 GPU 副本） */
+		/** @brief Copy the data back to the CPU (keeps the GPU copy) */
 		void copy_to_cpu();
 
-		/** @brief 把数据迁上 GPU（释放 CPU 内存） */
+		/** @brief Move the data onto the GPU (releases CPU memory) */
 		void move_to_gpu();
 
-		/** @brief 获取 CPU 侧数据副本（触发拷贝） */
+		/** @brief Get a copy of the CPU-side data (triggers a copy) */
 		std::vector<System> get_cpu_copy() const;
 
-		/** @brief 是否驻留在 GPU */
+		/** @brief Whether resident on the GPU */
 		bool on_gpu() const;
 
-		/** @brief 是否驻留在 CPU */
+		/** @brief Whether resident on the CPU */
 		bool on_cpu() const;
 
-		/** @brief 是否为空 */
+		/** @brief Whether empty */
 		bool empty() const;
 
-		/** @brief 基态数目（按当前驻留侧统计） */
+		/** @brief Number of basis states (counted on the current residency side) */
 		size_t size() const;
 
-		/** @brief 访问末尾基态（先拉回 CPU） */
+		/** @brief Access the last basis state (pulls back to the CPU first) */
 		System& back() { copy_to_cpu(); return sparse_state_cpu.back(); }
-		/** @brief 正向起始迭代器（先拉回 CPU） */
+		/** @brief Forward start iterator (pulls back to the CPU first) */
 		vector_type::iterator begin() { copy_to_cpu(); return sparse_state_cpu.begin(); }
-		/** @brief 正向结束迭代器（先拉回 CPU） */
+		/** @brief Forward end iterator (pulls back to the CPU first) */
 		vector_type::iterator end() { copy_to_cpu(); return sparse_state_cpu.end(); }
-		/** @brief 反向起始迭代器（先拉回 CPU） */
+		/** @brief Reverse start iterator (pulls back to the CPU first) */
 		vector_type::reverse_iterator rbegin() { copy_to_cpu(); return sparse_state_cpu.rbegin(); }
-		/** @brief 反向结束迭代器（先拉回 CPU） */
+		/** @brief Reverse end iterator (pulls back to the CPU first) */
 		vector_type::reverse_iterator rend() { copy_to_cpu(); return sparse_state_cpu.rend(); }
 	};
 
 
 	/**
-	 * @brief 取基态振幅模平方的 thrust 仿函数
-	 */
-	struct AbsSqrFunctor {
-		/**
-		 * @brief 计算基态振幅模平方
-		 * @param s 基态
-		 * @return |amp|²
+ * @brief Thrust functor taking the modulus squared of a basis-state amplitude
+ */
+struct AbsSqrFunctor {
+	/**
+	 * @brief Compute the modulus squared of a basis-state amplitude
+	 * @param s Basis state
+	 * @return |amp|²
 		 */
 		__host__ __device__ double operator()(const System& s) const {
 			return CuAbsSqr(s);
@@ -402,21 +343,21 @@ namespace qram_simulator {
 	};
 
 	/**
-	 * @brief 按常数因子缩放振幅的 thrust 仿函数（归一化用）
-	 */
-	struct Normalize_Functor {
-		/** @brief 缩放因子 */
-		double factor;
+ * @brief Thrust functor that scales amplitudes by a constant factor (for normalization)
+ */
+struct Normalize_Functor {
+	/** @brief Scale factor */
+	double factor;
 
-		/**
-		 * @brief 构造函数
-		 * @param factor_ 缩放因子
-		 */
+	/**
+	 * @brief Constructor
+	 * @param factor_ Scale factor
+	 */
 		Normalize_Functor(double factor_) : factor(factor_) {}
 
 		/**
-		 * @brief 实部与虚部同乘因子
-		 * @param s 基态
+		 * @brief Multiply both the real and imaginary parts by the factor
+		 * @param s Basis state
 		 */
 		__host__ __device__ void operator()(System& s) const {
 			double* amplitude = CuSystemAmplitude(s);
@@ -426,16 +367,17 @@ namespace qram_simulator {
 	};
 
 	/**
-	 * @brief 基态按键（激活寄存器值序列）作字典序小于比较的 thrust 仿函数
-	 * @details 构造时缓存全局寄存器表大小与激活状态位图，
-	 *          比较时仅计入激活寄存器（status_bitmap 掩码）
-	 */
-	struct SystemLess_Functor
-	{
-		/** @brief 构造时缓存的全局寄存器表大小 */
-		size_t name_reg_map_size;
-		/** @brief 构造时缓存的寄存器激活状态位图 */
-		size_t status_bitmap = 0;
+ * @brief Thrust functor for lexicographic less-than comparison of basis states by key
+ *        (the sequence of active register values)
+ * @details Caches the global register table size and the activation status bitmap at
+ *          construction time; only active registers count in the comparison (status_bitmap mask)
+ */
+struct SystemLess_Functor
+{
+	/** @brief Global register table size cached at construction time */
+	size_t name_reg_map_size;
+	/** @brief Register activation status bitmap cached at construction time */
+	size_t status_bitmap = 0;
 
 		SystemLess_Functor()
 			: name_reg_map_size(System::name_register_map.size()),
@@ -450,9 +392,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 字典序小于比较（仅激活寄存器）
-		 * @param a 左基态
-		 * @param b 右基态
+		 * @brief Lexicographic less-than comparison (active registers only)
+		 * @param a Left basis state
+		 * @param b Right basis state
 		 * @return a < b
 		 */
 		__host__ __device__ bool operator()(const System& a, const System& b) {
@@ -471,16 +413,18 @@ namespace qram_simulator {
 
 
 	/**
-	 * @brief 基态按键（激活寄存器值序列）相等比较的 thrust 仿函数
-	 * @details 构造时缓存全局寄存器表大小与激活状态位图；
-	 *          支持两个基态或 thrust::tuple<System, System>（zip 迭代器）输入
-	 */
-	struct SystemEqual_Functor
-	{
-		/** @brief 构造时缓存的全局寄存器表大小 */
-		size_t name_reg_map_size;
-		/** @brief 构造时缓存的寄存器激活状态位图 */
-		size_t status_bitmap = 0;
+ * @brief Thrust functor for equality comparison of basis states by key
+ *        (the sequence of active register values)
+ * @details Caches the global register table size and the activation status bitmap at
+ *          construction time; accepts either two basis states or a
+ *          thrust::tuple<System, System> (zip iterator) input
+ */
+struct SystemEqual_Functor
+{
+	/** @brief Global register table size cached at construction time */
+	size_t name_reg_map_size;
+	/** @brief Register activation status bitmap cached at construction time */
+	size_t status_bitmap = 0;
 
 		SystemEqual_Functor()
 			: name_reg_map_size(System::name_register_map.size()),
@@ -494,10 +438,10 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 相等比较（仅激活寄存器）
-		 * @param a 左基态
-		 * @param b 右基态
-		 * @return 激活寄存器值全部相等
+		 * @brief Equality comparison (active registers only)
+		 * @param a Left basis state
+		 * @param b Right basis state
+		 * @return All active register values are equal
 		 */
 		__host__ __device__ bool operator()(const System& a, const System& b) {
 			for (size_t i = 0; i < name_reg_map_size; ++i)
@@ -511,9 +455,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 相等比较（zip 迭代器的基态对版本）
-		 * @param system_pair 基态对
-		 * @return 激活寄存器值全部相等
+		 * @brief Equality comparison (basis-state pair version for zip iterators)
+		 * @param system_pair Basis-state pair
+		 * @return All active register values are equal
 		 */
 		__host__ __device__ bool operator()(const thrust::tuple<System, System>& system_pair) {
 			for (size_t i = 0; i < name_reg_map_size; ++i)
@@ -530,23 +474,24 @@ namespace qram_simulator {
 	};
 
 	/**
-	 * @brief 判定基态振幅模平方小于阈值的 thrust 仿函数（清除零振幅分支用）
-	 */
-	struct AmplitudeZero_Functor
-	{
-		/** @brief 阈值 ε */
-		double eps;
+ * @brief Thrust functor testing whether the modulus squared of a basis-state amplitude is
+ *        below a threshold (for pruning zero-amplitude branches)
+ */
+struct AmplitudeZero_Functor
+{
+	/** @brief Threshold ε */
+	double eps;
 
-		/**
-		 * @brief 构造函数
-		 * @param eps_ 阈值 ε
-		 */
+	/**
+	 * @brief Constructor
+	 * @param eps_ Threshold ε
+	 */
 		AmplitudeZero_Functor(double eps_) : eps(eps_) {}
 
 		/**
-		 * @brief 判定 |amp|² < ε
-		 * @param s 基态
-		 * @return 是否视为零振幅
+		 * @brief Test whether |amp|² < ε
+		 * @param s Basis state
+		 * @return Whether it counts as a zero amplitude
 		 */
 		__host__ __device__ bool operator()(const System& s) const {
 			const double* amplitude = CuSystemAmplitude(s);

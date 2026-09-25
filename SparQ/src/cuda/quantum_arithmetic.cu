@@ -1,7 +1,9 @@
 /**
  * @file quantum_arithmetic.cu
- * @brief quantum_arithmetic 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 quantum_arithmetic.h 中声明的加减乘除模、移位、比较、交换等量子算术算子（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of quantum_arithmetic
+ * @details Implements the quantum arithmetic operators declared in quantum_arithmetic.h (addition, subtraction,
+ *          multiplication, division, modular arithmetic, shifts, comparison, swap, etc.) with thrust device
+ *          vectors and CUDA kernels (GPU path; GPU builds are currently disabled in CMake)
  */
 #include "quantum_arithmetic.h"
 #include "cuda_utils.cuh"
@@ -145,7 +147,7 @@ namespace qram_simulator {
 		size_t register_1;
 		size_t digit;
 		size_t size; // register size
-		size_t register_1_size; // 新增变量，存储register_1的大小
+		size_t register_1_size; // new variable storing the size of register_1
 
 		CuCondition_Functor
 
@@ -167,7 +169,7 @@ namespace qram_simulator {
 		size_t register_1;
 		size_t digit;
 		size_t size; // register size
-		size_t register_1_size; // 新增变量，存储register_1的大小
+		size_t register_1_size; // new variable storing the size of register_1
 
 		ShiftLeft_Functor(size_t register_1_, size_t digit_, size_t size_, size_t register_1_size_)
 			: register_1(register_1_), digit(digit_), size(size_), register_1_size(register_1_size_) {
@@ -185,7 +187,7 @@ namespace qram_simulator {
 	{
 		state.move_to_gpu();
 		size_t size = System::size_of(register_1);
-		size_t register_1_size = System::size_of(register_1); // 获取register_1的大小
+		size_t register_1_size = System::size_of(register_1); // get the size of register_1
 
 		if (!HasCondition)
 		{
@@ -210,7 +212,7 @@ namespace qram_simulator {
 		size_t register_1;
 		size_t digit;
 		size_t size;
-		size_t register_1_size; // 新增变量
+		size_t register_1_size; // new variable
 
 		CuCondition_Functor
 
@@ -232,7 +234,7 @@ namespace qram_simulator {
 		size_t register_1;
 		size_t digit;
 		size_t size;
-		size_t register_1_size; // 新增变量
+		size_t register_1_size; // new variable
 
 		ShiftRight_Functor(size_t register_1_, size_t digit_, size_t size_, size_t register_1_size_)
 			: register_1(register_1_), digit(digit_), size(size_), register_1_size(register_1_size_) {
@@ -250,7 +252,7 @@ namespace qram_simulator {
 	{
 		state.move_to_gpu();
 		size_t size = System::size_of(register_1);
-		size_t register_1_size = System::size_of(register_1); // 获取register_1的大小
+		size_t register_1_size = System::size_of(register_1); // get the size of register_1
 
 		if (!HasCondition)
 		{
@@ -284,7 +286,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t mult_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		CuCondition_Functor
 
@@ -304,7 +306,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t mult_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		Mult_UInt_ConstUInt_Functor(size_t lhs_, size_t res_, size_t mult_int_, size_t lhs_size_)
 			: lhs(lhs_), res(res_), mult_int(mult_int_), lhs_size(lhs_size_) {
@@ -319,7 +321,7 @@ namespace qram_simulator {
 	void Mult_UInt_ConstUInt::operator()(CuSparseState& state) const
 	{
 		state.move_to_gpu();
-		size_t lhs_size = System::size_of(lhs); // 获取lhs的大小
+		size_t lhs_size = System::size_of(lhs); // get the size of lhs
 
 		if (!HasCondition)
 		{
@@ -343,7 +345,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t mult_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 		size_t res_size;
 
 		CuCondition_Functor
@@ -364,7 +366,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t mult_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 		size_t res_size;
 
 		Add_Mult_UInt_ConstUInt_Functor(size_t lhs_, size_t res_, size_t mult_int_, size_t lhs_size_, size_t res_size_)
@@ -380,7 +382,7 @@ namespace qram_simulator {
 	void Add_Mult_UInt_ConstUInt_InPlace::operator()(CuSparseState& state) const
 	{
 		state.move_to_gpu();
-		size_t lhs_size = System::size_of(lhs); // 获取lhs的大小
+		size_t lhs_size = System::size_of(lhs); // get the size of lhs
 		size_t res_size = System::size_of(res);
 
 		if (!HasCondition)
@@ -470,8 +472,8 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t rhs;
 		size_t res;
-		size_t lhs_size; // 新增变量
-		size_t rhs_size; // 新增变量
+		size_t lhs_size; // new variable
+		size_t rhs_size; // new variable
 		size_t res_size;
 
 		CuCondition_Functor
@@ -534,7 +536,7 @@ namespace qram_simulator {
 	struct Add_UInt_UInt_InPlace_Functor_Control {
 		size_t lhs;
 		size_t rhs;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 		size_t rhs_size;
 
 		CuCondition_Functor
@@ -554,7 +556,7 @@ namespace qram_simulator {
 	struct Add_UInt_UInt_InPlace_Functor {
 		size_t lhs;
 		size_t rhs;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 		size_t rhs_size;
 
 		Add_UInt_UInt_InPlace_Functor(size_t lhs_, size_t rhs_, size_t lhs_size_, size_t rhs_size_)
@@ -570,7 +572,7 @@ namespace qram_simulator {
 	void Add_UInt_UInt_InPlace::operator()(CuSparseState& state) const
 	{
 		state.move_to_gpu();
-		size_t lhs_size = System::size_of(lhs); // 获取lhs的大小
+		size_t lhs_size = System::size_of(lhs); // get the size of lhs
 		size_t rhs_size = System::size_of(rhs);
 
 		if (!HasCondition)
@@ -596,7 +598,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t rhs;
 		size_t dim;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		CuCondition_Functor
 
@@ -616,7 +618,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t rhs;
 		size_t dim;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		Add_UInt_UInt_InPlace_Functor_Dag(size_t lhs_, size_t rhs_, size_t dim_, size_t lhs_size_)
 			: lhs(lhs_), rhs(rhs_), dim(dim_), lhs_size(lhs_size_) {
@@ -632,7 +634,7 @@ namespace qram_simulator {
 	{
 		state.move_to_gpu();
 		auto dim = System::size_of(rhs);
-		size_t lhs_size = System::size_of(lhs); // 获取lhs的大小
+		size_t lhs_size = System::size_of(lhs); // get the size of lhs
 
 		if (!HasCondition)
 		{
@@ -656,7 +658,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t add_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		CuCondition_Functor
 
@@ -676,7 +678,7 @@ namespace qram_simulator {
 		size_t lhs;
 		size_t res;
 		size_t add_int;
-		size_t lhs_size; // 新增变量
+		size_t lhs_size; // new variable
 
 		Add_UInt_ConstUInt_Functor(size_t lhs_, size_t res_, size_t add_int_, size_t lhs_size_)
 			: lhs(lhs_), res(res_), add_int(add_int_), lhs_size(lhs_size_) {
@@ -691,7 +693,7 @@ namespace qram_simulator {
 	void Add_UInt_ConstUInt::operator()(CuSparseState& state) const
 	{
 		state.move_to_gpu();
-		size_t lhs_size = System::size_of(lhs); // 获取lhs的大小
+		size_t lhs_size = System::size_of(lhs); // get the size of lhs
 
 		if (!HasCondition)
 		{
@@ -825,8 +827,8 @@ namespace qram_simulator {
 		size_t register_rhs;
 		size_t register_out;
 		size_t out_size;
-		size_t lhs_size; // 新增变量
-		size_t rhs_size; // 新增变量
+		size_t lhs_size; // new variable
+		size_t rhs_size; // new variable
 
 		CuCondition_Functor
 
@@ -852,8 +854,8 @@ namespace qram_simulator {
 		size_t register_rhs;
 		size_t register_out;
 		size_t out_size;
-		size_t lhs_size; // 新增变量
-		size_t rhs_size; // 新增变量
+		size_t lhs_size; // new variable
+		size_t rhs_size; // new variable
 
 		Div_Sqrt_Arccos_UInt_UInt_Functor(size_t register_lhs_, size_t register_rhs_, size_t register_out_, 
 			size_t lhs_size_, size_t rhs_size_, size_t out_size_)
@@ -902,8 +904,8 @@ namespace qram_simulator {
 		size_t register_rhs;
 		size_t register_out;
 		size_t out_size;
-		size_t lhs_size; // 新增变量
-		size_t rhs_size; // 新增变量
+		size_t lhs_size; // new variable
+		size_t rhs_size; // new variable
 
 		CuCondition_Functor
 
@@ -929,8 +931,8 @@ namespace qram_simulator {
 		size_t register_rhs;
 		size_t register_out;
 		size_t out_size;
-		size_t lhs_size; // 新增变量
-		size_t rhs_size; // 新增变量
+		size_t lhs_size; // new variable
+		size_t rhs_size; // new variable
 
 		Sqrt_Div_Arccos_Int_UInt_Functor(size_t register_lhs_, size_t register_rhs_, size_t register_out_,
 			size_t lhs_size_, size_t rhs_size_, size_t out_size_)
@@ -1086,7 +1088,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				// AnyInt 槽：rhs 按寄存器声明类型扩展（宽度与截断约定）
+				// AnyInt slot: rhs is extended according to the register's declared type (width and truncation convention)
 				uint64_t r = CuGetAsUint64(s, rhs_id, rhs_size);
 				if (rhs_signed)
 					r = (uint64_t)get_complement(r, rhs_size);
@@ -1108,7 +1110,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			// AnyInt 槽：rhs 按寄存器声明类型扩展（宽度与截断约定）
+			// AnyInt slot: rhs is extended according to the register's declared type (width and truncation convention)
 			uint64_t r = CuGetAsUint64(s, rhs_id, rhs_size);
 			if (rhs_signed)
 				r = (uint64_t)get_complement(r, rhs_size);
@@ -1132,7 +1134,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				// AnyInt 槽：rhs 按寄存器声明类型扩展（宽度与截断约定）
+				// AnyInt slot: rhs is extended according to the register's declared type (width and truncation convention)
 				uint64_t r = CuGetAsUint64(s, rhs_id, rhs_size);
 				if (rhs_signed)
 					r = (uint64_t)get_complement(r, rhs_size);
@@ -1154,7 +1156,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			// AnyInt 槽：rhs 按寄存器声明类型扩展（宽度与截断约定）
+			// AnyInt slot: rhs is extended according to the register's declared type (width and truncation convention)
 			uint64_t r = CuGetAsUint64(s, rhs_id, rhs_size);
 			if (rhs_signed)
 				r = (uint64_t)get_complement(r, rhs_size);
@@ -1815,7 +1817,7 @@ namespace qram_simulator {
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
 				const int64_t v = CuGetAsInt64(s, reg, reg_size);
-				/* 最小负数（w = 64）回绕为自身 */
+				/* the most negative value (w = 64) wraps around to itself */
 				const uint64_t magnitude = v < 0 ? (uint64_t)(-v) : (uint64_t)v;
 				auto& reg_out = CuGet(s, res);
 				reg_out.value = (reg_out.value ^ magnitude) & width_mask(res_size);
@@ -1835,7 +1837,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			const int64_t v = CuGetAsInt64(s, reg, reg_size);
-			/* 最小负数（w = 64）回绕为自身 */
+			/* the most negative value (w = 64) wraps around to itself */
 			const uint64_t magnitude = v < 0 ? (uint64_t)(-v) : (uint64_t)v;
 			auto& reg_out = CuGet(s, res);
 			reg_out.value = (reg_out.value ^ magnitude) & width_mask(res_size);
@@ -1947,7 +1949,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				/* 全域化：除数为零时商取 0（宽度与截断约定） */
+				/* total domain: when the divisor is zero the quotient is 0 (width and truncation convention) */
 				const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 				const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 				const uint64_t quotient = b == 0 ? uint64_t{0} : a / b;
@@ -1970,7 +1972,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			/* 全域化：除数为零时商取 0（宽度与截断约定） */
+			/* total domain: when the divisor is zero the quotient is 0 (width and truncation convention) */
 			const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 			const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 			const uint64_t quotient = b == 0 ? uint64_t{0} : a / b;
@@ -2424,7 +2426,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+				/* res only provides the width res_size; its value is not read (width and truncation convention) */
 				const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 				const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 				const bool pred = res_size >= 64 ? (a + b < a) :
@@ -2450,7 +2452,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+			/* res only provides the width res_size; its value is not read (width and truncation convention) */
 			const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 			const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 			const bool pred = res_size >= 64 ? (a + b < a) :
@@ -2503,7 +2505,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+				/* res only provides the width res_size; its value is not read (width and truncation convention) */
 				const uint64_t mask = width_mask(res_size);
 				const uint64_t A = (uint64_t)CuGetAsInt64(s, lhs, lhs_size) & mask;
 				const uint64_t B = (uint64_t)CuGetAsInt64(s, rhs, rhs_size) & mask;
@@ -2533,7 +2535,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+			/* res only provides the width res_size; its value is not read (width and truncation convention) */
 			const uint64_t mask = width_mask(res_size);
 			const uint64_t A = (uint64_t)CuGetAsInt64(s, lhs, lhs_size) & mask;
 			const uint64_t B = (uint64_t)CuGetAsInt64(s, rhs, rhs_size) & mask;
@@ -2571,13 +2573,23 @@ namespace qram_simulator {
 		}
 	}
 
-	// 128 位乘积高 64 位：device 走 CUDA 内建，host 走 128 位整数（与 CPU 侧分块算法位等价）
+	// High 64 bits of the 128-bit product: the device path uses the CUDA intrinsic; the host path uses a
+	// 32-bit block algorithm (__int128 is not used -- it is an MSVC keyword the nvcc front end cannot parse,
+	// erroring with "expected a >" even inside a host branch; the block version is pure integer arithmetic
+	// and bit-for-bit equivalent)
 	__host__ __device__ inline uint64_t mul_hi_u64(uint64_t a, uint64_t b)
 	{
 #ifdef __CUDA_ARCH__
 		return __umul64hi(a, b);
 #else
-		return static_cast<uint64_t>((static_cast<unsigned __int128>(a) * b) >> 64);
+		const uint64_t a_lo = a & 0xFFFFFFFFull, a_hi = a >> 32;
+		const uint64_t b_lo = b & 0xFFFFFFFFull, b_hi = b >> 32;
+		const uint64_t p0 = a_lo * b_lo;
+		const uint64_t p1 = a_lo * b_hi;
+		const uint64_t p2 = a_hi * b_lo;
+		const uint64_t p3 = a_hi * b_hi;
+		const uint64_t carry = (p1 & 0xFFFFFFFFull) + (p2 & 0xFFFFFFFFull) + (p0 >> 32);
+		return p3 + (p1 >> 32) + (p2 >> 32) + (carry >> 32);
 #endif
 	}
 
@@ -2600,7 +2612,7 @@ namespace qram_simulator {
 
 		__host__ __device__ void operator()(System& s) const {
 			CuConditionSatisfied(s) {
-				/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+				/* res only provides the width res_size; its value is not read (width and truncation convention) */
 				const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 				const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 				const uint64_t lo = a * b;
@@ -2627,7 +2639,7 @@ namespace qram_simulator {
 		}
 
 		__host__ __device__ void operator()(System& s) const {
-			/* res 仅提供宽度 res_size，不读其值（宽度与截断约定） */
+			/* res only provides the width res_size; its value is not read (width and truncation convention) */
 			const uint64_t a = CuGetAsUint64(s, lhs, lhs_size);
 			const uint64_t b = CuGetAsUint64(s, rhs, rhs_size);
 			const uint64_t lo = a * b;

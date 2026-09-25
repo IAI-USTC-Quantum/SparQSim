@@ -51,7 +51,7 @@ void parallel_time_test()
 			}
 		}
 
-		cudaDeviceSynchronize();
+		CUDA_CHECK(cudaDeviceSynchronize());
 
 		auto end_time = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();

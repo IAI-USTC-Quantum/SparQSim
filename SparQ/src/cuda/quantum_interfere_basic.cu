@@ -1,11 +1,14 @@
 /**
  * @file quantum_interfere_basic.cu
- * @brief quantum_interfere_basic 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 quantum_interfere_basic.h 中声明的稀疏态排序、去重、按位分组等干涉基础操作（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of quantum_interfere_basic
+ * @details Implements the sparse-state sorting, deduplication, bit-wise grouping and other interference
+ *          basic operations declared in quantum_interfere_basic.h with thrust device vectors and CUDA
+ *          kernels (GPU path; GPU builds are currently disabled in CMake)
  */
 #include "quantum_interfere_basic.h"
 #include "cuda_utils.cuh"
 #include "cuda/quantum_interfere_basic.cuh"
+#include <thrust/distance.h>
 
 #ifdef USE_CUDA
 
@@ -76,7 +79,7 @@ namespace qram_simulator {
 #endif
 #undef DEV_SORT_VERSION
 
-        cudaDeviceSynchronize();        
+        CUDA_CHECK(cudaDeviceSynchronize());        
     }
 
     const thrust::device_vector<size_t>& SortExceptKey_devfunc_logical(int idi, const thrust::device_vector<System>& state)
@@ -101,7 +104,7 @@ namespace qram_simulator {
 #endif
 #undef DEV_SORT_VERSION
 
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
         return indices;
     }
 
@@ -341,7 +344,7 @@ namespace qram_simulator {
 
 #endif
 #undef UNIQUE_COUNT_ELEM_VERSION
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
     }
 
     /* From logical indices */
@@ -399,7 +402,7 @@ namespace qram_simulator {
         unique_count_elem << < nblock, blocksize, blocksize * sizeof(size_t) >> >
             (pub_sizet_ptr, s_ptr, unique_num, state_size);
 
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
     }
 
     void SortUniqueElements(thrust::device_vector<unq_ele>& dat)
@@ -411,7 +414,7 @@ namespace qram_simulator {
         };
 
         thrust::sort(thrust::device, dat.begin(), dat.end(), pred);
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
     }
 
     /* Get the partition point of <1> and <2> */
@@ -429,7 +432,7 @@ namespace qram_simulator {
         auto iter = thrust::partition(thrust::device, dat.begin(), dat.end(), pred);
         size_t num_not_one = thrust::distance(dat.begin(), iter);
 
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
         return num_not_one;
     }
 
@@ -448,7 +451,7 @@ namespace qram_simulator {
         auto iter = thrust::partition(thrust::device, dat.begin(), dat.end(), pred);
         size_t num_not_full = thrust::distance(dat.begin(), iter);
 
-        cudaDeviceSynchronize();
+        CUDA_CHECK(cudaDeviceSynchronize());
         return num_not_full;
     }
 } // namespace qram_simulator

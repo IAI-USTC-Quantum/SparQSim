@@ -1,11 +1,12 @@
 /**
  * @file condrot.cuh
- * @brief 条件旋转算子的 CUDA 实现
- * @details 实现 CondRot_General_Bool_Fast<Callable>::operator()(CuSparseState&)
- *          的 GPU 路径：先按键排序并统计唯一键分组，对"分支孤单"（同一键下
- *          只有 out=0 或 out=1 一个分支）的组分裂出新分支，对"成对"（out=0/1
- *          两分支共存）的组直接做 2x2 酉混合，全程在 thrust 设备向量上并行。
- *          与 CPU 侧 SparQ/include/condrot.h 的语义保持一致
+ * @brief CUDA implementation of the controlled rotation operator
+ * @details Implements the GPU path of CondRot_General_Bool_Fast<Callable>::operator()(CuSparseState&):
+ *          first sort by key and collect unique-key groups; groups with a "lone branch" (only one
+ *          of out=0 or out=1 exists under the same key) are split to create a new branch, while
+ *          "paired" groups (both out=0/1 branches coexist) directly undergo a 2x2 unitary mixing,
+ *          all in parallel on thrust device vectors.
+ *          Semantics are kept consistent with the CPU-side SparQ/include/condrot.h
  */
 
 #pragma once
@@ -18,32 +19,32 @@ namespace qram_simulator {
 
 	/**
 	 * @namespace qram_simulator::condrot_general_gpu_detail
-	 * @brief 条件旋转 GPU 实现的内部细节（内核与辅助仿函数）
+	 * @brief Internal details of the GPU implementation of controlled rotation (kernels and helper functors)
 	 */
 	namespace condrot_general_gpu_detail {
 		/**
-		 * @brief 设备侧角度函数包装器
-		 * @details 把返回 u22_t（2x2 复矩阵）的 CPU 可调用对象包装为
-		 *          __device__ 侧向裸 double 数组（按 [实,虚] 交错展开 8 元素）
-		 *          写矩阵的仿函数，供 CUDA 内核使用
-		 * @tparam Callable 返回 u22_t 的角度函数类型
+		 * @brief Device-side angle-function wrapper
+		 * @details Wraps a CPU callable returning u22_t (2x2 complex matrix) into a functor
+		 *          that, on the __device__ side, writes the matrix into a raw double array
+		 *          (8 elements, interleaved as [real,imag]), for use by CUDA kernels
+		 * @tparam Callable Type of the angle function returning u22_t
 		 */
 		template<typename Callable>
 		struct CuAngleFunction
 		{
-			/** @brief 被包装的角度函数 */
+			/** @brief The wrapped angle function */
 			Callable func;
 
 			/**
-			 * @brief 构造函数
-			 * @param f 角度函数
+			 * @brief Constructor
+			 * @param f Angle function
 			 */
 			CuAngleFunction(Callable f) : func(f) {}
 
 			/**
-			 * @brief 计算输入值 v 对应的 2x2 酉矩阵并展开到裸数组
-			 * @param v 输入寄存器值
-			 * @param mat 输出数组（8 元素：4 个矩阵元的实部/虚部交错）
+			 * @brief Compute the 2x2 unitary matrix for input value v and expand it into the raw array
+			 * @param v Input register value
+			 * @param mat Output array (8 elements: real/imaginary parts of the 4 matrix entries, interleaved)
 			 */
 			__device__ void operator()(size_t v, double* mat) const {
 				u22_t mat_u22 = func(v);
@@ -60,19 +61,20 @@ namespace qram_simulator {
 
 		// CUDA kernel: Hadamard_Bool::operate_alone_zero + Hadamard_Bool::operate_alone_one
 		/**
-		 * @brief 单分支组的条件旋转内核
-		 * @details 处理同一输入键下只存在一个 out 取值的"孤单"组：
-		 *          在状态数组尾部分裂出一个 out 位翻转的新基态，
-		 *          按 2x2 酉矩阵（由角度函数按输入值计算）混合原/新基态振幅
-		 * @tparam CuAngleFunction 设备侧角度函数类型
-		 * @param state 基态数组（设备指针）
-		 * @param nsize 单分支组数
-		 * @param unq_s 唯一键分组表（设备指针，前 nsize 项为单分支组）
-		 * @param old_size 扩容前的基础态数（新基态从该下标起追加）
-		 * @param in_id 输入寄存器 ID
-		 * @param out_id 输出（布尔）寄存器 ID
-		 * @param in_size 输入寄存器位宽
-		 * @param func 设备侧角度函数
+		 * @brief Controlled-rotation kernel for single-branch groups
+		 * @details Handles "lone" groups where only one out value exists under the same input key:
+		 *          splits a new basis state with the out bit flipped at the tail of the state array,
+		 *          then mixes the original/new basis-state amplitudes by the 2x2 unitary matrix
+		 *          (computed by the angle function from the input value)
+		 * @tparam CuAngleFunction Device-side angle-function type
+		 * @param state Basis-state array (device pointer)
+		 * @param nsize Number of single-branch groups
+		 * @param unq_s Unique-key group table (device pointer, the first nsize entries are single-branch groups)
+		 * @param old_size Number of basis states before expansion (new basis states are appended from this index)
+		 * @param in_id Input register ID
+		 * @param out_id Output (boolean) register ID
+		 * @param in_size Input register bit width
+		 * @param func Device-side angle function
 		 */
 		template<typename CuAngleFunction>
 		__global__ void CondRot_General_Bool_operate_alone(System* state, size_t nsize, unq_ele* unq_s, size_t old_size,
@@ -128,19 +130,19 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 成对分支组的条件旋转内核
-		 * @details 处理同一输入键下 out=0/1 两分支共存的组：
-		 *          直接对相邻的 (my_loc, my_loc+1) 两基态做 2x2 酉混合，
-		 *          无需分裂新基态
-		 * @tparam CuAngleFunction 设备侧角度函数类型
-		 * @param state 基态数组（设备指针）
-		 * @param nsize 成对组数
-		 * @param unq_s 唯一键分组表（设备指针，自 num_one 起为成对组）
-		 * @param old_size 扩容前的基础态数（此内核不使用，仅保持接口一致）
-		 * @param in_id 输入寄存器 ID
-		 * @param out_id 输出（布尔）寄存器 ID
-		 * @param in_size 输入寄存器位宽
-		 * @param func 设备侧角度函数
+		 * @brief Controlled-rotation kernel for paired-branch groups
+		 * @details Handles groups where both out=0/1 branches coexist under the same input key:
+		 *          directly applies a 2x2 unitary mixing to the two adjacent basis states
+		 *          (my_loc, my_loc+1), with no need to split a new basis state
+		 * @tparam CuAngleFunction Device-side angle-function type
+		 * @param state Basis-state array (device pointer)
+		 * @param nsize Number of paired groups
+		 * @param unq_s Unique-key group table (device pointer, paired groups start at num_one)
+		 * @param old_size Number of basis states before expansion (unused by this kernel, kept for interface consistency)
+		 * @param in_id Input register ID
+		 * @param out_id Output (boolean) register ID
+		 * @param in_size Input register bit width
+		 * @param func Device-side angle function
 		 */
 		template<typename CuAngleFunction>
 		__global__ void CondRot_General_Bool_operate_pair(System* state, size_t nsize, unq_ele* unq_s, size_t old_size,
@@ -179,12 +181,18 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief CondRot_General_Bool_Fast 的 GPU 执行入口
-	 * @details 流程：状态迁上 GPU → 按 out 位外键排序 → 统计唯一键分组 →
-	 *          扩容状态数组（容纳单分支组分裂出的新基态）→ 分别启动
-	 *          operate_alone / operate_pair 内核 → 清除零振幅分支并更新规模统计
-	 * @tparam Callable 角度函数类型（返回 u22_t）
-	 * @param state GPU 稀疏态
+	 * @brief GPU execution entry point of CondRot_General_Bool_Fast
+	 * @details Flow: move the state onto the GPU → sort by key excluding the out bit →
+	 *          collect unique-key groups → expand the state array (to hold the new basis
+	 *          states split from single-branch groups) → launch the operate_alone /
+	 *          operate_pair kernels separately → prune zero-amplitude branches and update
+	 *          the size statistics
+	 *          Status note: this template currently has no callers in the repository —
+	 *          it is kept as the reference implementation for the pending GPU kernel
+	 *          of the production CondRot primitives (CondRot_Rational/Fixed_Bool),
+	 *          whose absence is the reason the GPU path once stayed disabled.
+	 * @tparam Callable Angle-function type (returns u22_t)
+	 * @param state GPU sparse state
 	 */
 	template<typename Callable>
 	void CondRot_General_Bool_Fast<Callable>::operator()(CuSparseState& state) const
