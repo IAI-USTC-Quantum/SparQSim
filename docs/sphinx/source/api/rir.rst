@@ -1,3 +1,18 @@
+RIR Interpreter API Reference
+=============================
+
+This module interprets and executes RIR JSON documents from QECC.Lang directly on PySparQ sparse states, making PySparQ a native backend for RIR.
+
+.. automodule:: pysparq.rir
+   :members:
+   :show-inheritance:
+   :member-order: groupwise
+
+----
+
+中文版
+===
+
 RIR 解释器 API 参考
 ====================
 

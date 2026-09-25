@@ -12,11 +12,11 @@ DOXYGENDIR    = ../doxygen
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-# 生成 C++ API 的 Doxygen XML（供 Breathe 渲染；必须在 sphinx-build 之前）
+# Generate the Doxygen XML for the C++ API (rendered by Breathe; must run before sphinx-build)
 doxygen:
 	cd "$(DOXYGENDIR)" && doxygen Doxyfile
 
-# html 依赖 doxygen XML；其余目标沿用 sphinx-build 默认模式规则
+# html depends on the Doxygen XML; the remaining targets use sphinx-build's default pattern rules
 html: doxygen Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 

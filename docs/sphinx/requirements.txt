@@ -7,8 +7,8 @@ sphinx-autoapi
 nbsphinx
 ipykernel
 nbconvert>=7.0.0
-# pysparq 纯 Python 层的 autodoc 导入依赖 numpy（编译扩展 _core 仍不可用时，
-# 至少 rir/operators/algorithms 等纯 Python 模块可正常渲染）
+# The pure-Python layer of pysparq relies on numpy for autodoc imports (even when the
+# compiled extension _core is unavailable, pure-Python modules such as rir/operators/algorithms can still render)
 numpy
-# C++ API 集成：渲染 docs/doxygen 生成的 XML（doxygen 本体需单独安装，CI 中由 apt 提供）
+# C++ API integration: render the XML generated under docs/doxygen (Doxygen itself must be installed separately; provided by apt in CI)
 breathe

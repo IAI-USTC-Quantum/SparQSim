@@ -1,13 +1,13 @@
-# SparQ C++ API 的 Doxygen 配置 —— 生成 XML 供 Sphinx/Breathe 渲染进文档站。
-# 用法：cd docs/doxygen && doxygen Doxyfile
-# （docs/sphinx/Makefile 的 html 目标会自动执行本配置）
-# 所有相对路径均以 docs/doxygen/ 为基准。
+# Doxygen configuration for the SparQ C++ API — generates XML for Sphinx/Breathe to render into the documentation site.
+# Usage: cd docs/doxygen && doxygen Doxyfile
+# (The html target of docs/sphinx/Makefile runs this configuration automatically)
+# All relative paths are relative to docs/doxygen/.
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "SparQ"
-PROJECT_BRIEF          = "稀疏态量子电路模拟器（寄存器级编程、原生 QRAM、算法库）"
+PROJECT_BRIEF          = "Sparse-state quantum circuit simulator (register-level programming, native QRAM, algorithm library)"
 
-# 输出到 docs/doxygen/build/（已被 .gitignore 的 build*/ 规则忽略）
+# Output goes to docs/doxygen/build/ (already ignored by the build*/ rule in .gitignore)
 OUTPUT_DIRECTORY       = build
 GENERATE_HTML          = NO
 GENERATE_LATEX         = NO
@@ -24,13 +24,13 @@ FILE_PATTERNS          = *.h \
                          *.cuh
 RECURSIVE              = YES
 
-# 头文件 include 的 QRAM 基座与 Eigen 头：仅用于类型解析，不纳入文档
+# QRAM base and Eigen headers included by the header files: used only for type resolution, not included in the documentation
 INCLUDE_PATH           = ../../extern/qram-simulator/Common/include \
                          ../../extern/qram-simulator/QRAM/include \
                          ../../extern/qram-simulator/ThirdParty/eigen-3.4.0
 EXCLUDE_PATTERNS       = */extern/*
 
-# 只渲染带注释的实体（源码头文件已补齐中文 Doxygen 注释）
+# Render only documented entities (the source headers have been supplemented with complete Chinese Doxygen comments)
 EXTRACT_ALL            = NO
 EXTRACT_PRIVATE        = NO
 EXTRACT_STATIC         = YES
@@ -38,7 +38,7 @@ HIDE_UNDOC_MEMBERS     = YES
 HIDE_UNDOC_CLASSES     = YES
 CASE_SENSE_NAMES       = NO
 
-# ClassControllable 等宏定义于 global_macros.h，由默认预处理展开
+# Macros such as ClassControllable are defined in global_macros.h and expanded by the default preprocessing
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = NO
