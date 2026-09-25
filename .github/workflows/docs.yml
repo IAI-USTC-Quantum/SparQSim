@@ -1,7 +1,13 @@
 name: Documentation
 
-# Build the Sphinx documentation (Python + C++ API via Doxygen/Breathe);
-# the QRAM-Simulator submodule keeps its own Doxygen HTML in its repository.
+# Sphinx site (bilingual zh/en trees under one site):
+#   1. doxygen generates XML (C++ API, ingested by Sphinx via breathe)
+#   2. pip install . builds the C++ extension and installs pysparq so
+#      autoapi can import the full package (without _core, the
+#      dynamic_operator / rir pages fail to import)
+#   3. sphinx-build builds BOTH language trees (html/zh + html/en) plus a
+#      root redirect page (English by default) and deploys to gh-pages
+#      (full replacement on push to main)
 on:
   push:
     branches: [ "main", "develop" ]
@@ -11,6 +17,8 @@ on:
       - 'SparQ/**'
       - 'SparQ_Algorithm/**'
       - 'README.md'
+      - '**.rst'
+      - '**.md'
       - '.github/workflows/docs.yml'
   pull_request:
     branches: [ "main", "develop" ]
@@ -20,6 +28,8 @@ on:
       - 'SparQ/**'
       - 'SparQ_Algorithm/**'
       - 'README.md'
+      - '**.rst'
+      - '**.md'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -30,7 +40,7 @@ concurrency:
 jobs:
   docs:
     runs-on: ubuntu-latest
-    # Gitea also scans .github/workflows, but its runner cannot reach github.com → run on the GitHub upstream only
+    # Gitea also scans .github/workflows, but its runners cannot reach github.com → run on the GitHub upstream only
     if: github.repository_owner == 'IAI-USTC-Quantum'
     permissions:
       contents: write
@@ -62,10 +72,14 @@ jobs:
       run: |
         "${{ env.pythonLocation }}/bin/python" -m pip install .
 
-    - name: Build Sphinx Documentation
+    - name: Build Sphinx site (zh + en trees)
       run: |
         cd docs/sphinx
         make html
+
+    - name: Generate root landing page (redirect, English by default)
+      run: |
+        printf '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>SparQ Documentation</title>\n<meta http-equiv="refresh" content="0; url=en/index.html">\n<link rel="canonical" href="en/index.html">\n</head>\n<body>\n<p>Redirecting to the <a href="en/index.html">English documentation</a>. <a href="zh/index.html">中文文档</a></p>\n</body>\n</html>\n' > docs/sphinx/build/html/index.html
 
     - name: Upload documentation artifact
       uses: actions/upload-artifact@v4
@@ -82,3 +96,5 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/sphinx/build/html/
         publish_branch: gh-pages
+        # Bilingual Sphinx site: fully replaces the previous single-tree site
+        force_orphan: true

@@ -253,7 +253,7 @@ This example demonstrated three basic ways to use dynamic operators:
    - Use keyword arguments when creating instances
 
 For more information, refer to:
-- docs/sphinx/source/guide/dynamic_operators.rst (full user guide)
+- docs/sphinx/source/en/guide/dynamic_operators.rst (full user guide)
 - docs/sphinx/source/api/dynamic_operator.rst (API reference)
 - examples/dynamic_operator_quantum.py (end-to-end quantum circuit example)
 - PySparQ/test/test_dynamic_operator.py (unit tests)

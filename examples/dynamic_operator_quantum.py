@@ -401,7 +401,7 @@ This example demonstrated the following quantum-computing-related dynamic operat
    - Is the foundation of quantum walk algorithms
 
 For more information, refer to:
-- docs/sphinx/source/guide/dynamic_operators.rst (full user guide)
+- docs/sphinx/source/en/guide/dynamic_operators.rst (full user guide)
 - docs/sphinx/source/api/dynamic_operator.rst (API reference)
 - PySparQ/test/test_dynamic_operator.py (unit tests)
 """)
