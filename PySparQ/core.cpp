@@ -539,7 +539,13 @@ Args:
             BIND_CONTROLLABLE_METHODS(InverseQFT);
 
     /* qram.h */
-    py::class_<qram_qutrit::QRAMCircuit>(m, "QRAMCircuit_qutrit")
+    // module_local：qram_qutrit::QRAMCircuit 也被 qram-simulator 包的薄绑定
+    // 注册（Python 名 QRAMCircuitQutrit）；pybind11 类型注册表按 C++ typeid
+    // 全局键控，两个模块都注册全局类型时后导入者报
+    // "generic_type: type ... is already registered"。标 module_local 后各自
+    // 注册进模块局部表，两个包可在同一进程共存。该类型实例仅在 pysparq
+    // 模块内创建/传递（QRAMLoad 参数），不跨模块流动，局部化无副作用。
+    py::class_<qram_qutrit::QRAMCircuit>(m, "QRAMCircuit_qutrit", py::module_local())
         .def(py::init<size_t, size_t>(), py::arg("addr_size"), py::arg("data_size"))
         .def(py::init<size_t, size_t, const memory_t &>(), py::arg("addr_size"), py::arg("data_size"), py::arg("memory"))
         .def(py::init<size_t, size_t, memory_t &&>(), py::arg("addr_size"), py::arg("data_size"), py::arg("memory"))
