@@ -11,8 +11,15 @@
 """
 
 import pytest
+import shutil
 import sys
 import os
+
+# JIT 编译依赖 g++（见 CONTRIBUTING）；无编译器环境（如无 MinGW 的
+# Windows runner）整模块跳过，而非逐用例报错
+if not shutil.which("g++"):
+    pytest.skip("g++ not available — dynamic operator JIT tests skipped",
+                allow_module_level=True)
 
 # 添加项目根目录到路径
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
