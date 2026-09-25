@@ -4,7 +4,7 @@ PySparQ - QRAM Simulator Python Interface
 This package provides Python bindings for the QRAM sparse state simulator.
 """
 
-# 从 pysparq 子模块导入核心功能
+# Import core functionality from the pysparq submodule
 try:
     from .pysparq import *
     from .pysparq import (
@@ -16,26 +16,26 @@ try:
         __version__,
     )
 except ImportError:
-    # pysparq._core 可能尚未编译
+    # pysparq._core may not be compiled yet
     __version__ = "0.0.0.dev0"
 
-# 导入动态算子模块
+# Import the dynamic operator module
 try:
     from .dynamic_operator import compile_operator
 except ImportError:
-    # dynamic_operator 可能尚未安装
+    # dynamic_operator may not be installed yet
     pass
 
-# 定义公开接口
+# Define the public interface
 __all__ = [
-    # 核心类
+    # Core classes
     "SparseState",
-    "System", 
+    "System",
     "BaseOperator",
     "SelfAdjointOperator",
     "StateStorage",
-    # 动态算子
+    # Dynamic operator
     "compile_operator",
-    # 版本
+    # Version
     "__version__",
 ]

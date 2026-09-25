@@ -1,9 +1,10 @@
 /**
  * @file basic_components.cpp
- * @brief 基础组件实现
- * @details 实现 basic_components.h 中声明的核心数据结构：
- *          StateInfoType 元组访问辅助函数、StateStorage 状态存储、
- *          System 全局寄存器管理与寄存器增删查改，以及 merge/remove_system 等自由函数
+ * @brief Basic component implementations
+ * @details Implements the core data structures declared in basic_components.h:
+ *          the StateInfoType tuple access helpers, StateStorage state storage, System global
+ *          register management with register add/remove/query/update, and free functions such as
+ *          merge/remove_system
  */
 
 #include "basic_components.h"
@@ -339,7 +340,7 @@ namespace qram_simulator
 
 	size_t System::add_register(std::string_view name, StateStorageType type, size_t size)
 	{
-		// 优先复用已回收的寄存器槽位，避免 name_register_map 无限增长
+		// Prefer reusing recycled register slots to avoid unbounded growth of name_register_map
 		if (!reusable_registers.empty())
 		{
 			size_t reg_id = reusable_registers.back();
@@ -416,8 +417,9 @@ namespace qram_simulator
 	{
 		if (id >= name_register_map.size())
 			throw_general_runtime_error("Register not found.");
-		// 先并行清零所有分支系统中该寄存器的值，再从全局注册表移除；
-		// 多线程分支（OpenMP）与单线程分支（SINGLE_THREAD）逻辑一致
+		// First zero this register's value in all branch systems in parallel, then remove it from
+		// the global registry; the multithreaded (OpenMP) and single-threaded (SINGLE_THREAD)
+		// branches have identical logic
 #ifdef SINGLE_THREAD
 		for (auto& s : state)
 		{
@@ -458,7 +460,7 @@ namespace qram_simulator
 
 	bool System::operator<(const System& rhs) const	
 	{
-		// 仅比较激活的寄存器，按寄存器 ID 升序作字典序比较
+		// Compares only activated registers, lexicographically in ascending register-ID order
 		for (size_t i = 0; i < name_register_map.size(); ++i)
 		{
 			if (!status_of(i))

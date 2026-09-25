@@ -14,18 +14,19 @@
 
 /**
  * @file block_encoding.h
- * @brief 块编码实验的公共工具与编译开关
- * @details 提供复数/实数向量的格式化打印与结果向量补零扩展辅助函数，
- *          并集中定义块编码相关实现优化开关（OPTIMIZE_HADAM_INT、
- *          OPTIMIZE_ROT 等）。具体的块编码算子见 BlockEncoding/ 子目录
- *          （block_encoding_tridiagonal.h、block_encoding_via_QRAM.h、make_qram.h）
+ * @brief Common utilities and compile-time switches for block encoding experiments
+ * @details Provides formatted printing of complex/real vectors and a helper that zero-pads
+ *          result vectors, and centrally defines the implementation optimization switches for
+ *          block encoding (OPTIMIZE_HADAM_INT, OPTIMIZE_ROT, etc.). The concrete block encoding
+ *          operators live in the BlockEncoding/ subdirectory
+ *          (block_encoding_tridiagonal.h, block_encoding_via_QRAM.h, make_qram.h)
  */
 
 namespace qram_simulator {
 	/**
-	 * @brief 按指定精度打印复数向量
-	 * @param zvec 复数向量
-	 * @param precision 小数位数
+	 * @brief Print a complex vector with the given precision
+	 * @param zvec Complex vector
+	 * @param precision Number of decimal places
 	 */
 	inline void print_complex_vec(const std::vector<complex_t>& zvec, int precision)
 	{
@@ -38,10 +39,10 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 把复数结果向量补零扩展到主寄存器空间的 4 倍维度
-	 * @param vec 原始结果向量
-	 * @param size 主寄存器空间的维数
-	 * @return 补零后的新向量
+	 * @brief Zero-pad the complex result vector to 4 times the main register space dimension
+	 * @param vec Original result vector
+	 * @param size Dimension of the main register space
+	 * @return New zero-padded vector
 	 */
 	inline std::vector<complex_t> get_output(const std::vector<complex_t> &vec, int size)
 	{
@@ -52,10 +53,11 @@ namespace qram_simulator {
 	}
 
 	/**
-	 * @brief 把实数结果向量补零扩展到主寄存器空间的 4 倍维度（get_output 的实数版）
-	 * @param vec 原始结果向量
-	 * @param size 主寄存器空间的维数
-	 * @return 补零后的新向量
+	 * @brief Zero-pad the real result vector to 4 times the main register space dimension
+	 *        (real-valued version of get_output)
+	 * @param vec Original result vector
+	 * @param size Dimension of the main register space
+	 * @return New zero-padded vector
 	 */
 	inline std::vector<double> get_output(const std::vector<double> &vec, int size)
 	{

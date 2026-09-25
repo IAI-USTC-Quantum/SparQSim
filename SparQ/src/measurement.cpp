@@ -1,7 +1,8 @@
 /**
  * @file measurement.cpp
- * @brief 测量实现
- * @details 实现 measurement.h 中声明的 MeasureZ、Reset、Probability（中间电路测量/复位/概率查询）
+ * @brief Measurement implementation
+ * @details Implements MeasureZ, Reset, and Probability declared in measurement.h (mid-circuit measurement /
+ *          reset / probability query)
  */
 #include "measurement.h"
 
@@ -10,8 +11,8 @@ namespace qram_simulator
 	namespace
 	{
 		/**
-		 * @brief 校验寄存器 ID 存在且处于激活状态
-		 * @throws invalid_argument ID 越界或已被移除/未激活
+		 * @brief Validate that a register ID exists and is active
+		 * @throws invalid_argument The ID is out of range or has been removed / is not active
 		 */
 		void validate_register_id(size_t id, const char* context)
 		{
@@ -27,9 +28,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 按名称解析寄存器 ID，并校验其存在且激活
-		 * @throws invalid_argument 名称未找到（`System::get` 对未知/未激活
-		 *         名称返回 `SIZE_MAX`，这里转换为一个可捕获的显式异常）
+		 * @brief Resolve a register ID by name and validate that it exists and is active
+		 * @throws invalid_argument The name was not found (`System::get` returns `SIZE_MAX` for unknown /
+		 *         inactive names; this converts that into an explicit catchable exception)
 		 */
 		size_t resolve_register(std::string_view name, const char* context)
 		{
@@ -41,8 +42,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 校验寄存器 ID 列表中没有重复项
-		 * @throws invalid_argument 存在重复的寄存器 ID
+		 * @brief Validate that a list of register IDs contains no duplicates
+		 * @throws invalid_argument A duplicate register ID exists
 		 */
 		void validate_unique_registers(const std::vector<size_t>& ids, const char* context)
 		{
@@ -53,10 +54,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 校验一个值能被寄存器的位宽表示
-		 * @details `size_of(id) == 64` 时任意 `uint64_t` 都合法（避免
-		 *          `1ull << 64` 的未定义行为）。
-		 * @throws invalid_argument 值超出 `[0, 2^size_of(id))` 范围
+		 * @brief Validate that a value can be represented by the register's bit width
+		 * @details When `size_of(id) == 64`, any `uint64_t` is legal (this avoids the undefined
+		 *          behavior of `1ull << 64`).
+		 * @throws invalid_argument The value is outside the range `[0, 2^size_of(id))`
 		 */
 		void validate_value_fits_register(size_t id, uint64_t value, const char* context)
 		{
@@ -74,7 +75,7 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 解析并校验一组寄存器名称，返回其 ID 列表（要求互不重复）
+		 * @brief Resolve and validate a set of register names, returning their ID list (duplicates not allowed)
 		 */
 		std::vector<size_t> resolve_and_validate(const std::vector<std::string>& names, const char* context)
 		{
@@ -87,7 +88,7 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 校验一组寄存器 ID（均存在、激活、互不重复）
+		 * @brief Validate a set of register IDs (all must exist, be active, and be mutually distinct)
 		 */
 		void validate_ids(const std::vector<size_t>& ids, const char* context)
 		{

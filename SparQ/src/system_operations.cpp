@@ -1,7 +1,8 @@
 ﻿/**
  * @file system_operations.cpp
- * @brief 寄存器/系统操作实现
- * @details 实现 system_operations.h 中声明的 AddRegister、RemoveRegister、SplitRegister、CombineRegister、Push、Pop 等
+ * @brief Register/system operations implementation
+ * @details Implements AddRegister, RemoveRegister, SplitRegister, CombineRegister, Push, Pop, etc. declared in
+ *          system_operations.h
  */
 #include "system_operations.h"
 #include "quantum_arithmetic.h"
@@ -381,7 +382,7 @@ namespace qram_simulator
 	}
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4715) // warning: 不是所有的控件路径都返回值
+#pragma warning(disable : 4715) // warning: not all control paths return a value
 #endif
 
 	complex_t StateLoad::load_amplitude(const std::string& line) const

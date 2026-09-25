@@ -1,8 +1,8 @@
 /**
  * @file qram.h
- * @brief QRAM (Quantum Random Access Memory) 操作定义
- * @details 实现量子随机存取存储器的加载操作和输入生成器，
- *          支持 QRAMLoad、QRAMLoadFast 和 QRAMInputGenerator
+ * @brief QRAM (Quantum Random Access Memory) operation definitions
+ * @details Implements the load operations and the input generator of the quantum random access
+ *          memory, supporting QRAMLoad, QRAMLoadFast and QRAMInputGenerator
  */
 
 #pragma once
@@ -13,38 +13,38 @@
 namespace qram_simulator 
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief QRAM 加载操作类
-	 * @details 实现量子随机存取存储器的标准加载操作
-	 * @note 仅适配 qram_qutrit::QRAMCircuit，如需 qubit 版本请使用 QRAMLoad_Qubit
+	 * @brief QRAM load operation class
+	 * @details Implements the standard load operation of the quantum random access memory
+	 * @note Only adapted for qram_qutrit::QRAMCircuit; use QRAMLoad_Qubit for the qubit version
 	 */
 	struct QRAMLoad : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief QRAM 电路指针 */
+		/** @brief QRAM circuit pointer */
 		const qram_qutrit::QRAMCircuit* qram;
 
-		/** @brief 地址寄存器 ID */
+		/** @brief Address register ID */
 		size_t register_addr;
 
-		/** @brief 数据寄存器 ID */
+		/** @brief Data register ID */
 		size_t register_data;
 
-		/** @brief 版本字符串 */
+		/** @brief Version string */
 		static std::string version;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param qram_ QRAM 电路指针
-		 * @param reg1 地址寄存器 ID
-		 * @param reg2 数据寄存器 ID
-		 * @throws 当地址寄存器类型不是无符号整数时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param qram_ QRAM circuit pointer
+		 * @param reg1 Address register ID
+		 * @param reg2 Data register ID
+		 * @throws Throws an exception when the address register type is not an unsigned integer
 		 */
 		QRAMLoad(const qram_qutrit::QRAMCircuit* qram_, size_t reg1, size_t reg2)
 			: register_addr(reg1), register_data(reg2)
@@ -61,40 +61,40 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param qram QRAM 电路指针
-		 * @param reg1 地址寄存器名称
-		 * @param reg2 数据寄存器名称
+		 * @brief Constructor (name version)
+		 * @param qram QRAM circuit pointer
+		 * @param reg1 Address register name
+		 * @param reg2 Data register name
 		 */
 		QRAMLoad(const qram_qutrit::QRAMCircuit* qram, std::string_view reg1, std::string_view reg2)
 			: QRAMLoad(qram, System::get(reg1), System::get(reg2))
 		{ }
 
 		/**
-		 * @brief 无噪声实现
-		 * @param state 系统状态向量
+		 * @brief Noise-free implementation
+		 * @param state System state vector
 		 */
 		void noise_free_impl(std::vector<System>& state) const;
 
 		/**
-		 * @brief 设置分支（内部实现）
-		 * @param qram QRAM 电路指针
-		 * @param state 系统状态向量
-		 * @param groups 分组信息
+		 * @brief Set branches (internal implementation)
+		 * @param qram QRAM circuit pointer
+		 * @param state System state vector
+		 * @param groups Grouping information
 		 */
 		void _set_branches(qram_qutrit::QRAMCircuit* qram,
 			const std::vector<System>& state,
 			std::vector<std::pair<size_t, size_t>>& groups) const;
 
 		/**
-		 * @brief 设置分支实现（递归）
-		 * @param qram QRAM 电路指针
-		 * @param state 系统状态向量
-		 * @param branches 分支信息
-		 * @param branch_probs 分支概率
-		 * @param iter_l 左迭代边界
-		 * @param iter_r 右迭代边界
-		 * @param groups 分组信息
+		 * @brief Set branches implementation (recursive)
+		 * @param qram QRAM circuit pointer
+		 * @param state System state vector
+		 * @param branches Branch information
+		 * @param branch_probs Branch probabilities
+		 * @param iter_l Left iteration boundary
+		 * @param iter_r Right iteration boundary
+		 * @param groups Grouping information
 		 */
 		void _set_branches_impl(qram_qutrit::QRAMCircuit* qram, const std::vector<System>& state,
 			decltype(qram->get_branches()) branches,
@@ -103,137 +103,137 @@ namespace qram_simulator
 			std::vector<std::pair<size_t, size_t>>& groups) const;
 
 		/**
-		 * @brief 重构操作
-		 * @param qram QRAM 电路指针
-		 * @param state 系统状态向量
-		 * @param groups 分组信息
+		 * @brief Reconstruct operation
+		 * @param qram QRAM circuit pointer
+		 * @param state System state vector
+		 * @param groups Grouping information
 		 */
 		void _reconstruct(qram_qutrit::QRAMCircuit* qram, 
 			std::vector<System>& state,
 			std::vector<std::pair<size_t, size_t>>& groups) const;
 
 		/**
-		 * @brief 应用 QRAM 加载操作
-		 * @param state 系统状态向量
+		 * @brief Apply the QRAM load operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 无噪声实现
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA noise-free implementation
+		 * @param state CUDA sparse state
 		 */
 		void noise_free_impl(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用 QRAM 加载操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the QRAM load operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif	
 	};
 
 	/**
-	 * @brief 快速 QRAM 加载操作类
-	 * @details 优化版本的 QRAM 加载操作，性能更高
-	 * @note 仅适配 qram_qutrit::QRAMCircuit
+	 * @brief Fast QRAM load operation class
+	 * @details Optimized version of the QRAM load operation with higher performance
+	 * @note Only adapted for qram_qutrit::QRAMCircuit
 	 */
 	struct QRAMLoadFast : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief QRAM 电路指针 */
+		/** @brief QRAM circuit pointer */
 		const qram_qutrit::QRAMCircuit* qram;
 
-		/** @brief 地址寄存器 ID */
+		/** @brief Address register ID */
 		size_t register_addr;
 
-		/** @brief 数据寄存器 ID */
+		/** @brief Data register ID */
 		size_t register_data;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param qram QRAM 电路指针
-		 * @param reg1 地址寄存器 ID
-		 * @param reg2 数据寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param qram QRAM circuit pointer
+		 * @param reg1 Address register ID
+		 * @param reg2 Data register ID
 		 */
 		QRAMLoadFast(const qram_qutrit::QRAMCircuit* qram, size_t reg1, size_t reg2);
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param qram QRAM 电路指针
-		 * @param reg1 地址寄存器名称
-		 * @param reg2 数据寄存器名称
+		 * @brief Constructor (name version)
+		 * @param qram QRAM circuit pointer
+		 * @param reg1 Address register name
+		 * @param reg2 Data register name
 		 */
 		QRAMLoadFast(const qram_qutrit::QRAMCircuit* qram, std::string_view reg1, std::string_view reg2);
 
 		/**
-		 * @brief 无噪声实现
-		 * @param state 系统状态向量
+		 * @brief Noise-free implementation
+		 * @param state System state vector
 		 */
 		void noise_free_impl(std::vector<System>& state) const;
 
 		/**
-		 * @brief 带阻尼实现
-		 * @param state 系统状态向量
-		 * @param qram QRAM 电路指针
-		 * @param state_remove_cache 状态移除缓存
+		 * @brief Implementation with damping
+		 * @param state System state vector
+		 * @param qram QRAM circuit pointer
+		 * @param state_remove_cache State removal cache
 		 */
 		void has_damping_impl(std::vector<System>& state, qram_qutrit::QRAMCircuit* qram, std::vector<System>& state_remove_cache) const;
 
 		/**
-		 * @brief 无阻尼实现
-		 * @param state 系统状态向量
-		 * @param qram QRAM 电路指针
-		 * @param state_remove_cache 状态移除缓存
+		 * @brief Implementation without damping
+		 * @param state System state vector
+		 * @param qram QRAM circuit pointer
+		 * @param state_remove_cache State removal cache
 		 */
 		void no_damping_impl(std::vector<System>& state, qram_qutrit::QRAMCircuit* qram, std::vector<System>& state_remove_cache) const;
 
 		/**
-		 * @brief 应用快速 QRAM 加载操作
-		 * @param state 系统状态向量
+		 * @brief Apply the fast QRAM load operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 	};
 
 
 	/**
-	 * @brief QRAM 输入生成器
-	 * @details 生成用于 QRAM 测试的随机输入状态
+	 * @brief QRAM input generator
+	 * @details Generates random input states for QRAM testing
 	 */
 	struct QRAMInputGenerator
 	{
-		/** @brief 唯一输入集合 */
+		/** @brief Unique input set */
 		std::set<std::pair<size_t, size_t>> unique_set;
 
-		/** @brief 地址大小 */
+		/** @brief Address size */
 		size_t addr_sz;
 
-		/** @brief 数据大小 */
+		/** @brief Data size */
 		size_t data_sz;
 
-		/** @brief 输入大小 */
+		/** @brief Input size */
 		size_t input_sz;
 
-		/** @brief 地址分布 */
+		/** @brief Address distribution */
 		std::uniform_int_distribution<size_t> addr_dist;
 
-		/** @brief 数据分布 */
+		/** @brief Data distribution */
 		std::uniform_int_distribution<size_t> data_dist;
 
-		/** @brief 地址值 */
+		/** @brief Address value */
 		size_t addr;
 
-		/** @brief 数据值 */
+		/** @brief Data value */
 		size_t data;
 
 		/**
-		 * @brief 构造函数（随机地址和数据）
-		 * @param addr_sz_ 地址大小
-		 * @param data_sz_ 数据大小
-		 * @param input_size_ 输入大小
+		 * @brief Constructor (random address and data)
+		 * @param addr_sz_ Address size
+		 * @param data_sz_ Data size
+		 * @param input_size_ Input size
 		 */
 		QRAMInputGenerator(size_t addr_sz_, size_t data_sz_, size_t input_size_)
 			: addr_sz(addr_sz_), data_sz(data_sz_), input_sz(input_size_),
@@ -247,12 +247,12 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（指定地址和数据）
-		 * @param addr_sz_ 地址大小
-		 * @param data_sz_ 数据大小
-		 * @param input_size_ 输入大小
-		 * @param addr_ 指定地址
-		 * @param data_ 指定数据
+		 * @brief Constructor (specified address and data)
+		 * @param addr_sz_ Address size
+		 * @param data_sz_ Data size
+		 * @param input_size_ Input size
+		 * @param addr_ Specified address
+		 * @param data_ Specified data
 		 */
 		QRAMInputGenerator(size_t addr_sz_, size_t data_sz_, size_t input_size_, size_t addr_, size_t data_)
 			: addr_sz(addr_sz_), data_sz(data_sz_), input_sz(input_size_),
@@ -266,8 +266,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成随机输入
-		 * @return 地址和数据的随机对
+		 * @brief Generate a random input
+		 * @return Random pair of address and data
 		 */
 		std::pair<size_t, size_t> rand_input()
 		{
@@ -278,10 +278,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 验证寄存器有效性（内部使用）
-		 * @param addr_ 地址寄存器 ID
-		 * @param data_ 数据寄存器 ID
-		 * @throws 当寄存器 ID 超出范围时抛出异常
+		 * @brief Validate registers (internal use)
+		 * @param addr_ Address register ID
+		 * @param data_ Data register ID
+		 * @throws Throws an exception when a register ID is out of range
 		 */
 		void _validate_registers(size_t addr_, size_t data_) const
 		{
@@ -295,10 +295,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成输入状态（指定寄存器）
-		 * @param s 系统状态向量
-		 * @param addr_ 地址寄存器 ID
-		 * @param data_ 数据寄存器 ID
+		 * @brief Generate input state (with specified registers)
+		 * @param s System state vector
+		 * @param addr_ Address register ID
+		 * @param data_ Data register ID
 		 */
 		void generate_input(std::vector<System>& s, size_t addr_, size_t data_)
 		{
@@ -328,8 +328,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成输入状态（使用预设寄存器）
-		 * @param s 系统状态向量
+		 * @brief Generate input state (using preset registers)
+		 * @param s System state vector
 		 */
 		void generate_input(std::vector<System>& s)
 		{
@@ -338,10 +338,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成完整输入（所有可能的地址数据组合）
-		 * @param s 系统状态向量
-		 * @param addr_ 地址寄存器 ID
-		 * @param data_ 数据寄存器 ID
+		 * @brief Generate the full input (all possible address-data combinations)
+		 * @param s System state vector
+		 * @param addr_ Address register ID
+		 * @param data_ Data register ID
 		 */
 		void generate_full_input(std::vector<System>& s, size_t addr_, size_t data_)
 		{

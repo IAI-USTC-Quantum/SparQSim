@@ -1,15 +1,15 @@
 /**
  * @file hamiltonian_simulation.h
- * @brief CKS 量子行走与哈密顿量模拟 / 线性系统求解的算法构件
- * @details 面向 Childs-Kothari-Somma (CKS) 型算法：以稀疏矩阵的 QRAM 紧凑存储
- *          （量化元素数据表 + 每行定长的稀疏列下标表）为基础，提供稀疏矩阵
- *          oracle（元素查询 SparseMatrixOracle1、列下标与稀疏槽位互转的量子
- *          二分查找 SparseMatrixOracle2）、状态准备算子 T、单步量子行走
- *          QuantumWalk 与多步行走管理器 QuantumWalkNSteps。行走算符
- *          W = T† · P0 · T · Swap 的幂次对应矩阵的 Chebyshev 多项式，
- *          LCU 容器按 Chebyshev 系数组合 Σ_j c_j · W^(2j+1) 逼近目标函数。
- *          与 BlockEncoding 模块同属块编码 / 哈密顿量模拟算法体系，
- *          QRAM 访问语义与 SparQ/include/qram.h 保持一致。
+ * @brief Algorithm building blocks for the CKS quantum walk and Hamiltonian simulation / linear-system solving
+ * @details Targets Childs-Kothari-Somma (CKS) type algorithms: based on the compact QRAM storage of sparse matrices
+ *          (a quantized-element data table + a fixed-length-per-row sparse column-index table), it provides
+ *          sparse-matrix oracles (SparseMatrixOracle1 for element queries, SparseMatrixOracle2 — the quantum
+ *          binary search converting between column indices and sparse slots), the state-preparation operator T,
+ *          the single-step quantum walk QuantumWalk, and the multi-step walk manager QuantumWalkNSteps.
+ *          Powers of the walk operator W = T† · P0 · T · Swap correspond to Chebyshev polynomials of the matrix;
+ *          the LCU container combines Σ_j c_j · W^(2j+1) with Chebyshev coefficients to approximate the target function.
+ *          Together with the BlockEncoding module it belongs to the block-encoding / Hamiltonian-simulation
+ *          algorithm family, and its QRAM access semantics are consistent with SparQ/include/qram.h.
  */
 #pragma once
 #include "sparse_state_simulator.h"
@@ -18,20 +18,21 @@
 namespace qram_simulator
 {	
 	namespace CKS {
-		/** @brief 量子行走旋转角函数类型：由量化矩阵元素值 v 及其行列位置 (row, col) 生成 2x2 酉旋转矩阵 */
+		/** @brief Quantum-walk rotation-angle function type: generates a 2x2 unitary rotation matrix from
+		 *  the quantized matrix element value v and its row/column position (row, col) */
 		using walk_angle_function_t = std::function<u22_t(uint64_t, size_t row, size_t col)>;
 
 			/**
-			 * @brief 生成量子行走的 2x2 旋转矩阵（矩阵元素全为非负的情形）
-			 * @param mat_data_size 矩阵元素的量化位宽
-			 * @param v 量化后的矩阵元素值
-			 * @param row 元素所在行号（本重载不使用）
-			 * @param col 元素所在列号（本重载不使用）
-			 * @param mat 输出缓冲区，按 u22_t 的实虚部交错布局写入 2x2 复数矩阵
-			 * @details 设 Amax = 2^mat_data_size - 1，a = v / Amax，生成旋转矩阵
-			 *          [[sqrt(a), -sqrt(1-a)], [sqrt(1-a), sqrt(a)]]，
-			 *          其旋转角 theta 满足 cos(theta) = sqrt(a)，
-			 *          用于量子行走中以 sqrt(a) 的振幅比例编码矩阵元素。
+			 * @brief Generates the 2x2 rotation matrix of the quantum walk (case where all matrix elements are non-negative)
+			 * @param mat_data_size Quantization bit width of the matrix element
+			 * @param v Quantized matrix element value
+			 * @param row Row index of the element (unused in this overload)
+			 * @param col Column index of the element (unused in this overload)
+			 * @param mat Output buffer; the 2x2 complex matrix is written in the real/imaginary interleaved layout of u22_t
+			 * @details Let Amax = 2^mat_data_size - 1 and a = v / Amax; generates the rotation matrix
+			 *          [[sqrt(a), -sqrt(1-a)], [sqrt(1-a), sqrt(a)]],
+			 *          whose rotation angle theta satisfies cos(theta) = sqrt(a).
+			 *          It is used in the quantum walk to encode matrix elements through the amplitude ratio sqrt(a).
 			 */
 			HOST_DEVICE	inline void _get_coef_positive_only(size_t mat_data_size, size_t v, size_t row, size_t col, double* mat)
 		{
@@ -54,8 +55,8 @@ namespace qram_simulator
 
 		//u22_t _get_coef(const SparseMatrix& mat, size_t v, size_t row, size_t col);
 		/**
-		 * @brief 生成量子行走的 2x2 旋转矩阵（仅正元素情形），以 u22_t 返回
-		 * @details 参数含义与 double* 缓冲区版本的重载一致，直接返回旋转矩阵。
+		 * @brief Generates the 2x2 rotation matrix of the quantum walk (positive-only elements case), returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_positive_only(size_t mat_data_size, size_t v, size_t row, size_t col)
 		{
@@ -65,18 +66,18 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走的 2x2 旋转矩阵（允许负元素的一般情形）
-		 * @param mat_data_size 矩阵元素的量化位宽
-		 * @param v 量化后的矩阵元素值（按二补码解释）
-		 * @param row 元素所在行号（负元素时用于确定符号约定）
-		 * @param col 元素所在列号（负元素时用于确定符号约定）
-		 * @param mat 输出缓冲区，按 u22_t 的实虚部交错布局写入 2x2 复数矩阵
-		 * @details 设 Amax = 2^(mat_data_size-1) - 1。元素非负时与仅正情形一致，
-		 *          生成 [[sqrt(a), -sqrt(1-a)], [sqrt(1-a), sqrt(a)]]（a = v/Amax）；
-		 *          元素为负时对角元取 ±i·sqrt(|a|)、反对角元取 sqrt(1-|a|)，
-		 *          并按 row 与 col 的大小关系选取对角元符号（row > col 取 +i，
-		 *          row < col 取 -i），为 Hermitian 矩阵的共轭对称元素
-		 *          提供一致的相位约定。
+		 * @brief Generates the 2x2 rotation matrix of the quantum walk (general case allowing negative elements)
+		 * @param mat_data_size Quantization bit width of the matrix element
+		 * @param v Quantized matrix element value (interpreted in two's complement)
+		 * @param row Row index of the element (used to fix the sign convention for negative elements)
+		 * @param col Column index of the element (used to fix the sign convention for negative elements)
+		 * @param mat Output buffer; the 2x2 complex matrix is written in the real/imaginary interleaved layout of u22_t
+		 * @details Let Amax = 2^(mat_data_size-1) - 1. For non-negative elements it coincides with the positive-only
+		 *          case, generating [[sqrt(a), -sqrt(1-a)], [sqrt(1-a), sqrt(a)]] (a = v/Amax);
+		 *          for negative elements the diagonal entries become ±i·sqrt(|a|) and the anti-diagonal entries
+		 *          sqrt(1-|a|), with the sign of the diagonal entries chosen by comparing row and col (+i when
+		 *          row > col, -i when row < col), providing a consistent phase convention for the conjugate-symmetric
+		 *          elements of a Hermitian matrix.
 		 */
 		HOST_DEVICE	inline void _get_coef_common(size_t mat_data_size, uint64_t v, size_t row, size_t col, double* mat)
 		{
@@ -136,8 +137,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走的 2x2 旋转矩阵（允许负元素的一般情形），以 u22_t 返回
-		 * @details 参数含义与 double* 缓冲区版本的重载一致，直接返回旋转矩阵。
+		 * @brief Generates the 2x2 rotation matrix of the quantum walk (general case allowing negative elements), returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_common(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -147,8 +148,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 原地计算 2x2 矩阵的共轭转置（dagger）
-		 * @param mat 2x2 复数矩阵（按 u22_t 的实虚部交错布局，原地修改）
+		 * @brief Computes the conjugate transpose (dagger) of a 2x2 matrix in place
+		 * @param mat 2x2 complex matrix (real/imaginary interleaved layout of u22_t, modified in place)
 		 */
 		HOST_DEVICE	inline void u22_dagger(double* mat)
 		{
@@ -168,9 +169,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走 2x2 旋转矩阵的逆（仅正元素情形）
-		 * @details 先生成正向旋转矩阵，再对其取共轭转置（dagger）。
-		 *          参数含义与正向版本一致。
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (positive-only elements case)
+		 * @details First generates the forward rotation matrix, then takes its conjugate transpose (dagger).
+		 *          The parameters have the same meaning as in the forward version.
 		 */
 		HOST_DEVICE	inline void  _get_coef_positive_only_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col, double* mat)
 		{
@@ -179,9 +180,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走 2x2 旋转矩阵的逆（允许负元素的一般情形）
-		 * @details 先生成正向旋转矩阵，再对其取共轭转置（dagger）。
-		 *          参数含义与正向版本一致。
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative elements)
+		 * @details First generates the forward rotation matrix, then takes its conjugate transpose (dagger).
+		 *          The parameters have the same meaning as in the forward version.
 		 */
 		HOST_DEVICE	inline void _get_coef_common_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col, double* mat)
 		{
@@ -190,8 +191,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走 2x2 旋转矩阵的逆（仅正元素情形），以 u22_t 返回
-		 * @details 参数含义与 double* 缓冲区版本的重载一致，直接返回逆旋转矩阵。
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (positive-only elements case), returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the inverse rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_positive_only_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -201,8 +202,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 生成量子行走 2x2 旋转矩阵的逆（允许负元素的一般情形），以 u22_t 返回
-		 * @details 参数含义与 double* 缓冲区版本的重载一致，直接返回逆旋转矩阵。
+		 * @brief Generates the inverse of the quantum-walk 2x2 rotation matrix (general case allowing negative elements),
+		 *          returned as u22_t
+		 * @details The parameters have the same meaning as in the double* buffer overload; directly returns the inverse rotation matrix.
 		 */
 		HOST_DEVICE	inline u22_t _get_coef_common_inv(size_t mat_data_size, uint64_t v, size_t row, size_t col)
 		{
@@ -212,14 +214,14 @@ namespace qram_simulator
 		}
 
 			/**
-			 * @brief 按稀疏矩阵的符号约定生成量子行走旋转矩阵
-			 * @param mat 稀疏矩阵（使用其 positive_only 与 data_size 元数据）
-			 * @param v 量化后的矩阵元素值
-			 * @param row 元素所在行号
-			 * @param col 元素所在列号
-			 * @return 2x2 酉旋转矩阵（正向）
-			 * @details 矩阵仅含非负元素时走 _get_coef_positive_only 路径，
-			 *          否则走允许负元素的 _get_coef_common 路径。
+			 * @brief Generates the quantum-walk rotation matrix according to the sparse matrix's sign convention
+			 * @param mat Sparse matrix (its positive_only and data_size metadata are used)
+			 * @param v Quantized matrix element value
+			 * @param row Row index of the element
+			 * @param col Column index of the element
+			 * @return 2x2 unitary rotation matrix (forward)
+			 * @details If the matrix contains only non-negative elements, the _get_coef_positive_only path is taken;
+			 *          otherwise the _get_coef_common path, which allows negative elements, is taken.
 			 */
 			inline u22_t make_qw_rotation_matrix(const SparseMatrix& mat, uint64_t v, size_t row, size_t col)
 			{
@@ -229,12 +231,13 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 按稀疏矩阵的符号约定生成量子行走旋转矩阵的逆（dagger）
-			 * @param mat 稀疏矩阵（使用其 positive_only 与 data_size 元数据）
-			 * @param v 量化后的矩阵元素值
-			 * @param row 元素所在行号
-			 * @param col 元素所在列号
-			 * @return 2x2 酉旋转矩阵的逆
+			 * @brief Generates the inverse (dagger) of the quantum-walk rotation matrix according to the sparse matrix's
+			 *          sign convention
+			 * @param mat Sparse matrix (its positive_only and data_size metadata are used)
+			 * @param v Quantized matrix element value
+			 * @param row Row index of the element
+			 * @param col Column index of the element
+			 * @return Inverse of the 2x2 unitary rotation matrix
 			 */
 			inline u22_t make_qw_rotation_matrix_inv(const SparseMatrix& mat, uint64_t v, size_t row, size_t col)
 			{
@@ -244,9 +247,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造延迟求值的行走旋转角函数（正向）
-			 * @param mat 稀疏矩阵（捕获其 positive_only 与 data_size）
-			 * @return 以 (v, row, col) 为输入、返回 2x2 旋转矩阵的函数对象
+			 * @brief Constructs a lazily evaluated walk rotation-angle function (forward)
+			 * @param mat Sparse matrix (captures its positive_only and data_size)
+			 * @return A function object taking (v, row, col) as input and returning the 2x2 rotation matrix
 			 */
 			inline walk_angle_function_t make_func(const SparseMatrix& mat)
 			{
@@ -267,9 +270,9 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 构造延迟求值的行走旋转角函数（逆向 / dagger）
-			 * @param mat 稀疏矩阵（捕获其 positive_only 与 data_size）
-			 * @return 以 (v, row, col) 为输入、返回 2x2 逆旋转矩阵的函数对象
+			 * @brief Constructs a lazily evaluated walk rotation-angle function (inverse / dagger)
+			 * @param mat Sparse matrix (captures its positive_only and data_size)
+			 * @return A function object taking (v, row, col) as input and returning the 2x2 inverse rotation matrix
 			 */
 			inline walk_angle_function_t make_func_inv(const SparseMatrix& mat)
 			{
@@ -296,40 +299,40 @@ namespace qram_simulator
 			// =============================================================================
 
 			/**
-			 * @brief 量子行走旋转角计算算子（自伴）
-			 * @details 由量化矩阵元素 v 计算比率 ratio = |a_jk| / Amax（仅正元素时
-			 *          Amax = 2^data_size - 1；一般情形 Amax = 2^(data_size-1) - 1，
-			 *          v 按二补码解释后取绝对值），将旋转角
-			 *          theta = arccos(sqrt(ratio)) / (2*pi) 量化为 Rational 定点值
-			 *          并 XOR 到输出寄存器。常与 CondRot_Fixed_Bool 组合，构成广义
-			 *          条件旋转 CondRot_General_Bool_QW 的两步等价实现：
-			 *          先计算角度、再做固定角度旋转、最后反计算角度。
-			 *          支持条件控制（ClassControllable）。
+			 * @brief Quantum-walk rotation-angle computation operator (self-adjoint)
+			 * @details Computes the ratio ratio = |a_jk| / Amax from the quantized matrix element v (for positive-only
+			 *          elements Amax = 2^data_size - 1; in the general case Amax = 2^(data_size-1) - 1, with v
+			 *          interpreted in two's complement and taken in absolute value), then quantizes the rotation angle
+			 *          theta = arccos(sqrt(ratio)) / (2*pi) into a Rational fixed-point value
+			 *          and XORs it into the output register. Usually combined with CondRot_Fixed_Bool to form a
+			 *          two-step equivalent implementation of the general conditional rotation
+			 *          CondRot_General_Bool_QW: first compute the angle, then apply a fixed-angle rotation, and
+			 *          finally uncompute the angle. Supports conditional control (ClassControllable).
 			 */
 			struct GetQWRotateAngle_Int_Int_Int : SelfAdjointOperator
 			{
 				using SelfAdjointOperator::operator();
 				using SelfAdjointOperator::dag;
 
-				/** @brief 量化矩阵元素寄存器 ID */
+				/** @brief Register ID of the quantized matrix element */
 				size_t data_id;
-				/** @brief 行号寄存器 ID */
+				/** @brief Register ID of the row index */
 				size_t row_id;
-				/** @brief 列号（稀疏槽位）寄存器 ID */
+				/** @brief Register ID of the column index (sparse slot) */
 				size_t col_id;
-				/** @brief 旋转角输出寄存器 ID（Rational 定点） */
+				/** @brief Register ID of the rotation-angle output (Rational fixed-point) */
 				size_t out_id;
-				/** @brief 指向稀疏矩阵（提供量化与符号约定元数据） */
+				/** @brief Pointer to the sparse matrix (provides quantization and sign-convention metadata) */
 				const SparseMatrix* mat;
 				ClassControllable
 
 				/**
-				 * @brief 构造函数（寄存器名称版本）
-				 * @param data_ 量化矩阵元素寄存器名称
-				 * @param row_ 行号寄存器名称
-				 * @param col_ 列号（稀疏槽位）寄存器名称
-				 * @param out_ 旋转角输出寄存器名称
-				 * @param mat_ 稀疏矩阵指针
+				 * @brief Constructor (register-name version)
+				 * @param data_ Name of the quantized matrix element register
+				 * @param row_ Name of the row-index register
+				 * @param col_ Name of the column-index (sparse slot) register
+				 * @param out_ Name of the rotation-angle output register
+				 * @param mat_ Pointer to the sparse matrix
 				 */
 				GetQWRotateAngle_Int_Int_Int(
 					std::string_view data_, std::string_view row_, std::string_view col_,
@@ -340,12 +343,12 @@ namespace qram_simulator
 				}
 
 				/**
-				 * @brief 构造函数（寄存器 ID 版本）
-				 * @param data_ 量化矩阵元素寄存器 ID
-				 * @param row_ 行号寄存器 ID
-				 * @param col_ 列号（稀疏槽位）寄存器 ID
-				 * @param out_ 旋转角输出寄存器 ID
-				 * @param mat_ 稀疏矩阵指针
+				 * @brief Constructor (register-ID version)
+				 * @param data_ Register ID of the quantized matrix element
+				 * @param row_ Register ID of the row index
+				 * @param col_ Register ID of the column index (sparse slot)
+				 * @param out_ Register ID of the rotation-angle output
+				 * @param mat_ Pointer to the sparse matrix
 				 */
 				GetQWRotateAngle_Int_Int_Int(
 					size_t data_, size_t row_, size_t col_, size_t out_, const SparseMatrix* mat_)
@@ -354,29 +357,29 @@ namespace qram_simulator
 				}
 
 				/**
-				 * @brief 计算行走旋转角并写入输出寄存器
-				 * @param state 系统状态向量
-				 * @note 算子自伴：重复调用两次相互抵消。
+				 * @brief Computes the walk rotation angle and writes it to the output register
+				 * @param state System state vector
+				 * @note The operator is self-adjoint: two consecutive invocations cancel each other.
 				 */
 				void operator()(std::vector<System>& state) const;
 			};
 
 		// Chebyshev approach
 		/**
-		 * @brief CKS 算法的 Chebyshev 多项式展开系数
-		 * @details 为 LCU 组合 Σ_j c_j · W^(2j+1) 提供系数 c_j 与符号：
-		 *          展开阶数 b = kappa^2 · log(kappa/eps)，截断点 j0 = sqrt(b·log(4b/eps))。
-		 *          b 较大时用 erfc 渐近公式计算 c_j，b 较小时按二项分布
-		 *          尾部概率精确求和；奇数 j 项取负号。
+		 * @brief Chebyshev polynomial expansion coefficients for the CKS algorithm
+		 * @details Provides the coefficients c_j and their signs for the LCU combination Σ_j c_j · W^(2j+1):
+		 *          expansion order b = kappa^2 · log(kappa/eps), truncation point j0 = sqrt(b·log(4b/eps)).
+		 *          For large b, c_j is computed with the erfc asymptotic formula; for small b, the binomial-distribution
+		 *          tail probability is summed exactly; odd-j terms take a negative sign.
 		 */
 		struct ChebyshevPolynomialCoefficient
 		{
-			/** @brief 展开阶数参数 b = kappa^2 · log(kappa/eps) */
+			/** @brief Expansion-order parameter b = kappa^2 · log(kappa/eps) */
 			size_t b;
 
 			/**
-			 * @brief 构造函数
-			 * @param b_ Chebyshev 展开阶数参数
+			 * @brief Constructor
+			 * @param b_ Chebyshev expansion-order parameter
 			 */
 			ChebyshevPolynomialCoefficient(size_t b_)
 				:b(b_)
@@ -385,37 +388,37 @@ namespace qram_simulator
 			// C(Big, Small) (pick Small from Big)
 			// Big*...(Big-Small+1)/(Small*...1)
 			/**
-			 * @brief 计算按 4^b 缩放的二项式系数 C(Big, Small) / 4^b
-			 * @param Big 二项式上参数
-			 * @param Small 二项式下参数
+			 * @brief Computes the binomial coefficient C(Big, Small) / 4^b, scaled by 4^b
+			 * @param Big Upper parameter of the binomial coefficient
+			 * @param Small Lower parameter of the binomial coefficient
 			 * @return C(Big, Small) / 4^b
-			 * @note 递推过程中一旦中间值超过 2^b 即提前除以 2^b，避免溢出。
+			 * @note During the recursion, as soon as the intermediate value exceeds 2^b it is divided by 2^b to avoid overflow.
 			 */
 			double C(size_t Big, size_t Small);
 
 			// Given b, provide j from 0 to b-1
 			/**
-			 * @brief 计算 Chebyshev 展开的第 j 项系数 c_j
-			 * @param j 项下标（0 到 b-1）
-			 * @return 系数 c_j
-			 * @details b > 100 时采用 erfc 渐近公式 c_j = 2·erfc((j+0.5)/sqrt(b))；
-			 *          否则按二项分布尾部精确求和 c_j = 4 · Σ_{i=j+1}^{b} C(2b, b+i)。
+			 * @brief Computes the j-th coefficient c_j of the Chebyshev expansion
+			 * @param j Term index (0 to b-1)
+			 * @return Coefficient c_j
+			 * @details For b > 100, uses the erfc asymptotic formula c_j = 2·erfc((j+0.5)/sqrt(b));
+			 *          otherwise sums the binomial-distribution tail exactly: c_j = 4 · Σ_{i=j+1}^{b} C(2b, b+i).
 			 */
 			double coef(size_t j);
 
 			// return true if - (odd)
 			// return false if + (even)
 			/**
-			 * @brief 第 j 项的符号
-			 * @param j 项下标
-			 * @return j 为奇数时返回 true（取负号），偶数返回 false（取正号）
+			 * @brief Sign of the j-th term
+			 * @param j Term index
+			 * @return Returns true for odd j (negative sign), false for even j (positive sign)
 			 */
 			bool sign(size_t j);
 
 			/**
-			 * @brief 第 j 项对应的量子行走步数
-			 * @param j 项下标
-			 * @return 行走步数 2j + 1
+			 * @brief Number of quantum-walk steps for the j-th term
+			 * @param j Term index
+			 * @return Number of walk steps 2j + 1
 			 */
 			size_t step(size_t j);
 		};
@@ -424,45 +427,45 @@ namespace qram_simulator
 		// Note: CondRot_General_Bool_QW is kept for future specialized use but not exported to Python.
 		// Current code uses GetQWRotateAngle + CondRot_Fixed_Bool instead.
 		/**
-		 * @brief 量子行走的广义条件旋转算子
-		 * @details 依据量化矩阵元素 (v, j, k) 由行走旋转角函数生成 2x2 酉矩阵，
-		 *          并作用于布尔输出寄存器：先按输出寄存器排序分组状态分支，
-		 *          再按矩阵形态（对角 / 反对角 / 一般）分派到对应实现；
-		 *          dag 使用逆旋转角函数。保留供未来专用路径使用，
-		 *          当前主路径使用 GetQWRotateAngle + CondRot_Fixed_Bool 的
-		 *          两步组合替代。
+		 * @brief General conditional-rotation operator for the quantum walk
+		 * @details Generates a 2x2 unitary matrix from the quantized matrix element (v, j, k) via the walk
+		 *          rotation-angle function and applies it to the Boolean output register: state branches are first
+		 *          sorted and grouped by the output register, then dispatched to the matching implementation by
+		 *          matrix shape (diagonal / anti-diagonal / general); dag uses the inverse rotation-angle function.
+		 *          Kept for future specialized paths; the current main path replaces it with the two-step
+		 *          combination GetQWRotateAngle + CondRot_Fixed_Bool.
 		 */
 		struct CondRot_General_Bool_QW : BaseOperator
 		{
 			using BaseOperator::operator();
 			using BaseOperator::dag;
 
-			/** @brief 行号寄存器名称 */
+			/** @brief Name of the row-index register */
 			std::string j;
-			/** @brief 列号（稀疏槽位）寄存器名称 */
+			/** @brief Name of the column-index (sparse slot) register */
 			std::string k;
-			/** @brief 输入（矩阵元素）寄存器名称 */
+			/** @brief Name of the input (matrix element) register */
 			std::string in_name;
-			/** @brief 输出布尔寄存器名称 */
+			/** @brief Name of the output Boolean register */
 			std::string out_name;
-			/** @brief 行号寄存器 ID */
+			/** @brief Register ID of the row index */
 			size_t j_id;
-			/** @brief 列号（稀疏槽位）寄存器 ID */
+			/** @brief Register ID of the column index (sparse slot) */
 			size_t k_id;
-			/** @brief 输入（矩阵元素）寄存器 ID */
+			/** @brief Register ID of the input (matrix element) */
 			size_t in_id;
-			/** @brief 输出布尔寄存器 ID */
+			/** @brief Register ID of the output Boolean register */
 			size_t out_id;
-			/** @brief 指向稀疏矩阵（提供量化与符号约定元数据） */
+			/** @brief Pointer to the sparse matrix (provides quantization and sign-convention metadata) */
 			const SparseMatrix* mat;
 
 			/**
-			 * @brief 构造函数
-			 * @param j_ 行号寄存器名称
-			 * @param k_ 列号（稀疏槽位）寄存器名称
-			 * @param reg_in 输入（矩阵元素）寄存器名称
-			 * @param reg_out 输出布尔寄存器名称
-			 * @param mat 稀疏矩阵指针
+			 * @brief Constructor
+			 * @param j_ Name of the row-index register
+			 * @param k_ Name of the column-index (sparse slot) register
+			 * @param reg_in Name of the input (matrix element) register
+			 * @param reg_out Name of the output Boolean register
+			 * @param mat Pointer to the sparse matrix
 			 */
 			CondRot_General_Bool_QW(
 				std::string_view j_, std::string_view k_, std::string_view reg_in, std::string_view reg_out,
@@ -475,67 +478,69 @@ namespace qram_simulator
 			}
 
 			/**
-			 * @brief 对状态区间 [l, r) 内的分支执行旋转
-			 * @param l 区间左边界
-			 * @param r 区间右边界
-			 * @param state 系统状态向量
-			 * @param func 行走旋转角函数（由矩阵元素与行列位置生成 2x2 矩阵）
+			 * @brief Applies the rotation to the branches within the state interval [l, r)
+			 * @param l Left boundary of the interval
+			 * @param r Right boundary of the interval
+			 * @param state System state vector
+			 * @param func Walk rotation-angle function (generates the 2x2 matrix from the matrix element and its
+			 *          row/column position)
 			 */
 			void operate(size_t l, size_t r, std::vector<System>& state, walk_angle_function_t func) const;
 
 			/**
-			 * @brief 检查矩阵是否为对角矩阵
-			 * @param data 2x2 矩阵
-			 * @return 是否为对角矩阵
+			 * @brief Checks whether the matrix is diagonal
+			 * @param data 2x2 matrix
+			 * @return Whether the matrix is diagonal
 			 */
 			static bool _is_diagonal(const u22_t& data);
 
 			/**
-			 * @brief 对角矩阵操作实现（不产生新分支，原地缩放振幅）
-			 * @param l 区间左边界
-			 * @param r 区间右边界
-			 * @param state 系统状态向量
-			 * @param mat 2x2 对角矩阵
+			 * @brief Diagonal-matrix operation implementation (creates no new branches; scales amplitudes in place)
+			 * @param l Left boundary of the interval
+			 * @param r Right boundary of the interval
+			 * @param state System state vector
+			 * @param mat 2x2 diagonal matrix
 			 */
 			void _operate_diagonal(size_t l, size_t r,
 				std::vector<System>& state, const u22_t& mat) const;
 
 			/**
-			 * @brief 检查矩阵是否为反对角矩阵
-			 * @param data 2x2 矩阵
-			 * @return 是否为反对角矩阵
+			 * @brief Checks whether the matrix is anti-diagonal
+			 * @param data 2x2 matrix
+			 * @return Whether the matrix is anti-diagonal
 			 */
 			static bool _is_off_diagonal(const u22_t& data);
 
 			/**
-			 * @brief 反对角矩阵操作实现（不产生新分支，原地交换翻转布尔值）
-			 * @param l 区间左边界
-			 * @param r 区间右边界
-			 * @param state 系统状态向量
-			 * @param mat 2x2 反对角矩阵
+			 * @brief Anti-diagonal matrix operation implementation (creates no new branches; swaps and flips the
+			 *          Boolean value in place)
+			 * @param l Left boundary of the interval
+			 * @param r Right boundary of the interval
+			 * @param state System state vector
+			 * @param mat 2x2 anti-diagonal matrix
 			 */
 			void _operate_off_diagonal(size_t l, size_t r,
 				std::vector<System>& state, const u22_t& mat) const;
 
 			/**
-			 * @brief 一般 2x2 矩阵操作实现（可能创建新分支）
-			 * @param l 区间左边界
-			 * @param r 区间右边界
-			 * @param state 系统状态向量
-			 * @param mat 2x2 一般酉矩阵
+			 * @brief General 2x2 matrix operation implementation (may create new branches)
+			 * @param l Left boundary of the interval
+			 * @param r Right boundary of the interval
+			 * @param state System state vector
+			 * @param mat General 2x2 unitary matrix
 			 */
 			void _operate_general(size_t l, size_t r,
 				std::vector<System>& state, const u22_t& mat) const;
 
 			/**
-			 * @brief 应用广义条件旋转（正向）
-			 * @param state 系统状态向量
+			 * @brief Applies the general conditional rotation (forward)
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 
 			/**
-			 * @brief 应用广义条件旋转的 dagger 操作
-			 * @param state 系统状态向量
+			 * @brief Applies the dagger of the general conditional rotation
+			 * @param state System state vector
 			 */
 			void dag(std::vector<System>& state) const;
 #ifdef USE_CUDA
@@ -546,40 +551,41 @@ namespace qram_simulator
 
 		// quantum binary search
 		/**
-		 * @brief 基于 QRAM 的量子二分查找算子（自伴）
-		 * @details 在 QRAM 有序存储区 [offset, offset + total_length) 内查找
-		 *          与目标寄存器值相等的地址：每轮由 flag 控制后续轮次的有效性，
-		 *          取区间中点地址经 QRAM 加载中值并与目标比较，命中则把中点地址
-		 *          XOR 写入结果寄存器并更新 flag 终止有效查找；否则按大小关系
-		 *          收缩区间。各轮的临时寄存器用 Push 保存、逆序 Pop 反计算，
-		 *          保证整个操作可逆且自伴（impl_dag 直接复用 impl）。
+		 * @brief QRAM-based quantum binary search operator (self-adjoint)
+		 * @details Searches the sorted QRAM memory region [offset, offset + total_length) for the address whose
+		 *          value equals the target register's value: in each round, flag controls whether subsequent rounds
+		 *          remain active; the interval's midpoint address is taken, its value loaded via QRAM and compared
+		 *          with the target — on a hit, the midpoint address is XORed into the result register and flag is
+		 *          updated to end the active search; otherwise the interval shrinks according to the comparison.
+		 *          Each round's temporary registers are saved with Push and uncomputed by Pop in reverse order,
+		 *          keeping the whole operation reversible and self-adjoint (impl_dag simply reuses impl).
 		 */
 		struct QuantumBinarySearch : SelfAdjointOperator
 		{
 			using SelfAdjointOperator::operator();
 			using SelfAdjointOperator::dag;
 
-			/** @brief QRAM 电路指针（提供被查找的有序内存） */
+			/** @brief Pointer to the QRAM circuit (provides the sorted memory being searched) */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 查找区间长度 */
+			/** @brief Length of the search interval */
 			size_t total_length;
-			/** @brief 二分查找轮数（log2(total_length) + 1） */
+			/** @brief Number of binary-search rounds (log2(total_length) + 1) */
 			size_t max_step;
 
-			/** @brief 查找起点偏移寄存器 ID（其值为区间左端地址） */
+			/** @brief Register ID of the search start offset (its value is the interval's left-end address) */
 			size_t address_offset_id;
-			/** @brief 目标值寄存器 ID */
+			/** @brief Register ID of the target value */
 			size_t target_id;
-			/** @brief 结果寄存器 ID（命中地址以 XOR 方式写入） */
+			/** @brief Register ID of the result (the hit address is written by XOR) */
 			size_t result_id;
 
 			/**
-			 * @brief 构造函数（寄存器名称版本）
-			 * @param qram QRAM 电路指针
-			 * @param address_offset_register 查找起点偏移寄存器名称
-			 * @param total_length_ 查找区间长度
-			 * @param target_register 目标值寄存器名称
-			 * @param result_register 结果寄存器名称
+			 * @brief Constructor (register-name version)
+			 * @param qram Pointer to the QRAM circuit
+			 * @param address_offset_register Name of the search start offset register
+			 * @param total_length_ Length of the search interval
+			 * @param target_register Name of the target value register
+			 * @param result_register Name of the result register
 			 */
 			QuantumBinarySearch(qram_qutrit::QRAMCircuit* qram,
 				std::string_view address_offset_register,
@@ -588,12 +594,12 @@ namespace qram_simulator
 				std::string_view result_register);
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版本）
-			 * @param qram QRAM 电路指针
-			 * @param address_offset_register 查找起点偏移寄存器 ID
-			 * @param total_length_ 查找区间长度
-			 * @param target_register 目标值寄存器 ID
-			 * @param result_register 结果寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param qram Pointer to the QRAM circuit
+			 * @param address_offset_register Register ID of the search start offset
+			 * @param total_length_ Length of the search interval
+			 * @param target_register Register ID of the target value
+			 * @param result_register Register ID of the result
 			 */
 			QuantumBinarySearch(qram_qutrit::QRAMCircuit* qram,
 				size_t address_offset_register,
@@ -602,10 +608,10 @@ namespace qram_simulator
 				size_t result_register);
 
 			/**
-			 * @brief 二分查找的正向实现（同时作为 dagger 实现）
-			 * @param state 系统状态向量
-			 * @details 前向执行 max_step 轮查找后，逆序反计算全部临时寄存器，
-			 *          整体为自伴操作。
+			 * @brief Forward implementation of the binary search (also serves as the dagger implementation)
+			 * @param state System state vector
+			 * @details After running max_step search rounds forward, all temporary registers are uncomputed in
+			 *          reverse order, so the whole is a self-adjoint operation.
 			 */
 			template<typename Ty>
 			void impl(Ty& state) const {
@@ -712,9 +718,9 @@ namespace qram_simulator
 		
 
 			/**
-			 * @brief 二分查找的 dagger 实现
-			 * @param state 系统状态向量
-			 * @details 算子自伴，直接复用正向实现。
+			 * @brief Dagger implementation of the binary search
+			 * @param state System state vector
+			 * @details The operator is self-adjoint and directly reuses the forward implementation.
 			 */
 			template<typename Ty>
 			void impl_dag(Ty& state) const {
@@ -726,40 +732,40 @@ namespace qram_simulator
 
 		// quantum binary search
 		/**
-		 * @brief 量子二分查找的快速版本
-		 * @details 在模拟器层面直接对各状态分支执行经典二分查找
-		 *          （省去逐轮 QRAM 加载与反计算的开销），并将命中地址 XOR 写入
-		 *          结果寄存器，查找语义与 QuantumBinarySearch 一致；
-		 *          供 SparseMatrixOracle2 在稀疏槽位定位中使用。
+		 * @brief Fast version of the quantum binary search
+		 * @details Directly performs a classical binary search on each state branch at the simulator level
+		 *          (avoiding the per-round QRAM load and uncomputation overhead) and XORs the hit address into
+		 *          the result register; the search semantics match QuantumBinarySearch.
+		 *          Used by SparseMatrixOracle2 for sparse-slot localization.
 		 */
 		struct QuantumBinarySearch_Fast : SelfAdjointOperator
 		{
 			using SelfAdjointOperator::operator();
 			using SelfAdjointOperator::dag;
 
-			/** @brief QRAM 电路指针（提供被查找的有序内存） */
+			/** @brief Pointer to the QRAM circuit (provides the sorted memory being searched) */
 			qram_qutrit::QRAMCircuit* qram;
-			/** @brief 查找区间长度 */
+			/** @brief Length of the search interval */
 			size_t total_length;
-			/** @brief 二分查找轮数（log2(total_length) + 1） */
+			/** @brief Number of binary-search rounds (log2(total_length) + 1) */
 			size_t max_step;
 
-			/** @brief 查找起点偏移寄存器 ID（其值为区间左端地址） */
+			/** @brief Register ID of the search start offset (its value is the interval's left-end address) */
 			size_t address_offset_id;
-			/** @brief 目标值寄存器 ID */
+			/** @brief Register ID of the target value */
 			size_t target_id;
-			/** @brief 结果寄存器 ID（命中地址以 XOR 方式写入） */
+			/** @brief Register ID of the result (the hit address is written by XOR) */
 			size_t result_id;
 
 			//int iteration_level;
 
 			/**
-			 * @brief 构造函数（寄存器名称版本）
-			 * @param qram QRAM 电路指针
-			 * @param address_offset_register 查找起点偏移寄存器名称
-			 * @param total_length_ 查找区间长度
-			 * @param target_register 目标值寄存器名称
-			 * @param result_register 结果寄存器名称
+			 * @brief Constructor (register-name version)
+			 * @param qram Pointer to the QRAM circuit
+			 * @param address_offset_register Name of the search start offset register
+			 * @param total_length_ Length of the search interval
+			 * @param target_register Name of the target value register
+			 * @param result_register Name of the result register
 			 */
 			QuantumBinarySearch_Fast(qram_qutrit::QRAMCircuit* qram,
 				std::string_view address_offset_register,
@@ -768,12 +774,12 @@ namespace qram_simulator
 				std::string_view result_register);
 
 			/**
-			 * @brief 构造函数（寄存器 ID 版本）
-			 * @param qram QRAM 电路指针
-			 * @param address_offset_register 查找起点偏移寄存器 ID
-			 * @param total_length_ 查找区间长度
-			 * @param target_register 目标值寄存器 ID
-			 * @param result_register 结果寄存器 ID
+			 * @brief Constructor (register-ID version)
+			 * @param qram Pointer to the QRAM circuit
+			 * @param address_offset_register Register ID of the search start offset
+			 * @param total_length_ Length of the search interval
+			 * @param target_register Register ID of the target value
+			 * @param result_register Register ID of the result
 			 */
 			QuantumBinarySearch_Fast(qram_qutrit::QRAMCircuit* qram,
 				size_t address_offset_register,
@@ -782,16 +788,16 @@ namespace qram_simulator
 				size_t result_register);
 
 			/**
-			 * @brief 在单个状态分支上执行经典二分查找
-			 * @param offset 查找区间起始地址
-			 * @param target 目标值
-			 * @return 命中地址；未命中时返回 0
+			 * @brief Performs a classical binary search on a single state branch
+			 * @param offset Start address of the search interval
+			 * @param target Target value
+			 * @return The hit address; returns 0 on a miss
 			 */
 			size_t binary_search(size_t offset, size_t target) const;
 
 			/**
-			 * @brief 应用快速二分查找（逐分支经典计算）
-			 * @param state 系统状态向量
+			 * @brief Applies the fast binary search (classical computation branch by branch)
+			 * @param state System state vector
 			 */
 			void operator()(std::vector<System>& state) const;
 #ifdef USE_CUDA

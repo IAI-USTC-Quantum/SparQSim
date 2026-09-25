@@ -1,7 +1,9 @@
 /**
  * @file dark_magic.cu
- * @brief dark_magic 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 dark_magic.h 中声明的特殊优化算子（针对特定电路结构的手工优化路径）（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of dark_magic
+ * @details Implements with thrust device vectors and CUDA kernels the specially optimized operators declared in
+ *          dark_magic.h (hand-optimized paths for specific circuit structures) (GPU path; the GPU build is
+ *          temporarily disabled in CMake)
  */
 #include "dark_magic.h"
 #include "cuda_utils.cuh"

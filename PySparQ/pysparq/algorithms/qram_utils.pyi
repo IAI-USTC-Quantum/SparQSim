@@ -1,4 +1,4 @@
-"""QRAM 电路构建的经典辅助函数。"""
+"""Classical helper functions for building QRAM circuits."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from typing import Union
 import numpy as np
 
 PI: float
-"""与 C++ ``constexpr double pi`` 匹配的 Pi 常量。"""
+"""Pi constant matching the C++ ``constexpr double pi``."""
 
 
 def pow2(n: int) -> int:
-    """通过左移返回 ``2**n``，匹配 ``basic.h`` 语义。"""
+    """Return ``2**n`` via a left shift, matching ``basic.h`` semantics."""
     ...
 
 
@@ -57,4 +57,4 @@ def make_func_inv(value: int, n_digit: int) -> list[complex]:
 
 def create_qram_utils_demo() -> str:
     """返回展示本模块典型用法的演示脚本字符串。"""
-    ...
+  

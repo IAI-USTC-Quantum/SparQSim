@@ -1,7 +1,9 @@
 /**
  * @file parallel_phase_operations.cu
- * @brief parallel_phase_operations 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 parallel_phase_operations.h 中声明的并行相位类算子（多基态同时施加相位）（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of parallel_phase_operations
+ * @details Implements the parallel phase operators declared in parallel_phase_operations.h (applying phases
+ *          to multiple basis states at once) with thrust device vectors and CUDA kernels (GPU path; GPU
+ *          builds are currently disabled in CMake)
  */
 #include "parallel_phase_operations.h"
 #include "debugger.h"

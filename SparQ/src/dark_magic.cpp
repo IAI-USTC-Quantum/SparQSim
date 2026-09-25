@@ -1,7 +1,8 @@
 /**
  * @file dark_magic.cpp
- * @brief 暗魔法算子实现
- * @details 实现 dark_magic.h 中声明的特殊优化算子（针对特定电路结构的手工优化路径）
+ * @brief Dark magic operators implementation
+ * @details Implements the specially optimized operators declared in dark_magic.h (hand-optimized paths for
+ *          specific circuit structures)
  */
 #include "dark_magic.h"
 

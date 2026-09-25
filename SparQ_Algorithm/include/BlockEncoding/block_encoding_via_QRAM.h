@@ -1,11 +1,13 @@
 ﻿/**
  * @file block_encoding_via_QRAM.h
- * @brief 基于 QRAM 的任意矩阵块编码
- * @details 通过 U_L / U_R 量子游走分解构造矩阵 A 的块编码：U_L|col⟩|0⟩ = |col⟩|a_col⟩
- *          按列索引制备归一化列向量，U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩ 制备列范数分布，
- *          二者组合 U_A = SWAP(row, col) · U_R†(col) · U_L(row, col) 满足
- *          ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij，数据由 QRAM 层级树结点提供。
- *          与 make_qram.h（数据量化与树构建）配合使用
+ * @brief QRAM-based block encoding of arbitrary matrices
+ * @details Constructs the block encoding of a matrix A via the U_L / U_R quantum walk
+ *          decomposition: U_L|col⟩|0⟩ = |col⟩|a_col⟩ prepares the normalized column vector
+ *          indexed by the column index, U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩ prepares the column-norm
+ *          distribution, and their combination U_A = SWAP(row, col) · U_R†(col) · U_L(row, col)
+ *          satisfies ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij, with the data provided by the
+ *          QRAM hierarchy tree nodes.
+ *          Used together with make_qram.h (data quantization and tree construction)
  */
 
 #pragma once
@@ -23,35 +25,38 @@ namespace qram_simulator {
 		namespace block_encoding_via_QRAM
 		{
 			/**
-			 * @brief 右乘算子 U_R（列范数状态制备）
-			 * @details 实现 U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩（a_i 为 A 的第 i 列）：
-			 *          自高位向低位逐位遍历列地址寄存器，借助 QRAM 加载树的父/子结点值，
-			 *          由 Div_Sqrt_Arccos_UInt_UInt 计算旋转角 arccos(√(child/parent))
-			 *          并做条件旋转（CondRot_Fixed_Bool），从树根向下制备出归一化的
-			 *          列范数叠加态；每步之后逐步逆计算清理辅助寄存器。
-			 *          支持条件控制（ClassControllable）
+			 * @brief Right-multiplication operator U_R (column-norm state preparation)
+			 * @details Implements U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩ (a_i is the i-th column of A):
+			 *          iterate over the column address register bit by bit from the most
+			 *          significant to the least significant bit, use the parent/child node values
+			 *          of the QRAM loading tree, compute the rotation angle
+			 *          arccos(√(child/parent)) with Div_Sqrt_Arccos_UInt_UInt and perform a
+			 *          conditional rotation (CondRot_Fixed_Bool), preparing the normalized
+			 *          column-norm superposition state from the tree root downward; after each
+			 *          step the ancilla registers are cleaned up by uncomputing step by step.
+			 *          Supports conditional control (ClassControllable)
 			 */
 			struct U_R : BaseOperator
 			{
-				/** @brief 列索引寄存器名称 */
+				/** @brief Column index register name */
 				std::string column_index;
-				/** @brief 列地址寄存器位宽 */
+				/** @brief Column address register width */
 				size_t addr_size;
-				/** @brief 数据寄存器位宽（定点量化位数） */
+				/** @brief Data register width (fixed-point quantization bit count) */
 				size_t data_size;
-				/** @brief 有理数（旋转角）寄存器位宽 */
+				/** @brief Rational (rotation angle) register width */
 				size_t rational_size;
-				/** @brief QRAM 电路指针（存储列范数树） */
+				/** @brief QRAM circuit pointer (stores the column-norm tree) */
 				qram_qutrit::QRAMCircuit* qram;
 
 				ClassControllable
 
 				/**
-				 * @brief 构造函数
-				 * @param qram_ QRAM 电路指针
-				 * @param column_index_ 列索引寄存器名称
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_ QRAM circuit pointer
+				 * @param column_index_ Column index register name
+				 * @param dsz Data register width
+				 * @param rsz Rational register width
 				 */
 				U_R(qram_qutrit::QRAMCircuit* qram_,
 					std::string_view column_index_,
@@ -60,10 +65,12 @@ namespace qram_simulator {
 				{}
 
 				/**
-				 * @brief U_R 电路实现（正向）
-				 * @param state 系统状态向量
-				 * @details 每个地址位一次迭代：拆出旋转位 → 拼接父/子地址 → QRAM 加载
-				 *          结点值 → 计算旋转角并条件旋转 → 逆计算还原地址与数据寄存器
+				 * @brief U_R circuit implementation (forward)
+				 * @param state System state vector
+				 * @details One iteration per address bit: split off the rotation bit → concatenate
+				 *          the parent/child addresses → QRAM-load the node values → compute the
+				 *          rotation angle and rotate conditionally → uncompute to restore the
+				 *          address and data registers
 				 */
 				template<typename Ty>
 				void impl(Ty& state) const
@@ -115,9 +122,10 @@ namespace qram_simulator {
 				}
 
 				/**
-				 * @brief U_R 电路实现（dagger，逆向）
-				 * @param state 系统状态向量
-				 * @details 按与 impl 相反的地址位顺序执行逆条件旋转与逆计算
+				 * @brief U_R circuit implementation (dagger, reverse)
+				 * @param state System state vector
+				 * @details Executes the inverse conditional rotations and uncomputations in the
+				 *          address-bit order opposite to impl
 				 */
 				template<typename Ty>
 				void impl_dag(Ty& state) const
@@ -172,38 +180,42 @@ namespace qram_simulator {
 			};
 
 			/**
-			 * @brief 左乘算子 U_L（按列索引制备归一化列向量）
-			 * @details 实现 U_L|col⟩|0⟩ = |col⟩|a_col⟩（|a_col⟩ 为第 col 列对应的
-			 *          归一化量子态）：遍历行地址寄存器的高 addr_size 位，每步由
-			 *          行/列索引拼接出 QRAM 树结点的父/子地址（addr_child = 2·addr_parent + 1），
-			 *          加载结点值后计算旋转角并条件旋转逐层下行；最后一层（叶子层）
-			 *          改用 GetRotateAngle_Int_Int 以 atan2 型角度处理符号。
-			 *          支持条件控制（ClassControllable）
+			 * @brief Left-multiplication operator U_L (prepares the normalized column vector
+			 *        indexed by the column index)
+			 * @details Implements U_L|col⟩|0⟩ = |col⟩|a_col⟩ (|a_col⟩ is the normalized quantum
+			 *          state corresponding to column col): iterate over the top addr_size bits of
+			 *          the row address register; each step concatenates the row/column indices
+			 *          into the parent/child addresses of the QRAM tree nodes
+			 *          (addr_child = 2·addr_parent + 1), loads the node values, computes the
+			 *          rotation angle and rotates conditionally while descending layer by layer;
+			 *          the last layer (the leaf layer) instead uses GetRotateAngle_Int_Int with
+			 *          an atan2-type angle to handle signs.
+			 *          Supports conditional control (ClassControllable)
 			 */
 			struct U_L : BaseOperator
 			{
-				/** @brief 行索引寄存器名称 */
+				/** @brief Row index register name */
 				std::string row_index;
-				/** @brief 列索引寄存器名称 */
+				/** @brief Column index register name */
 				std::string column_index;
-				/** @brief 单侧地址寄存器位宽 */
+				/** @brief One-sided address register width */
 				size_t addr_size;
-				/** @brief 数据寄存器位宽（定点量化位数） */
+				/** @brief Data register width (fixed-point quantization bit count) */
 				size_t data_size;
-				/** @brief 有理数（旋转角）寄存器位宽 */
+				/** @brief Rational (rotation angle) register width */
 				size_t rational_size;
-				/** @brief QRAM 电路指针（存储矩阵 A 的树结构） */
+				/** @brief QRAM circuit pointer (stores the tree structure of matrix A) */
 				qram_qutrit::QRAMCircuit* qram;
 
 				ClassControllable
 
 				/**
-				 * @brief 构造函数
-				 * @param qram_ QRAM 电路指针
-				 * @param row_index_ 行索引寄存器名称
-				 * @param column_index_ 列索引寄存器名称
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_ QRAM circuit pointer
+				 * @param row_index_ Row index register name
+				 * @param column_index_ Column index register name
+				 * @param dsz Data register width
+				 * @param rsz Rational register width
 				 */
 				U_L(qram_qutrit::QRAMCircuit* qram_,
 					std::string_view row_index_,
@@ -213,10 +225,12 @@ namespace qram_simulator {
 				{}
 
 				/**
-				 * @brief U_L 电路实现（正向）
-				 * @param state 系统状态向量
-				 * @details 逐位迭代：拆出旋转位 → 拼接父/子地址 → QRAM 加载 → 条件旋转
-				 *          → 逆计算还原地址；非末层用 Div_Sqrt_Arccos，末层用 GetRotateAngle
+				 * @brief U_L circuit implementation (forward)
+				 * @param state System state vector
+				 * @details Bit-by-bit iteration: split off the rotation bit → concatenate the
+				 *          parent/child addresses → QRAM load → conditional rotation → uncompute
+				 *          to restore the addresses; non-final layers use Div_Sqrt_Arccos, the
+				 *          final layer uses GetRotateAngle
 				 */
 				template<typename Ty>
 				void impl(Ty& state) const
@@ -289,9 +303,10 @@ namespace qram_simulator {
 				}
 
 				/**
-				 * @brief U_L 电路实现（dagger，逆向）
-				 * @param state 系统状态向量
-				 * @details 按与 impl 相反的地址位顺序执行逆条件旋转与逆计算
+				 * @brief U_L circuit implementation (dagger, reverse)
+				 * @param state System state vector
+				 * @details Executes the inverse conditional rotations and uncomputations in the
+				 *          address-bit order opposite to impl
 				 */
 				template<typename Ty>
 				void impl_dag(Ty& state) const
@@ -382,34 +397,36 @@ namespace qram_simulator {
 			<i|_col<0|_row U_A |j>_col|0>_row=A_{ij}⟩
 			*/
 			/**
-			 * @brief 基于 QRAM 的矩阵块编码算子 U_A
-			 * @details 组合 U_A = SWAP(row, col) · U_R†(col) · U_L(row, col)，满足块编码定义
-			 *          U_A|φ⟩_col|0⟩_row = A|φ⟩_col|0⟩_row + |ψ⊥⟩，
-			 *          即 ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij（编码尺度由 QRAM 树
-			 *          根结点存储的归一化因子决定）。支持条件控制（ClassControllable）
+			 * @brief QRAM-based matrix block encoding operator U_A
+			 * @details Combines U_A = SWAP(row, col) · U_R†(col) · U_L(row, col), which satisfies
+			 *          the block encoding definition
+			 *          U_A|φ⟩_col|0⟩_row = A|φ⟩_col|0⟩_row + |ψ⊥⟩,
+			 *          i.e., ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij (the encoding scale is
+			 *          determined by the normalization factor stored at the QRAM tree root).
+			 *          Supports conditional control (ClassControllable)
 			 */
 			struct Block_Encoding_via_QRAM : BaseOperator
 			{
-				/** @brief 列索引寄存器名称 */
+				/** @brief Column index register name */
 				std::string column_index;
-				/** @brief 行索引寄存器名称 */
+				/** @brief Row index register name */
 				std::string row_index;
-				/** @brief 单侧地址寄存器位宽 */
+				/** @brief One-sided address register width */
 				size_t addr_size;
-				/** @brief 数据寄存器位宽（定点量化位数） */
+				/** @brief Data register width (fixed-point quantization bit count) */
 				size_t data_size;
-				/** @brief 有理数（旋转角）寄存器位宽 */
+				/** @brief Rational (rotation angle) register width */
 				size_t rational_size;
-				/** @brief QRAM 电路指针（存储矩阵 A 的树结构） */
+				/** @brief QRAM circuit pointer (stores the tree structure of matrix A) */
 				qram_qutrit::QRAMCircuit* qram;
 				ClassControllable
 				/**
-				 * @brief 构造函数
-				 * @param qram_ QRAM 电路指针
-				 * @param column_index_ 列索引寄存器名称
-				 * @param row_index_ 行索引寄存器名称
-				 * @param dsz 数据寄存器位宽
-				 * @param rsz 有理数寄存器位宽
+				 * @brief Constructor
+				 * @param qram_ QRAM circuit pointer
+				 * @param column_index_ Column index register name
+				 * @param row_index_ Row index register name
+				 * @param dsz Data register width
+				 * @param rsz Rational register width
 				 */
 				Block_Encoding_via_QRAM(qram_qutrit::QRAMCircuit* qram_,
 					std::string_view column_index_,
@@ -423,8 +440,8 @@ namespace qram_simulator {
 				};
 
 				/**
-				 * @brief 块编码电路实现（正向）：U_L → U_R† → SWAP
-				 * @param state 系统状态向量
+				 * @brief Block encoding circuit implementation (forward): U_L → U_R† → SWAP
+				 * @param state System state vector
 				 */
 				template<typename Ty>
 				void impl(Ty& state) const
@@ -441,8 +458,8 @@ namespace qram_simulator {
 				}
 
 				/**
-				 * @brief 块编码电路实现（dagger）：SWAP → U_R → U_L†
-				 * @param state 系统状态向量
+				 * @brief Block encoding circuit implementation (dagger): SWAP → U_R → U_L†
+				 * @param state System state vector
 				 */
 				template<typename Ty>
 				void impl_dag(Ty& state) const

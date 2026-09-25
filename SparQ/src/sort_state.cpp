@@ -1,7 +1,7 @@
 /**
  * @file sort_state.cpp
- * @brief 状态排序实现
- * @details 实现 sort_state.h 中声明的基态排序算子（按激活寄存器键排序/合并）
+ * @brief State sorting implementation
+ * @details Implements the basis-state sorting operators declared in sort_state.h (sorting/merging by the active register key)
  */
 #include "sort_state.h"
 

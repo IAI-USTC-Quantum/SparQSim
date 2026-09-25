@@ -1,11 +1,13 @@
 /**
  * @file BindUtils.h
- * @brief PySparQ 绑定层公共工具定义
- * @details 定义 pybind11 绑定模块（core.cpp）复用的共享 Python docstring
- *          常量（pysparq_docs 命名空间）与注册宏：可控方法批量绑定
- *          （BIND_CONTROLLABLE_METHODS）、算子类注册（BIND_BASE_OPERATOR /
- *          BIND_SELF_ADJOINT_OPERATOR / BIND_BASE_OPERATOR_SUBNAME）
- *          以及 dagger 方法绑定（BIND_DAG_METHODS）
+ * @brief Common utilities for the PySparQ binding layer
+ * @details Defines shared Python docstring constants (the pysparq_docs
+ *          namespace) and registration macros reused by the pybind11 binding
+ *          module (core.cpp): batch binding of controllable methods
+ *          (BIND_CONTROLLABLE_METHODS), operator class registration
+ *          (BIND_BASE_OPERATOR / BIND_SELF_ADJOINT_OPERATOR /
+ *          BIND_BASE_OPERATOR_SUBNAME), and dagger method binding
+ *          (BIND_DAG_METHODS)
  */
 
 #include "pybind11/pybind11.h"
@@ -27,14 +29,15 @@ using namespace std;
 // Shared docstrings for controllable methods (used by 38+ operators)
 // ============================================================================
 /**
- * @brief 共享 Python docstring 常量命名空间
- * @details 集中存放可控方法等被数十个算子类共用的 docstring 文本，
- *          供各绑定宏（BIND_CONTROLLABLE_METHODS / BIND_DAG_METHODS）引用，
- *          避免在多处重复内联字符串
+ * @brief Namespace of shared Python docstring constants
+ * @details Centrally stores docstring text shared by dozens of operator
+ *          classes (e.g. the controllable methods), referenced by the binding
+ *          macros (BIND_CONTROLLABLE_METHODS / BIND_DAG_METHODS), avoiding
+ *          repeated inline strings in many places
  */
 namespace pysparq_docs {
 
-/** @brief conditioned_by_nonzeros 系列重载的共享 docstring（按寄存器非零值设置控制条件） */
+/** @brief Shared docstring for the conditioned_by_nonzeros overloads (set the control condition on registers with nonzero values) */
 inline constexpr const char* DOC_CONDITIONED_BY_NONZEROS =
     "Condition this operation on registers with nonzero values.\n\n"
     "Calling this method replaces prior nonzero-register conditions. Pass the\n"
@@ -48,7 +51,7 @@ inline constexpr const char* DOC_CONDITIONED_BY_NONZEROS =
     "Example:\n"
     "    op.conditioned_by_nonzeros('control_reg')(state)";
 
-/** @brief conditioned_by_all_ones 系列重载的共享 docstring（按寄存器全 1 设置控制条件） */
+/** @brief Shared docstring for the conditioned_by_all_ones overloads (set the control condition on registers that are all ones) */
 inline constexpr const char* DOC_CONDITIONED_BY_ALL_ONES =
     "Condition this operation on registers where all bits are 1.\n\n"
     "Calling this method replaces prior all-ones conditions. Pass the list\n"
@@ -60,7 +63,7 @@ inline constexpr const char* DOC_CONDITIONED_BY_ALL_ONES =
     "Returns:\n"
     "    Self, for method chaining.";
 
-/** @brief conditioned_by_bit 系列重载的共享 docstring（按指定位位置设置控制条件） */
+/** @brief Shared docstring for the conditioned_by_bit overloads (set the control condition on a specific bit position) */
 inline constexpr const char* DOC_CONDITIONED_BY_BIT =
     "Condition this operation on a specific bit position.\n\n"
     "Calling this method replaces prior bit conditions. Pass the list-of-pairs\n"
@@ -73,7 +76,7 @@ inline constexpr const char* DOC_CONDITIONED_BY_BIT =
     "Returns:\n"
     "    Self, for method chaining.";
 
-/** @brief conditioned_by_value 系列重载的共享 docstring（按寄存器取值设置控制条件） */
+/** @brief Shared docstring for the conditioned_by_value overloads (set the control condition on registers holding a specific value) */
 inline constexpr const char* DOC_CONDITIONED_BY_VALUE =
     "Condition this operation on registers holding a specific value.\n\n"
     "Calling this method replaces prior value conditions. Pass the list-of-pairs\n"
@@ -86,14 +89,14 @@ inline constexpr const char* DOC_CONDITIONED_BY_VALUE =
     "Returns:\n"
     "    Self, for method chaining.";
 
-/** @brief dag 方法（伴随/逆操作）的共享 docstring */
+/** @brief Shared docstring for the dag method (adjoint/inverse operation) */
 inline constexpr const char* DOC_DAG =
     "Apply the adjoint (inverse) of this operation.\n\n"
     "Args:\n"
     "    state: The quantum state to operate on.\n\n"
     "Note: Only available for self-adjoint operators.";
 
-/** @brief clear_control_* 系列（清除指定类型控制条件）的共享 docstring */
+/** @brief Shared docstring for the clear_control_* family (clear control conditions of the specified type) */
 inline constexpr const char* DOC_CLEAR_CONTROL =
     "Clear all control conditions of the specified type.";
 
@@ -101,13 +104,15 @@ inline constexpr const char* DOC_CLEAR_CONTROL =
 
 // Bind ClassControllable classes extra methods and attributes
 /**
- * @brief 批量绑定可控（ClassControllable）算子类的条件控制方法与条件变量属性
- * @details 展开为一条 .def(...) 链，包含：
- *          四个 condition_variable_* 只读属性、conditioned_by_nonzeros /
+ * @brief Batch-bind the conditional control methods and condition-variable
+ *        attributes of a controllable (ClassControllable) operator class
+ * @details Expands to a single .def(...) chain containing: the four
+ *          condition_variable_* read-only attributes, the four groups of
+ *          overloaded condition-setting methods conditioned_by_nonzeros /
  *          conditioned_by_all_ones / conditioned_by_bit / conditioned_by_value
- *          四组多载条件设置方法（docstring 取自 pysparq_docs 命名空间），
- *          以及对应的 clear_control_* 清除方法
- * @param CLASS_NAME 待绑定可控方法的算子类名
+ *          (docstrings taken from the pysparq_docs namespace), and the
+ *          corresponding clear_control_* clearing methods
+ * @param CLASS_NAME Name of the operator class whose controllable methods are to be bound
  */
 #define BIND_CONTROLLABLE_METHODS(CLASS_NAME)                                                                                                                               \
     .def_readonly("condition_variable_nonzeros", &CLASS_NAME::condition_variable_nonzeros)                                                                                  \
@@ -153,9 +158,9 @@ inline constexpr const char* DOC_CLEAR_CONTROL =
 
 // Macro with optional class docstring (variadic macro for backward compatibility)
 /**
- * @brief 注册一个派生自 BaseOperator 的算子类
- * @param NAME C++ 类名（同时作为 Python 侧导出的类名）
- * @param ... 可选的类级 docstring（透传给 py::class_ 构造）
+ * @brief Register an operator class derived from BaseOperator
+ * @param NAME C++ class name (also used as the exported Python class name)
+ * @param ... Optional class-level docstring (forwarded to the py::class_ constructor)
  */
 #define BIND_BASE_OPERATOR(NAME, ...) \
     py::class_<NAME, BaseOperator>(m, #NAME, ##__VA_ARGS__)
@@ -169,11 +174,12 @@ inline constexpr const char* DOC_CLEAR_CONTROL =
    calling operator() in Python. However, the underlying mechanism is unclear
    to me, so I just use a workaround to avoid the issue. */
 /**
- * @brief 注册一个派生自 SelfAdjointOperator 的自伴算子类
- * @details Windows 平台下额外显式绑定 __call__（operator()），
- *          以绕开继承的 operator() 在 Python 调用时出现的问题（见上方英文说明）
- * @param NAME C++ 类名（同时作为 Python 侧导出的类名）
- * @param ... 可选的类级 docstring（透传给 py::class_ 构造）
+ * @brief Register a self-adjoint operator class derived from SelfAdjointOperator
+ * @details On Windows, additionally binds __call__ (operator()) explicitly to
+ *          work around the issue with calling the inherited operator() from
+ *          Python (see the English note above)
+ * @param NAME C++ class name (also used as the exported Python class name)
+ * @param ... Optional class-level docstring (forwarded to the py::class_ constructor)
  */
 #ifdef _WIN32
 #define BIND_SELF_ADJOINT_OPERATOR(NAME, ...)                                                                     \
@@ -185,17 +191,17 @@ inline constexpr const char* DOC_CLEAR_CONTROL =
 #endif
 
 /**
- * @brief 注册一个派生自 BaseOperator 的算子类（自定义 Python 类名）
- * @param NAME C++ 类名
- * @param PYNAME Python 侧导出的类名（可与 C++ 类名不同）
- * @param ... 可选的类级 docstring（透传给 py::class_ 构造）
+ * @brief Register an operator class derived from BaseOperator (with a custom Python class name)
+ * @param NAME C++ class name
+ * @param PYNAME Exported Python class name (may differ from the C++ class name)
+ * @param ... Optional class-level docstring (forwarded to the py::class_ constructor)
  */
 #define BIND_BASE_OPERATOR_SUBNAME(NAME, PYNAME, ...) \
     py::class_<NAME, BaseOperator>(m, #PYNAME, ##__VA_ARGS__)
 
 /**
- * @brief 为算子类绑定 dagger（伴随/逆）方法 dag(state)
- * @param NAME C++ 类名
+ * @brief Bind the dagger (adjoint/inverse) method dag(state) for an operator class
+ * @param NAME C++ class name
  */
 #define BIND_DAG_METHODS(NAME) \
     .def("dag", (void (NAME::*)(SparseState &) const) & NAME::dag, py::arg("state"), pysparq_docs::DOC_DAG)

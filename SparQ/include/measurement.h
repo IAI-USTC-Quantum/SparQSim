@@ -1,42 +1,49 @@
 /**
  * @file measurement.h
- * @brief 稀疏态可播种测量/复位/概率查询接口
- * @details 为动态执行器（mid-circuit MEASURE / RESET / QIF 等）提供第一类、
- *          可复现（seedable）的稀疏态操作：
- *            - `MeasureZ`：投影式 Z 基测量，按 Born 定则采样，坍缩并重新归一化；
- *            - `Reset`：测量后经典条件翻转，将寄存器强制复位到给定经典值；
- *            - `Probability`：只读概率查询（不改变状态），用于 QIF/QWHILE 等
- *              动态控制流条件判断，以及一致性/合规测试。
+ * @brief Seedable measurement / reset / probability query interfaces for sparse states
+ * @details Provides first-class, reproducible (seedable) sparse-state operations for dynamic
+ *          executors (mid-circuit MEASURE / RESET / QIF, etc.):
+ *            - `MeasureZ`: projective Z-basis measurement, samples according to the Born rule,
+ *              collapses and renormalizes;
+ *            - `Reset`: post-measurement classically conditioned flip, forcibly resets a register
+ *              to a given classical value;
+ *            - `Probability`: read-only probability query (does not modify the state), used for
+ *              condition evaluation in dynamic control flow such as QIF/QWHILE, as well as for
+ *              conformance/compliance tests.
  *
- *          随机性来自 `qram_simulator::random_engine` 单例，可通过
- *          `random_engine::set_seed()` 显式播种，从而使 `MeasureZ`/`Reset`
- *          的采样结果可复现（对于 dynamic executor 的确定性回放/单元测试
- *          至关重要）。
+ *          Randomness comes from the `qram_simulator::random_engine` singleton and can be
+ *          explicitly seeded via `random_engine::set_seed()`, making the sampling results of
+ *          `MeasureZ`/`Reset` reproducible (essential for deterministic replay and unit tests of
+ *          the dynamic executor).
  *
- * @details 输入校验契约（构造函数与 `operator()` 共同保证）：
- *          - 每个寄存器名称/ID 必须解析为 `System` 中当前**激活**的寄存器；
- *            未知名称、越界 ID、或已被 `RemoveRegister` 移除的 ID 一律在
- *            构造阶段抛出 `invalid_argument`（Python 侧为 `ValueError`）。
- *          - 同一构造调用中的寄存器列表不允许出现重复 ID（例如
- *            `MeasureZ({"a", "a"})`），否则抛出 `invalid_argument`。
- *          - `Reset` 的目标值、`Probability` 的比较值必须能被对应寄存器的
- *            位宽表示（即小于 `2^size_of(id)`，`size_of(id) == 64` 时不受
- *            限制），否则抛出 `invalid_argument`——这类矛盾目标/取值在旧实现
- *            中会被静默截断，属于本次加固修复的范围。
- *          - `MeasureZ`（进而 `Reset`）在采样前显式校验输入态的总概率
- *            （所有分支 `abs(amplitude)^2` 之和）是有限数值且与 1 的偏差在
- *            `kNormalizationThreshold` 之内；不满足时抛出 `runtime_error`
- *            （Python 侧为 `RuntimeError`），而不是像旧实现那样把
- *            `random_engine::uniform01()` 采样值直接与 `[0, 1)` 比较——那样
- *            当总概率显著偏离 1 时会静默地把多余/不足的概率质量都堆到最后
- *            一个分支上（fallback 分支），产生有偏采样且不报错。
+ * @details Input validation contract (jointly guaranteed by the constructors and `operator()`):
+ *          - Every register name/ID must resolve to a register that is currently **active** in
+ *            `System`; unknown names, out-of-range IDs, or IDs already removed by
+ *            `RemoveRegister` all throw `invalid_argument` (`ValueError` on the Python side) at
+ *            construction time.
+ *          - The register list within a single constructor call must not contain duplicate IDs
+ *            (e.g. `MeasureZ({"a", "a"})`); otherwise `invalid_argument` is thrown.
+ *          - The target values of `Reset` and the comparison values of `Probability` must be
+ *            representable by the bit width of the corresponding register (i.e. less than
+ *            `2^size_of(id)`; unrestricted when `size_of(id) == 64`), otherwise
+ *            `invalid_argument` is thrown -- such contradictory targets/values were silently
+ *            truncated in the old implementation and are part of what this hardening fix covers.
+ *          - `MeasureZ` (and hence `Reset`) explicitly validates, before sampling, that the total
+ *            probability of the input state (the sum of `abs(amplitude)^2` over all branches) is
+ *            finite and deviates from 1 by less than `kNormalizationThreshold`; otherwise it
+ *            throws `runtime_error` (`RuntimeError` on the Python side), instead of directly
+ *            comparing the `random_engine::uniform01()` sample against `[0, 1)` as the old
+ *            implementation did -- that would silently pile the surplus/deficient probability
+ *            mass onto the last branch (the fallback branch) when the total probability deviates
+ *            significantly from 1, producing biased sampling without reporting any error.
  *
- * @warning `pysparq.dynamic_operator.compile_operator()` 编译得到的任意 C++
- *          算子不经过酉性证明；它只是运行时编译某个 `operator()`/`dag()` 对，
- *          编译器/绑定层不会（也不能）静态或动态验证该算子确实是酉的。
- *          QCFD 支持路径（QECC.Lang 驱动的 qfvm/qnls/qham）禁止使用
- *          `compile_operator`；所有语义必须通过本文件等具名、可测试的内建
- *          算子表达，并通过 `pysparq.conformance` 提供的一致性测试矩阵验证。
+ * @warning Arbitrary C++ operators produced by `pysparq.dynamic_operator.compile_operator()`
+ *          undergo no unitarity proof; it merely runtime-compiles an `operator()`/`dag()` pair,
+ *          and the compiler/binding layer will not (and cannot) statically or dynamically verify
+ *          that the operator is actually unitary. The QCFD support path (QECC.Lang-driven
+ *          qfvm/qnls/qham) forbids using `compile_operator`; all semantics must be expressed
+ *          through named, testable built-in operators such as the ones in this file, and verified
+ *          via the conformance test matrix provided by `pysparq.conformance`.
  */
 
 #pragma once
@@ -45,56 +52,60 @@
 namespace qram_simulator
 {
 	/**
-	 * @brief 归一化校验阈值
-	 * @details `MeasureZ` 采样前要求 `|sum(|amplitude|^2) - 1| < kNormalizationThreshold`，
-	 *          与 `CheckNormalization` 的默认阈值（`1e-5`）保持一致。
+	 * @brief Normalization check threshold
+	 * @details Before sampling, `MeasureZ` requires `|sum(|amplitude|^2) - 1| < kNormalizationThreshold`,
+	 *          consistent with the default threshold (`1e-5`) of `CheckNormalization`.
 	 */
 	constexpr double kNormalizationThreshold = 1e-5;
 
 	/**
-	 * @brief 投影式 Z 基测量
-	 * @details 对一个或多个寄存器执行计算基（Z 基）测量：
-	 *          1. 校验输入态的总概率有限且约等于 1（见文件级文档）；
-	 *          2. 使用 `random_engine::uniform01()`（可通过 `set_seed` 播种）
-	 *             按 Born 定则在各基态分支间采样一个结果；
-	 *          3. 移除与采样结果不符的分支，并重新归一化剩余振幅；
-	 *          4. 返回采样得到的寄存器值以及该结果对应的测量概率。
+	 * @brief Projective Z-basis measurement
+	 * @details Performs a computational-basis (Z-basis) measurement on one or more registers:
+	 *          1. Validates that the total probability of the input state is finite and
+	 *             approximately 1 (see the file-level documentation);
+	 *          2. Samples one outcome among the basis-state branches according to the Born rule
+	 *             using `random_engine::uniform01()` (seedable via `set_seed`);
+	 *          3. Removes branches inconsistent with the sampled outcome and renormalizes the
+	 *             remaining amplitudes;
+	 *          4. Returns the sampled register values together with the probability of that outcome.
 	 *
-	 *          该操作是非酉、不可逆的（测量坍缩），因此不提供 `dag()`。
+	 *          This operation is non-unitary and irreversible (measurement collapse), so no `dag()`
+	 *          is provided.
 	 */
 	struct MeasureZ
 	{
-		/** @brief 被测量的寄存器 ID 列表 */
+		/** @brief List of register IDs to measure */
 		std::vector<size_t> registers;
 
 		/**
-		 * @brief 构造函数（寄存器名称列表版本）
-		 * @throws invalid_argument 名称未找到，或列表中含重复寄存器
+		 * @brief Constructor (register name list version)
+		 * @throws invalid_argument Name not found, or the list contains duplicate registers
 		 */
 		MeasureZ(const std::vector<std::string>& register_names);
 
 		/**
-		 * @brief 构造函数（寄存器 ID 列表版本）
-		 * @throws invalid_argument ID 越界/未激活，或列表中含重复寄存器
+		 * @brief Constructor (register ID list version)
+		 * @throws invalid_argument ID out of range/inactive, or the list contains duplicate registers
 		 */
 		MeasureZ(const std::vector<size_t>& register_ids);
 
-		/** @brief 构造函数（单个寄存器名称版本） */
+		/** @brief Constructor (single register name version) */
 		MeasureZ(std::string_view register_name);
 
-		/** @brief 构造函数（单个寄存器 ID 版本） */
+		/** @brief Constructor (single register ID version) */
 		MeasureZ(size_t register_id);
 
 		/**
-		 * @brief 执行测量
-		 * @param state 系统状态向量（原地坍缩+重新归一化）
-		 * @return {采样得到的寄存器值列表, 该结果的概率}
-		 * @throws invalid_argument 当状态为空时
-		 * @throws runtime_error 当总概率非有限或明显偏离 1 时（见文件级文档）
+		 * @brief Perform the measurement
+		 * @param state System state vector (collapsed and renormalized in place)
+		 * @return {list of sampled register values, probability of that outcome}
+		 * @throws invalid_argument When the state is empty
+		 * @throws runtime_error When the total probability is non-finite or clearly deviates from 1
+		 *                      (see file-level documentation)
 		 */
 		std::pair<std::vector<uint64_t>, double> operator()(std::vector<System>& state) const;
 
-		/** @brief SparseState 版本 */
+		/** @brief SparseState version */
 		std::pair<std::vector<uint64_t>, double> operator()(SparseState& state) const
 		{
 			return (*this)(state.basis_states);
@@ -102,71 +113,74 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief 可播种的 RESET（测量 + 经典条件翻转）
-	 * @details 物理上，复位一个可能处于叠加态的寄存器只能通过
-	 *          “测量后按经典结果条件翻转”实现（与真实硬件的 active reset
-	 *          以及 OriginIR-ext 的 `RESET` 指令语义一致）：
-	 *            1. 用 `MeasureZ` 对目标寄存器做一次投影测量（坍缩+归一化）；
-	 *            2. 由于坍缩后所有剩余分支中该寄存器的值均等于测量结果，
-	 *               直接将其覆盖为目标值等价于对一个确定值做经典位翻转，
-	 *               不会与其他分支发生非法合并，因而是良定义的。
+	 * @brief Seedable RESET (measurement + classically conditioned flip)
+	 * @details Physically, resetting a register that may be in a superposition can only be done by
+	 *          "conditionally flipping according to the classical result after measurement"
+	 *          (matching active reset on real hardware and the semantics of the OriginIR-ext
+	 *          `RESET` instruction):
+	 *            1. Perform one projective measurement (collapse + renormalize) on the target
+	 *               register with `MeasureZ`;
+	 *            2. Since after the collapse the register's value in all remaining branches equals
+	 *               the measurement outcome, directly overwriting it with the target value is
+	 *               equivalent to a classical bit flip on a definite value; it cannot merge
+	 *               illegally with other branches and is therefore well-defined.
 	 *
-	 *          默认目标值为 0（对应 `RESET` 到 |0>）。
+	 *          The default target value is 0 (corresponding to `RESET` to |0>).
 	 */
 	struct Reset
 	{
-		/** @brief 被复位的寄存器 ID 列表 */
+		/** @brief List of register IDs to reset */
 		std::vector<size_t> registers;
 
-		/** @brief 复位目标值列表（与 registers 一一对应） */
+		/** @brief List of reset target values (one-to-one with registers) */
 		std::vector<uint64_t> target_values;
 
 		/**
-		 * @brief 构造函数（名称列表，默认全部复位到 0）
-		 * @throws invalid_argument 名称未找到，或列表中含重复寄存器
+		 * @brief Constructor (name list, all reset to 0 by default)
+		 * @throws invalid_argument Name not found, or the list contains duplicate registers
 		 */
 		explicit Reset(const std::vector<std::string>& register_names);
 
 		/**
-		 * @brief 构造函数（名称列表 + 目标值列表）
-		 * @throws invalid_argument 名称未找到、重复寄存器，或目标值超出对应
-		 *         寄存器位宽可表示的范围
+		 * @brief Constructor (name list + target value list)
+		 * @throws invalid_argument Name not found, duplicate registers, or a target value outside
+		 *         the range representable by the corresponding register's bit width
 		 */
 		Reset(const std::vector<std::string>& register_names, const std::vector<uint64_t>& targets);
 
 		/**
-		 * @brief 构造函数（ID 列表，默认全部复位到 0）
-		 * @throws invalid_argument ID 越界/未激活，或列表中含重复寄存器
+		 * @brief Constructor (ID list, all reset to 0 by default)
+		 * @throws invalid_argument ID out of range/inactive, or the list contains duplicate registers
 		 */
 		explicit Reset(const std::vector<size_t>& register_ids);
 
 		/**
-		 * @brief 构造函数（ID 列表 + 目标值列表）
-		 * @throws invalid_argument ID 越界/未激活、重复寄存器，或目标值超出
-		 *         对应寄存器位宽可表示的范围
+		 * @brief Constructor (ID list + target value list)
+		 * @throws invalid_argument ID out of range/inactive, duplicate registers, or a target value
+		 *         outside the range representable by the corresponding register's bit width
 		 */
 		Reset(const std::vector<size_t>& register_ids, const std::vector<uint64_t>& targets);
 
 		/**
-		 * @brief 构造函数（单个寄存器名称 + 目标值，默认 0）
-		 * @throws invalid_argument 名称未找到，或目标值超出寄存器位宽
+		 * @brief Constructor (single register name + target value, default 0)
+		 * @throws invalid_argument Name not found, or the target value exceeds the register's bit width
 		 */
 		explicit Reset(std::string_view register_name, uint64_t target = 0);
 
 		/**
-		 * @brief 构造函数（单个寄存器 ID + 目标值，默认 0）
-		 * @throws invalid_argument ID 越界/未激活，或目标值超出寄存器位宽
+		 * @brief Constructor (single register ID + target value, default 0)
+		 * @throws invalid_argument ID out of range/inactive, or the target value exceeds the register's bit width
 		 */
 		explicit Reset(size_t register_id, uint64_t target = 0);
 
 		/**
-		 * @brief 执行复位
-		 * @param state 系统状态向量（原地坍缩+归一化+覆盖为目标值）
-		 * @return 复位前测量得到的寄存器值列表（用于诊断/日志）
+		 * @brief Perform the reset
+		 * @param state System state vector (collapsed, renormalized, and overwritten with target values in place)
+		 * @return List of register values measured before the reset (for diagnostics/logging)
 		 */
 		std::vector<uint64_t> operator()(std::vector<System>& state) const;
 
-		/** @brief SparseState 版本 */
+		/** @brief SparseState version */
 		std::vector<uint64_t> operator()(SparseState& state) const
 		{
 			return (*this)(state.basis_states);
@@ -174,87 +188,88 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief 只读 Born 概率查询
-	 * @details 计算给定寄存器取给定值这一事件的概率，不对状态做任何修改。
-	 *          用于动态执行器中的 `QIF`/`QWHILE` 条件判断、一致性测试中的
-	 *          Born 定则校验，以及在真正测量/复位之前预估分支概率。
+	 * @brief Read-only Born probability query
+	 * @details Computes the probability of the event that the given registers take the given values,
+	 *          without modifying the state in any way. Used for `QIF`/`QWHILE` condition evaluation
+	 *          in dynamic executors, Born-rule verification in conformance tests, and estimating
+	 *          branch probabilities before actually measuring/resetting.
 	 */
 	struct Probability
 	{
-		/** @brief 参与判断的寄存器 ID 列表 */
+		/** @brief List of register IDs involved in the query */
 		std::vector<size_t> registers;
 
-		/** @brief 目标值列表（与 registers 一一对应） */
+		/** @brief List of target values (one-to-one with registers) */
 		std::vector<uint64_t> values;
 
 		/**
-		 * @brief 构造函数（名称->值映射版本）
-		 * @throws invalid_argument 名称未找到，或值超出对应寄存器位宽
+		 * @brief Constructor (name -> value map version)
+		 * @throws invalid_argument Name not found, or a value exceeds the corresponding register's bit width
 		 */
 		explicit Probability(const std::map<std::string_view, uint64_t>& assignments);
 
 		/**
-		 * @brief 构造函数（ID->值映射版本）
-		 * @throws invalid_argument ID 越界/未激活，或值超出对应寄存器位宽
+		 * @brief Constructor (ID -> value map version)
+		 * @throws invalid_argument ID out of range/inactive, or a value exceeds the corresponding register's bit width
 		 */
 		explicit Probability(const std::map<size_t, uint64_t>& assignments);
 
 		/**
-		 * @brief 构造函数（名称列表 + 值列表版本）
-		 * @throws invalid_argument 名称未找到、重复寄存器，或值超出位宽
+		 * @brief Constructor (name list + value list version)
+		 * @throws invalid_argument Name not found, duplicate registers, or a value exceeds the bit width
 		 */
 		Probability(const std::vector<std::string>& register_names, const std::vector<uint64_t>& target_values);
 
 		/**
-		 * @brief 构造函数（ID 列表 + 值列表版本）
-		 * @throws invalid_argument ID 越界/未激活、重复寄存器，或值超出位宽
+		 * @brief Constructor (ID list + value list version)
+		 * @throws invalid_argument ID out of range/inactive, duplicate registers, or a value exceeds the bit width
 		 */
 		Probability(const std::vector<size_t>& register_ids, const std::vector<uint64_t>& target_values);
 
 		/**
-		 * @brief 构造函数（单个寄存器名称 + 值）
-		 * @throws invalid_argument 名称未找到，或值超出寄存器位宽
+		 * @brief Constructor (single register name + value)
+		 * @throws invalid_argument Name not found, or the value exceeds the register's bit width
 		 */
 		Probability(std::string_view register_name, uint64_t value);
 
 		/**
-		 * @brief 构造函数（单个寄存器 ID + 值）
-		 * @throws invalid_argument ID 越界/未激活，或值超出寄存器位宽
+		 * @brief Constructor (single register ID + value)
+		 * @throws invalid_argument ID out of range/inactive, or the value exceeds the register's bit width
 		 */
 		Probability(size_t register_id, uint64_t value);
 
 		/**
-		 * @brief 计算该赋值组合的概率
-		 * @param state 系统状态向量（只读，不修改）
-		 * @return 概率（[0, 1] 之间；空约束返回 1）
+		 * @brief Compute the probability of this assignment combination
+		 * @param state System state vector (read-only, not modified)
+		 * @return Probability (in [0, 1]; returns 1 for an empty constraint)
 		 */
 		double operator()(const std::vector<System>& state) const;
 
-		/** @brief SparseState 版本 */
+		/** @brief SparseState version */
 		double operator()(const SparseState& state) const
 		{
 			return (*this)(state.basis_states);
 		}
 
 		/**
-		 * @brief 计算单个寄存器的完整结果分布（只读）
-		 * @param state 系统状态向量
-		 * @param register_id 寄存器 ID
-		 * @return 从寄存器取值到概率的映射
-		 * @throws invalid_argument ID 越界/未激活
+		 * @brief Compute the full outcome distribution of a single register (read-only)
+		 * @param state System state vector
+		 * @param register_id Register ID
+		 * @return Mapping from register values to probabilities
+		 * @throws invalid_argument ID out of range/inactive
 		 */
 		static std::map<uint64_t, double> distribution(const std::vector<System>& state, size_t register_id);
 
-		/** @brief SparseState 版本（按 ID） */
+		/** @brief SparseState version (by ID) */
 		static std::map<uint64_t, double> distribution(const SparseState& state, size_t register_id)
 		{
 			return distribution(state.basis_states, register_id);
 		}
 
-		/** @brief 按寄存器名称版本 */
+		/** @brief By-register-name version */
 		static std::map<uint64_t, double> distribution(const std::vector<System>& state, std::string_view register_name);
 
-		/** @brief SparseState 版本（按名称） */
+		/** @brief SparseState version (by name) */
 		static std::map<uint64_t, double> distribution(const SparseState& state, std::string_view register_name)
 		{
 			return distribution(state.basis_states, register_name);

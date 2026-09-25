@@ -497,8 +497,10 @@ class _Runner:
         width = len(bits)
         value %= 1 << width
         names = {name for name, _ in bits}
-        # 仅当操作数完整覆盖寄存器（起点 0 且宽度等于寄存器声明宽度）时
-        # 才能用原生整数加法；寄存器切片必须走逐位回退以获得视图宽度的回绕语义。
+        # Native integer addition is only possible when the operand fully
+        # covers the register (start 0 and width equal to the register's
+        # declared width); register slices must take the bitwise fallback to
+        # get wraparound semantics at the view width.
         native_full = len(names) == 1 and bits == [
             (bits[0][0], i) for i in range(self.widths.get(bits[0][0], -1))
         ]

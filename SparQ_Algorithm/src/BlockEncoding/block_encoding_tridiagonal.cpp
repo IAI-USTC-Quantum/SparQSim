@@ -1,8 +1,9 @@
 /**
  * @file block_encoding_tridiagonal.cpp
- * @brief 三对角矩阵块编码的实现
- * @details 实现 PlusOneAndOverflow（模加一移位门）的正向/dagger 操作，以及
- *          Block_Encoding_Tridiagonal 构造函数中 LCU 状态制备振幅的计算
+ * @brief Implementation of the tridiagonal matrix block encoding
+ * @details Implements the forward/dagger operations of PlusOneAndOverflow (the modular
+ *          increment-by-one shift gate) and the computation of the LCU state preparation
+ *          amplitudes in the Block_Encoding_Tridiagonal constructor
  */
 
 #include "BlockEncoding/block_encoding_tridiagonal.h"
@@ -11,9 +12,10 @@ namespace qram_simulator {
 	namespace block_encoding {
 		namespace block_encoding_tridiagonal {
 			/**
-			 * @brief 应用加一移位操作
-			 * @param state 系统状态向量
-			 * @details 主寄存器值 +1；当值已达 2^n - 1 时回绕为 0 并翻转溢出位
+			 * @brief Apply the increment-by-one shift operation
+				 * @param state System state vector
+				 * @details Main register value +1; when the value already equals 2^n - 1 it wraps
+				 *          around to 0 and flips the overflow bit
 			 */
 			void PlusOneAndOverflow::operator()(std::vector<System>& state) const {
 				profiler _("Quantum_Modulo_Adder");
@@ -45,9 +47,10 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 应用 dagger 操作（减一移位）
-			 * @param state 系统状态向量
-			 * @details 主寄存器值 -1；当值已为 0 时回绕到 2^n - 1 并翻转溢出位
+			 * @brief Apply the dagger operation (decrement-by-one shift)
+				 * @param state System state vector
+				 * @details Main register value -1; when the value is already 0 it wraps around to
+				 *          2^n - 1 and flips the overflow bit
 			 */
 			void PlusOneAndOverflow::dag(std::vector<System>& state) const {
 				profiler _("Quantum_Modulo_Adder");
@@ -81,15 +84,16 @@ namespace qram_simulator {
 			}
 
 			/**
-			 * @brief 构造函数：计算 LCU 状态制备振幅
-			 * @param main_reg_ 主寄存器名称
-			 * @param anc_UA_ 块编码辅助寄存器名称
-			 * @param alpha_ 对角元系数 α
-			 * @param beta_ 次对角元系数 β
-			 * @details 归一化因子取 Frobenius 范数 s = sqrt(N|α|² + 2(N-1)|β|²)
-			 *          （N = 2^主寄存器位数），振幅向量
-			 *          prep_state = {√|α|/s, √|β|/s, √|β|/s, √(1-(|α|+2|β|)/s)}，
-			 *          前三个分量对应 I / +1 移位 / -1 移位分支，第四个为湮灭分支
+			 * @brief Constructor: computes the LCU state preparation amplitudes
+				 * @param main_reg_ Main register name
+				 * @param anc_UA_ Block encoding ancilla register name
+				 * @param alpha_ Diagonal-entry coefficient α
+				 * @param beta_ Off-diagonal-entry coefficient β
+				 * @details The normalization factor is the Frobenius norm s = sqrt(N|α|² + 2(N-1)|β|²)
+				 *          (N = 2^(number of main register qubits)); the amplitude vector is
+				 *          prep_state = {√|α|/s, √|β|/s, √|β|/s, √(1-(|α|+2|β|)/s)},
+				 *          whose first three components correspond to the I / +1 shift / -1 shift
+				 *          branches and whose fourth is the annihilation branch
 			 */
 			Block_Encoding_Tridiagonal::Block_Encoding_Tridiagonal(
 				std::string_view main_reg_,

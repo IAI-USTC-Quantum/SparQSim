@@ -1,11 +1,12 @@
 /**
  * @file hamiltonian_simulation.cpp
- * @brief 哈密顿量模拟实现
- * @details 实现 hamiltonian_simulation.h 中声明的量子行走（QuantumWalk）、稀疏矩阵 oracle、量子二分查找与 LCU 容器
- *          （Chebyshev 系数计算、QuantumBinarySearch(_Fast) 量子/快速二分查找、
- *          GetRowAddr/GetDataAddr 地址计算、GetQWRotateAngle 行走旋转角、
- *          CondRot_General_Bool_QW 广义条件旋转，以及 LCU_Container 系列
- *          容器的 LCU 组合与经典对照验证）
+ * @brief Implementation of Hamiltonian simulation
+ * @details Implements the quantum walk (QuantumWalk), sparse-matrix oracle, quantum binary search, and LCU containers
+ *          declared in hamiltonian_simulation.h
+ *          (Chebyshev coefficient computation, QuantumBinarySearch(_Fast) quantum/fast binary search,
+ *          GetRowAddr/GetDataAddr address computation, GetQWRotateAngle walk rotation angle,
+ *          CondRot_General_Bool_QW general conditional rotation, and the LCU combination and
+ *          classical-reference verification of the LCU_Container family of containers)
  */
 #include "hamiltonian_simulation.h"
 #include "matrix.h"
@@ -37,9 +38,9 @@ namespace qram_simulator {
 		//}
 
 		/**
-		 * @brief 计算按 4^b 缩放的二项式系数 C(Big, Small) / 4^b
-		 * @details 递推计算二项式系数，中途一旦超过 2^b 即提前除以 2^b 防止溢出，
-		 *          最终结果再整体除以 4^b。*/
+		 * @brief Computes the binomial coefficient C(Big, Small) / 4^b, scaled by 4^b
+		 * @details Computes the binomial coefficient recursively; whenever the intermediate value exceeds 2^b, it is
+		 *          divided by 2^b early to prevent overflow, and the final result is divided by 4^b as a whole. */
 		double ChebyshevPolynomialCoefficient::C(size_t Big, size_t Small)
 		{
 			double ret = 1;
@@ -64,9 +65,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 计算第 j 项 Chebyshev 系数 c_j
-		 * @details b > 100 时用渐近公式 c_j = 2·erfc((j+0.5)/sqrt(b))；
-		 *          否则按二项分布尾部精确求和 c_j = 4·Σ_{i=j+1}^{b} C(2b, b+i)/4^b。*/
+		 * @brief Computes the j-th Chebyshev coefficient c_j
+		 * @details For b > 100, uses the asymptotic formula c_j = 2·erfc((j+0.5)/sqrt(b));
+		 *          otherwise, sums the binomial-distribution tail exactly: c_j = 4·Σ_{i=j+1}^{b} C(2b, b+i)/4^b. */
 		double ChebyshevPolynomialCoefficient::coef(size_t j)
 		{
 			if (b > 100)
@@ -85,13 +86,13 @@ namespace qram_simulator {
 			}
 		}
 
-		/** @brief 第 j 项符号：奇数 j 取负号（返回 true），偶数取正号 */
+		/** @brief Sign of the j-th term: negative sign for odd j (returns true), positive sign for even j */
 		bool ChebyshevPolynomialCoefficient::sign(size_t j)
 		{
 			return j & 1;
 		}
 
-		/** @brief 第 j 项对应的行走步数 2j + 1 */
+		/** @brief Number of walk steps for the j-th term: 2j + 1 */
 		size_t ChebyshevPolynomialCoefficient::step(size_t j)
 		{
 			return 2 * j + 1;
@@ -175,9 +176,9 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 单分支上的经典二分查找（模拟器层捷径）
-		 * @details 直接在 QRAM 内存 [offset, offset+total_length) 上二分，
-		 *          命中返回地址，未命中返回 0。*/
+		 * @brief Classical binary search on a single branch (simulator-level shortcut)
+		 * @details Performs binary search directly on the QRAM memory range [offset, offset+total_length);
+		 *          returns the address on a hit, and 0 on a miss. */
 		size_t QuantumBinarySearch_Fast::binary_search(size_t offset, size_t target) const
 		{
 			const auto& mem = qram->memory;
@@ -211,7 +212,8 @@ namespace qram_simulator {
 	#endif
 				auto offset = s.GetAs(address_offset_id, uint64_t);
 				auto target = s.GetAs(target_id, uint64_t);
-				// 各状态分支独立执行经典二分，命中地址 XOR 到结果寄存器
+				// Each state branch performs an independent classical binary search;
+				// the hit address is XORed into the result register
 				size_t result = binary_search(offset, target);
 				s.get(result_id).value ^= result;
 			}
@@ -266,7 +268,7 @@ namespace qram_simulator {
 					if (ConditionNotSatisfied(s))
 						continue;
 
-					// 读取量化元素，并按矩阵符号约定归一化为 [0,1] 的比率
+					// Read the quantized element and normalize it to a ratio in [0,1] according to the matrix sign convention
 					uint64_t v = s.GetAs(data_id, uint64_t);
 					double ratio;
 					if (mat->positive_only)
@@ -283,8 +285,8 @@ namespace qram_simulator {
 						ratio = std::abs(v_real) * 1.0 / Amax_real;
 					}
 					ratio = std::max(0.0, std::min(1.0, ratio));
-					// 行走旋转角 theta = arccos(sqrt(ratio))，按 1/(2*pi) 归一，
-					// 量化为 Rational 定点值后 XOR 到输出寄存器
+					// Walk rotation angle theta = arccos(sqrt(ratio)), normalized by 1/(2*pi),
+					// quantized into a Rational fixed-point value and then XORed into the output register
 					double out = std::acos(std::sqrt(ratio)) / pi / 2;
 					s.get(out_id).value ^= get_rational(out, System::size_of(out_id));
 				}
@@ -406,7 +408,7 @@ namespace qram_simulator {
 			size_t row_id = state[l].GetAs(j_id, uint64_t);
 			size_t col_id = state[l].GetAs(k_id, uint64_t);
 
-			// 由量化元素值与行列位置生成 2x2 行走旋转矩阵
+			// Generate the 2x2 walk rotation matrix from the quantized element value and the row/column position
 			u22_t rot_mat = func(v, row_id, col_id);
 
 				if (_is_diagonal(rot_mat))
@@ -539,7 +541,8 @@ namespace qram_simulator {
 			auto iter_l = 0;
 			auto iter_r = 1;
 
-			// 状态已按输出寄存器排序，逐组应用行走旋转；dag 版本改用逆旋转角函数
+			// States are already sorted by the output register; apply the walk rotation group by group. The dag version
+			// uses the inverse rotation-angle function instead
 			walk_angle_function_t func = make_func(*mat);
 
 			while (true)
@@ -620,15 +623,16 @@ namespace qram_simulator {
 				// s.sort_by_name();
 				s.amplitude *= coef;
 			}
-			// 新状态按 Chebyshev 系数缩放后并入 LCU 组合态
+			// The new state, scaled by the Chebyshev coefficient, is merged into the LCU combined state
 			current_state.insert(current_state.end(), new_state.begin(), new_state.end());
 
 		}
 
 		void LCU_Container::iterate()
 		{
-			// LCU 迭代：第 j 项 = c_j · W^(2j+1)。先制备对应步数的行走态，
-			// 再按系数与符号累加进组合态，最后排序归并以控制状态规模
+			// LCU iteration: the j-th term = c_j · W^(2j+1). First prepare the walk state with the corresponding number of
+			// steps, then accumulate it into the combined state according to the coefficient and sign, and finally
+			// sort-merge to keep the state size under control
 			for (size_t j = 0; j <= j0; ++j)
 			{
 				double coef = chebyshev_obj.coef(j);
@@ -651,8 +655,8 @@ namespace qram_simulator {
 				return vec1;
 
 			DenseVector<complex_t> vec2;
-			// Chebyshev 三项递推 T_{n+1} = 2·A'·T_n - T_{n-1}（A' 为归一化稠密矩阵），
-			// 每次调用推进两步，对应量子行走 Step() 连续两个单步
+			// Chebyshev three-term recurrence T_{n+1} = 2·A'·T_n - T_{n-1} (A' is the normalized dense matrix);
+			// each call advances two steps, corresponding to two consecutive single steps of the quantum-walk Step()
 			vec2 = (densemat * vec1) * complex_t{ 2.0 } - vec0;
 			vec0 = vec1;
 			vec1 = vec2;
@@ -689,7 +693,7 @@ namespace qram_simulator {
 		{
 			// obtain the normalization factor
 			double factor = current_state.norm2();
-			// 成功概率 = ||current||^2 / a^2，a 为已累加的 Chebyshev 系数之和
+			// Success probability = ||current||^2 / a^2, where a is the accumulated sum of Chebyshev coefficients
 			double prob = factor * factor / a / a;
 
 			DenseVector<complex_t> ret = current_state / factor;
@@ -715,7 +719,7 @@ namespace qram_simulator {
 			//}
 
 			// auto result = my_linear_solver(densemat, vec);
-			// 经典参考：Eigen 稀疏线性求解后按 2 范数归一化
+			// Classical reference: solve with the Eigen sparse linear solver, then normalize by the 2-norm
 			auto result = eigen_linear_solver(mat, vec);
 
 			auto normalized_result = result / result.norm2();

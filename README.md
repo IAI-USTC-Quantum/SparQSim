@@ -39,7 +39,7 @@ pip install pysparq
 pip install qram-simulator
 ```
 
-**GPU 支持**：CUDA/GPU 后端当前在 CMake 中临时屏蔽，默认只构建 CPU 路径。
+**GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链，CUDA 13 实测通过）；PyPI wheel 恒为 CPU-only。
 
 ### 从源码构建
 

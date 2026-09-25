@@ -1,30 +1,32 @@
 /**
  * @file quantum_arithmetic.h
- * @brief 量子算术运算定义
- * @details 实现各种量子算术操作，包括翻转、移位、乘法、加法、比较等运算
+ * @brief Quantum arithmetic operations definitions
+ * @details Implements various quantum arithmetic operations, including flip, shift, multiplication,
+ *          addition, comparison, etc.
  *
- * @section unitary_notes Unitary性质说明
+ * @section unitary_notes Unitarity notes
  *
- * 量子算子必须满足unitary性质（U^†U = I），这要求操作是可逆的。本文件中的算子分为两类：
+ * Quantum operators must satisfy the unitary property (U^†U = I), which requires operations to be reversible.
+ * The operators in this file fall into two categories:
  *
- * 1. Out-of-place操作（如Add_UInt_UInt）：
- *    - 结果存储在独立的输出寄存器中
- *    - 通过bitwise XOR保证unitary：result ^= f(inputs)
- *    - 自动满足unitary，因为XOR是自逆操作
+ * 1. Out-of-place operations (e.g. Add_UInt_UInt):
+ *    - The result is stored in a separate output register
+ *    - Unitarity is guaranteed by bitwise XOR: result ^= f(inputs)
+ *    - Unitarity is automatic because XOR is self-inverse
  *
- * 2. In-place操作（如Add_UInt_UInt_InPlace、Add_ConstUInt_InPlace）：
- *    - 结果直接修改输入寄存器
- *    - 需要显式实现dagger()方法来保证可逆性
- *    - 通常使用模运算实现逆操作：y = (y + (2^N - x)) % 2^N
+ * 2. In-place operations (e.g. Add_UInt_UInt_InPlace, Add_ConstUInt_InPlace):
+ *    - The result directly modifies the input register
+ *    - An explicit dagger() method is required to guarantee reversibility
+ *    - The inverse operation is usually implemented with modular arithmetic: y = (y + (2^N - x)) % 2^N
  *
- * @section type_safety_notes 类型安全说明
+ * @section type_safety_notes Type safety notes
  *
- * 所有算子在debug模式（非QRAM_Release）下会检查：
- * - 输入/输出寄存器的类型（UnsignedInteger/SignedInteger/Boolean/Rational）
- * - 寄存器大小是否匹配
- * - 操作数的有效范围（如移位位数）
+ * All operators check the following in debug mode (non-QRAM_Release):
+ * - Types of input/output registers (UnsignedInteger/SignedInteger/Boolean/Rational)
+ * - Whether register sizes match
+ * - Valid ranges of operands (e.g. the number of bits to shift)
  *
- * Release模式下这些检查被编译移除，以获得最佳性能。
+ * In Release mode these checks are compiled out for the best performance.
  */
 
 #pragma once
@@ -33,23 +35,24 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 布尔翻转操作
-	 * @details 翻转寄存器中的所有位（按位取反），实现 y = ~y
+	 * @brief Boolean flip operation
+	 * @details Flips all bits in the register (bitwise NOT), implementing y = ~y
 	 *
-	 * @note Unitary性质：自伴算子（SelfAdjointOperator），即 U^† = U
-	 * @note 数据类型：任意整数类型（UnsignedInteger/SignedInteger）
-	 * @note 溢出行为：只影响寄存器size范围内的位，高位被翻转但会被mask截断
+	 * @note Unitarity: self-adjoint operator (SelfAdjointOperator), i.e. U^† = U
+	 * @note Data type: any integer type (UnsignedInteger/SignedInteger)
+	 * @note Overflow behavior: only bits within the register size are affected; high bits are flipped
+	 *       but truncated by the mask
 	 *
-	 * @pre 输入寄存器必须是激活状态
+	 * @pre the input register must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
-	 * // 4位寄存器，初始值 0b1010 (10)
-	 * FlipBools("reg");  // 结果: 0b0101 (5)
+	 * // 4-bit register, initial value 0b1010 (10)
+	 * FlipBools("reg");  // Result: 0b0101 (5)
 	 * @endcode
 	 */
 	struct FlipBools : SelfAdjointOperator {
@@ -58,83 +61,83 @@ namespace qram_simulator
 
 		ClassControllable
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg Register name
 		 */
 		FlipBools(std::string_view reg)
 			:id(System::get(reg)) { }
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param id_ Register ID
 		 */
 		FlipBools(size_t id_)
 			:id(id_)
 		{}
 
 		/**
-		 * @brief 应用翻转操作
-		 * @param state 系统状态向量
+		 * @brief Apply the flip operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用翻转操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the flip operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 双比特交换操作
-	 * @details 交换两个寄存器中指定位置的单个比特
+	 * @brief Two-bit swap operation
+	 * @details Swaps single bits at the specified positions of two registers
 	 *
-	 * 实现：使用临时变量交换两个寄存器指定位的值
-	 * 这是一个自伴操作，应用两次等于恒等操作
+	 * Implementation: swaps the values of the specified bits of the two registers using a temporary variable
+	 * This is a self-adjoint operation; applying it twice yields the identity operation
 	 *
-	 * @note Unitary性质：自伴算子，Swap^2 = I
-	 * @note 数据类型：任意类型寄存器的布尔位
+	 * @note Unitarity: self-adjoint operator, Swap^2 = I
+	 * @note Data type: boolean bits of registers of any type
 	 *
-	 * @pre lhs和rhs寄存器必须是激活状态
-	 * @pre digit1和digit2必须在各自寄存器的有效位范围内 [0, size)
+	 * @pre the lhs and rhs registers must be active
+	 * @pre digit1 and digit2 must be within the valid bit range of their registers [0, size)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * // reg1 = 0b1010, reg2 = 0b0101
-	 * Swap_Bool_Bool("reg1", 0, "reg2", 1);  // 交换reg1的第0位和reg2的第1位
+	 * Swap_Bool_Bool("reg1", 0, "reg2", 1);  // Swaps bit 0 of reg1 and bit 1 of reg2
 	 * @endcode
 	 */
 	struct Swap_Bool_Bool : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 左操作数位索引 */
+		/** @brief Left operand bit index */
 		size_t digit1;
 
-		/** @brief 右操作数位索引 */
+		/** @brief Right operand bit index */
 		size_t digit2;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg1 第一个寄存器名称
-		 * @param d1 第一个位索引
-		 * @param reg2 第二个寄存器名称
-		 * @param d2 第二个位索引
-		 * @throws 当位索引超出寄存器大小时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg1 First register name
+		 * @param d1 First bit index
+		 * @param reg2 Second register name
+		 * @param d2 Second bit index
+		 * @throws Throws an exception when a bit index is out of the register size
 		 */
 		Swap_Bool_Bool(std::string_view reg1, size_t d1,
 			std::string_view reg2, size_t d2)
@@ -149,12 +152,12 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param id1 第一个寄存器 ID
-		 * @param d1 第一个位索引
-		 * @param id2 第二个寄存器 ID
-		 * @param d2 第二个位索引
-		 * @throws 当位索引超出寄存器大小时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param id1 First register ID
+		 * @param d1 First bit index
+		 * @param id2 Second register ID
+		 * @param d2 Second bit index
+		 * @throws Throws an exception when a bit index is out of the register size
 		 */
 		Swap_Bool_Bool(size_t id1, size_t d1,
 			size_t id2, size_t d2) : lhs(id1), rhs(id2), digit1(d1), digit2(d2)
@@ -167,62 +170,64 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用交换操作
-		 * @param state 系统状态向量
+		 * @brief Apply the swap operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用交换操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the swap operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 循环左移操作
-	 * @details 将寄存器值循环左移指定位数，溢出的高位循环到低位
+	 * @brief Rotate-left operation
+	 * @details Rotates the register value left by the specified number of bits; the overflowing high bits wrap
+	 *          around to the low bits
 	 *
-	 * 数学定义：y = (y << digit) | (y >> (N - digit))，其中N是寄存器位数
+	 * Mathematical definition: y = (y << digit) | (y >> (N - digit)), where N is the register bit width
 	 *
-	 * @note Unitary性质：循环移位是双射，保证unitary
-	 * @note dagger操作：左移d位的dagger是右移d位（或左移N-d位）
-	 * @note 数据类型：建议UnsignedInteger，也可用于SignedInteger
+	 * @note Unitarity: rotation is a bijection, guaranteeing unitarity
+	 * @note dagger operation: the dagger of a left rotation by d bits is a right rotation by d bits
+	 *       (or a left rotation by N-d bits)
+	 * @note Data type: UnsignedInteger recommended, may also be used with SignedInteger
 	 *
-	 * @pre register_1必须是激活状态
-	 * @pre digit <= 寄存器大小（digit == size时等于恒等操作）
+	 * @pre register_1 must be active
+	 * @pre digit <= register size (digit == size is equivalent to the identity operation)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
-	 * // 4位寄存器，初始值 0b1010
-	 * ShiftLeft_InPlace("reg", 1);  // 结果: 0b0101 (循环左移1位)
-	 * ShiftLeft_InPlace("reg", 2);  // 结果: 0b1010 (循环左移2位)
+	 * // 4-bit register, initial value 0b1010
+	 * ShiftLeft_InPlace("reg", 1);  // Result: 0b0101 (rotate left by 1 bit)
+	 * ShiftLeft_InPlace("reg", 2);  // Result: 0b1010 (rotate left by 2 bits)
 	 * @endcode
 	 */
 	struct ShiftLeft_InPlace : BaseOperator {
 		using BaseOperator::operator();
-				/**  应用dagger操作（调用ShiftRight_InPlace）*/
+				/**  Apply the dagger operation (calls ShiftRight_InPlace) */
 		void dag(std::vector<System>& state) const;
 #ifdef USE_CUDA
-		/**  CUDA应用dagger操作 */
+		/**  CUDA: apply the dagger operation */
 		void dag(CuSparseState& state) const;
 #endif
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t register_1;
 
-		/** @brief 移位位数 */
+		/** @brief Number of bits to shift */
 		size_t digit;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg1 寄存器名称
-		 * @param d 移位位数
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg1 Register name
+		 * @param d Number of bits to shift
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		ShiftLeft_InPlace(std::string_view reg1, size_t d)
 			:register_1(System::get(reg1)), digit(d)
@@ -238,10 +243,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg1 寄存器 ID
-		 * @param d 移位位数
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param reg1 Register ID
+		 * @param d Number of bits to shift
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		ShiftLeft_InPlace(size_t reg1, size_t d)
 			:register_1(reg1), digit(d)
@@ -257,15 +262,15 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用左移操作
-		 * @param state 系统状态向量
+		 * @brief Apply the left-rotate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用左移操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the left-rotate operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
@@ -273,46 +278,48 @@ namespace qram_simulator
 
 
 	/**
-	 * @brief 循环右移操作
-	 * @details 将寄存器值循环右移指定位数，溢出的低位循环到高位
+	 * @brief Rotate-right operation
+	 * @details Rotates the register value right by the specified number of bits; the overflowing low bits wrap
+	 *          around to the high bits
 	 *
-	 * 数学定义：y = (y >> digit) | (y << (N - digit))，其中N是寄存器位数
+	 * Mathematical definition: y = (y >> digit) | (y << (N - digit)), where N is the register bit width
 	 *
-	 * @note Unitary性质：循环移位是双射，保证unitary
-	 * @note dagger操作：右移d位的dagger是左移d位（或右移N-d位）
-	 * @note 数据类型：建议UnsignedInteger，也可用于SignedInteger
+	 * @note Unitarity: rotation is a bijection, guaranteeing unitarity
+	 * @note dagger operation: the dagger of a right rotation by d bits is a left rotation by d bits
+	 *       (or a right rotation by N-d bits)
+	 * @note Data type: UnsignedInteger recommended, may also be used with SignedInteger
 	 *
-	 * @pre register_1必须是激活状态
-	 * @pre digit <= 寄存器大小（digit == size时等于恒等操作）
+	 * @pre register_1 must be active
+	 * @pre digit <= register size (digit == size is equivalent to the identity operation)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
-	 * // 4位寄存器，初始值 0b1010
-	 * ShiftRight_InPlace("reg", 1);  // 结果: 0b0101 (循环右移1位)
+	 * // 4-bit register, initial value 0b1010
+	 * ShiftRight_InPlace("reg", 1);  // Result: 0b0101 (rotate right by 1 bit)
 	 * @endcode
 	 */
 	struct ShiftRight_InPlace : BaseOperator {
 		using BaseOperator::operator();
-				/**  应用dagger操作（调用ShiftLeft_InPlace）*/
+				/**  Apply the dagger operation (calls ShiftLeft_InPlace) */
 		void dag(std::vector<System>& state) const;
 #ifdef USE_CUDA
-		/**  CUDA应用dagger操作 */
+		/**  CUDA: apply the dagger operation */
 		void dag(CuSparseState& state) const;
 #endif
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t register_1;
 
-		/** @brief 移位位数 */
+		/** @brief Number of bits to shift */
 		size_t digit;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg1 寄存器名称
-		 * @param d 移位位数
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg1 Register name
+		 * @param d Number of bits to shift
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		ShiftRight_InPlace(std::string_view reg1, size_t d)
 			:register_1(System::get(reg1)), digit(d)
@@ -328,10 +335,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg1 寄存器 ID
-		 * @param d 移位位数
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param reg1 Register ID
+		 * @param d Number of bits to shift
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		ShiftRight_InPlace(size_t reg1, size_t d)
 			:register_1(reg1), digit(d)
@@ -347,35 +354,35 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用右移操作
-		 * @param state 系统状态向量
+		 * @brief Apply the right-rotate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用右移操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the right-rotate operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数乘常量操作（Out-of-place）
-	 * @details 实现 out-of-place 乘法：res ^= lhs * mult
+	 * @brief Unsigned integer multiply-by-constant operation (Out-of-place)
+	 * @details Implements out-of-place multiplication: res ^= lhs * mult
 	 *
-	 * Unitary保证：通过XOR实现，res = res ⊕ (lhs * mult)
-	 * 应用两次：res ⊕ (lhs * mult) ⊕ (lhs * mult) = res，即 U^2 = I
+	 * Unitary guarantee: implemented via XOR, res = res ⊕ (lhs * mult)
+	 * Applied twice: res ⊕ (lhs * mult) ⊕ (lhs * mult) = res, i.e. U^2 = I
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：输入和输出都必须是UnsignedInteger
-	 * @note 溢出行为：乘法结果按输出寄存器大小截断
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: both input and output must be UnsignedInteger
+	 * @note Overflow behavior: the multiplication result is truncated to the output register size
 	 *
-	 * @pre lhs和res寄存器必须是UnsignedInteger类型
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre the lhs and res registers must be of UnsignedInteger type
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto res = System::add_register("res", UnsignedInteger, 4);
@@ -388,22 +395,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 乘数（常量） */
+		/** @brief Multiplier (constant) */
 		size_t mult_int;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 输入寄存器名称
-		 * @param mult 乘数常量
-		 * @param reg_out 输出寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_in Input register name
+		 * @param mult Multiplier constant
+		 * @param reg_out Output register name
 		 */
 		Mult_UInt_ConstUInt(std::string_view reg_in, size_t mult, std::string_view reg_out)
 			: lhs(System::get(reg_in)), res(System::get(reg_out)), mult_int(mult)
@@ -417,10 +424,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID
-		 * @param mult 乘数常量
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID
+		 * @param mult Multiplier constant
+		 * @param reg_out Output register ID
 		 */
 		Mult_UInt_ConstUInt(size_t reg_in, size_t mult, size_t reg_out)
 			: lhs(reg_in), res(reg_out), mult_int(mult)
@@ -434,36 +441,37 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用乘法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the multiplication operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用乘法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the multiplication operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 累加乘常量操作（In-place）
-	 * @details 实现 in-place 累加乘法：res += lhs * mult (mod 2^N)
-	 *         注意：lhs寄存器不会被修改，只有res被更新。
+	 * @brief Accumulate multiply-by-constant operation (In-place)
+	 * @details Implements in-place accumulate-multiply: res += lhs * mult (mod 2^N)
+	 *         Note: the lhs register is not modified; only res is updated.
 	 *
-	 * 这是一个in-place操作，需要显式实现dagger来保证unitary。
-	 * Forward:  res += lhs * mult (mod 2^N)  [lhs不变]
-	 * Dagger:   res -= lhs * mult (mod 2^N)  [lhs不变]
+	 * This is an in-place operation; an explicit dagger implementation is required to guarantee unitarity.
+	 * Forward:  res += lhs * mult (mod 2^N)  [lhs unchanged]
+	 * Dagger:   res -= lhs * mult (mod 2^N)  [lhs unchanged]
 	 *
-	 * @note Unitary性质：lhs不变，仅res通过模加/模减更新，双射性由lhs值域保证
-	 * @note 数据类型：lhs和res都应为UnsignedInteger
-	 * @note 溢出行为：结果按res寄存器大小模2^N回绕
+	 * @note Unitarity: lhs is unchanged, only res is updated via modular addition/subtraction;
+	 *       bijectivity is guaranteed by the range of lhs
+	 * @note Data type: lhs and res should both be UnsignedInteger
+	 * @note Overflow behavior: the result wraps around modulo 2^N at the res register size
 	 *
-	 * @pre res寄存器必须有足够位数存储结果
+	 * @pre the res register must have enough bits to store the result
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto res = System::add_register("res", UnsignedInteger, 4);
@@ -477,23 +485,23 @@ namespace qram_simulator
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 乘数（常量） */
+		/** @brief Multiplier (constant) */
 		size_t mult_int;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 输入寄存器名称
-		 * @param mult 乘数常量
-		 * @param reg_out 输出寄存器名称（结果累加至此）
-		 * @throws 当寄存器类型不是UnsignedInteger时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg_in Input register name
+		 * @param mult Multiplier constant
+		 * @param reg_out Output register name (result accumulated here)
+		 * @throws Throws an exception when a register type is not UnsignedInteger
 		 */
 		Add_Mult_UInt_ConstUInt_InPlace(std::string_view reg_in, size_t mult, std::string_view reg_out)
 			: mult_int(mult), lhs(System::get(reg_in)), res(System::get(reg_out))
@@ -507,11 +515,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID
-		 * @param mult 乘数常量
-		 * @param reg_out 输出寄存器 ID（结果累加至此）
-		 * @throws 当寄存器类型不是UnsignedInteger时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID
+		 * @param mult Multiplier constant
+		 * @param reg_out Output register ID (result accumulated here)
+		 * @throws Throws an exception when a register type is not UnsignedInteger
 		 */
 		Add_Mult_UInt_ConstUInt_InPlace(size_t reg_in, size_t mult, size_t reg_out)
 			: mult_int(mult), lhs(reg_in), res(reg_out)
@@ -525,137 +533,137 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用累加乘法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the accumulate-multiply operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用累加乘法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the accumulate-multiply operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用 dagger 操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the dagger operation
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 模乘运算
-	 * @details 计算 |y⟩ → |y * a^(2^x) mod N⟩
+	 * @brief Modular multiplication
+	 * @details Computes |y⟩ → |y * a^(2^x) mod N⟩
 	 *
-	 * 当 a 和 N 互质时，Mod_Mult_UInt_ConstUInt_InPlace 是酉操作。
+	 * When a and N are coprime, Mod_Mult_UInt_ConstUInt_InPlace is a unitary operation.
 	 *
-	 * @section Mod_Mult_unitary Mod_Mult_UInt_ConstUInt_InPlace 幺正性说明
+	 * @section Mod_Mult_unitary Unitarity notes for Mod_Mult_UInt_ConstUInt_InPlace
 	 *
-	 * Mod_Mult_UInt_ConstUInt_InPlace 的幺正性条件：
-	 * 1. a 和 N 必须互质（gcd(a, N) = 1）
-	 * 2. 当满足条件时，逆操作为 y * a^(2^x*(N-2)) mod N（费马小定理）
+	 * Unitarity conditions for Mod_Mult_UInt_ConstUInt_InPlace:
+	 * 1. a and N must be coprime (gcd(a, N) = 1)
+	 * 2. When the condition holds, the inverse operation is y * a^(2^x*(N-2)) mod N (Fermat's little theorem)
 	 *
-	 * @section Mod_Mult_usage 使用示例
+	 * @section Mod_Mult_usage Usage example
 	 *
 	 * @code
 	 * auto reg = System::add_register("y", UnsignedInteger, 4);
 	 * auto cond = System::add_register("ctrl", Boolean, 1);
 	 * Mod_Mult_UInt_ConstUInt_InPlace(reg, 7, 2, 15).conditioned_by_all_ones(cond)(state);
-	 * // 计算: y = y * 7^4 mod 15 = y * 4 mod 15
+	 * // Computes: y = y * 7^4 mod 15 = y * 4 mod 15
 	 * @endcode
 	 */
 	struct Mod_Mult_UInt_ConstUInt_InPlace : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 操作数寄存器 ID */
+		/** @brief Operand register ID */
 		size_t reg;
 
-		/** @brief 底数 */
+		/** @brief Base */
 		uint64_t a;
 
-		/** @brief 指数位（计算 a^(2^x)） */
+		/** @brief Exponent bit (computes a^(2^x)) */
 		uint64_t x;
 
-		/** @brief 模数 */
+		/** @brief Modulus */
 		uint64_t N;
 
-		/** @brief 预计算的操作数 opnum = a^(2^x) mod N */
+		/** @brief Precomputed operand opnum = a^(2^x) mod N */
 		uint64_t opnum;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_name 操作数寄存器名称
-		 * @param a 底数
-		 * @param x 指数位
-		 * @param N 模数
-		 * @throws 当 a 和 N 不互质时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg_name Operand register name
+		 * @param a Base
+		 * @param x Exponent bit
+		 * @param N Modulus
+		 * @throws Throws an exception when a and N are not coprime
 		 */
 		Mod_Mult_UInt_ConstUInt_InPlace(std::string_view reg_name, uint64_t a, uint64_t x, uint64_t N);
 
 		/**
-		 * @brief 构造函数（ID版本）
-		 * @param reg_id 操作数寄存器 ID
-		 * @param a 底数
-		 * @param x 指数位
-		 * @param N 模数
-		 * @throws 当 a 和 N 不互质时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param reg_id Operand register ID
+		 * @param a Base
+		 * @param x Exponent bit
+		 * @param N Modulus
+		 * @throws Throws an exception when a and N are not coprime
 		 */
 		Mod_Mult_UInt_ConstUInt_InPlace(size_t reg_id, uint64_t a, uint64_t x, uint64_t N);
 
 		/**
-		 * @brief 执行模乘运算
-		 * @param state 系统状态向量
+		 * @brief Execute the modular multiplication
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 执行模乘的逆运算
-		 * @param state 系统状态向量
+		 * @brief Execute the inverse modular multiplication
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 执行模乘运算
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: execute the modular multiplication
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 执行模乘的逆运算
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: execute the inverse modular multiplication
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数加法操作（Out-of-place）
-	 * @details 实现 out-of-place 加法：res ^= lhs + rhs
+	 * @brief Unsigned integer addition operation (Out-of-place)
+	 * @details Implements out-of-place addition: res ^= lhs + rhs
 	 *
-	 * Unitary保证：通过XOR实现，res = res ⊕ (lhs + rhs)
-	 * 应用两次：res ⊕ (lhs + rhs) ⊕ (lhs + rhs) = res，即 U^2 = I
+	 * Unitary guarantee: implemented via XOR, res = res ⊕ (lhs + rhs)
+	 * Applied twice: res ⊕ (lhs + rhs) ⊕ (lhs + rhs) = res, i.e. U^2 = I
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res都必须是UnsignedInteger
-	 * @note 溢出行为：加法结果按输出寄存器大小截断后XOR
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Overflow behavior: the addition result is truncated to the output register size before the XOR
 	 *
-	 * @pre lhs、rhs、res寄存器必须是UnsignedInteger类型
-	 * @pre 所有寄存器必须是激活状态
-	 * @pre res寄存器初始值通常为0，但也可以是任意值（XOR语义）
+	 * @pre the lhs, rhs, and res registers must be of UnsignedInteger type
+	 * @pre all registers must be active
+	 * @pre the res register is usually initialized to 0, but may hold any value (XOR semantics)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", UnsignedInteger, 4);
@@ -670,22 +678,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Add_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -702,10 +710,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Add_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -722,36 +730,37 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用加法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the addition operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用加法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the addition operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 原地无符号整数加法操作（In-place）
-	 * @details 实现 in-place 加法：rhs += lhs
+	 * @brief In-place unsigned integer addition operation (In-place)
+	 * @details Implements in-place addition: rhs += lhs
 	 *
-	 * 这是一个in-place操作，需要显式实现dagger来保证unitary。
-	 * dagger实现：rhs += (2^N - lhs) mod 2^N，其中N是rhs寄存器位数
+	 * This is an in-place operation; an explicit dagger implementation is required to guarantee unitarity.
+	 * dagger implementation: rhs += (2^N - lhs) mod 2^N, where N is the rhs register bit width
 	 *
-	 * @note Unitary性质：通过模运算加法保证双射性
-	 * @note 数据类型：lhs和rhs都应该是UnsignedInteger
-	 * @note 溢出行为：结果按rhs寄存器大小模2^N回绕
+	 * @note Unitarity: bijectivity is guaranteed by modular addition
+	 * @note Data type: lhs and rhs should both be UnsignedInteger
+	 * @note Overflow behavior: the result wraps around modulo 2^N at the rhs register size
 	 *
-	 * @pre lhs和rhs必须是激活状态
+	 * @pre lhs and rhs must be active
 	 *
-	 * @note lhs和rhs可以大小不同；lhs按整数读取，rhs按自身位宽做模加法。
+	 * @note lhs and rhs may have different sizes; lhs is read as an integer, and rhs undergoes
+	 *       modular addition at its own bit width.
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", UnsignedInteger, 4);
@@ -759,7 +768,7 @@ namespace qram_simulator
 	 * Init_Unsafe(rhs, 3);  // rhs = 3
 	 * // rhs = 3 + 7 = 10
 	 * Add_UInt_UInt_InPlace("lhs", "rhs");
-	 * // dagger: rhs = 10 + (16 - 7) % 16 = 3 (恢复原值)
+	 * // dagger: rhs = 10 + (16 - 7) % 16 = 3 (restores the original value)
 	 * op.dag(state);
 	 * @endcode
 	 */
@@ -767,19 +776,19 @@ namespace qram_simulator
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称（加数）
-		 * @param rhs_ 右操作数寄存器名称（被加数，结果存储于此）
-		 * @throws 当寄存器类型不是UnsignedInteger或大小不匹配时抛出异常
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name (addend)
+		 * @param rhs_ Right operand register name (augend; result stored here)
+		 * @throws Throws an exception when a register type is not UnsignedInteger or sizes do not match
 		 */
 		Add_UInt_UInt_InPlace(std::string_view lhs_, std::string_view rhs_)
 			:lhs(System::get(lhs_)), rhs(System::get(rhs_))
@@ -795,10 +804,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID（加数）
-		 * @param rhs_ 右操作数寄存器 ID（被加数，结果存储于此）
-		 * @throws 当寄存器类型不是UnsignedInteger或大小不匹配时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID (addend)
+		 * @param rhs_ Right operand register ID (augend; result stored here)
+		 * @throws Throws an exception when a register type is not UnsignedInteger or sizes do not match
 		 */
 		Add_UInt_UInt_InPlace(size_t lhs_, size_t rhs_)
 			: lhs(lhs_), rhs(rhs_)
@@ -814,47 +823,47 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用原地加法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the in-place addition operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用原地加法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the in-place addition operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用 dagger 操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the dagger operation
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数加常量操作（Out-of-place）
-	 * @details 实现 out-of-place 加常量：res ^= lhs + add_int
+	 * @brief Unsigned integer add-constant operation (Out-of-place)
+	 * @details Implements out-of-place add-constant: res ^= lhs + add_int
 	 *
-	 * Unitary保证：通过XOR实现，res = res ⊕ (lhs + add_int)
-	 * 应用两次：res ⊕ (lhs + add_int) ⊕ (lhs + add_int) = res
+	 * Unitary guarantee: implemented via XOR, res = res ⊕ (lhs + add_int)
+	 * Applied twice: res ⊕ (lhs + add_int) ⊕ (lhs + add_int) = res
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs和res都必须是UnsignedInteger
-	 * @note 溢出行为：加法结果按输出寄存器大小截断后XOR
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs and res must both be UnsignedInteger
+	 * @note Overflow behavior: the addition result is truncated to the output register size before the XOR
 	 *
-	 * @pre lhs和res寄存器必须是UnsignedInteger类型
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre the lhs and res registers must be of UnsignedInteger type
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto res = System::add_register("res", UnsignedInteger, 4);
@@ -867,22 +876,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 加数（常量） */
+		/** @brief Addend (constant) */
 		size_t add_int;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 输入寄存器名称
-		 * @param add 加数常量
-		 * @param reg_out 输出寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_in Input register name
+		 * @param add Addend constant
+		 * @param reg_out Output register name
 		 */
 		Add_UInt_ConstUInt(std::string_view reg_in, size_t add, std::string_view reg_out)
 			: lhs(System::get(reg_in)), res(System::get(reg_out)), add_int(add)
@@ -896,10 +905,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID
-		 * @param add 加数常量
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID
+		 * @param add Addend constant
+		 * @param reg_out Output register ID
 		 */
 		Add_UInt_ConstUInt(size_t reg_in, size_t add, size_t reg_out)
 			: lhs(reg_in), res(reg_out), add_int(add)
@@ -913,41 +922,42 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用加常量操作
-		 * @param state 系统状态向量
+		 * @brief Apply the add-constant operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用加常量操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the add-constant operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 加常量操作（In-place）
-	 * @details 实现 in-place 加常量：reg_in += add_int (mod 2^N)
+	 * @brief Add-constant operation (In-place)
+	 * @details Implements in-place add-constant: reg_in += add_int (mod 2^N)
 	 *
-	 * 这是一个in-place操作，需要显式实现dagger来保证unitary。
-	 * dagger实现：reg_in += (2^N - add_int) mod 2^N，其中N是寄存器位数
+	 * This is an in-place operation; an explicit dagger implementation is required to guarantee unitarity.
+	 * dagger implementation: reg_in += (2^N - add_int) mod 2^N, where N is the register bit width
 	 *
-	 * @note Unitary性质：通过模运算加法保证双射性
-	 * @note 数据类型：建议reg_in为UnsignedInteger
-	 * @note 溢出行为：结果按寄存器大小模2^N回绕
+	 * @note Unitarity: bijectivity is guaranteed by modular addition
+	 * @note Data type: reg_in is recommended to be UnsignedInteger
+	 * @note Overflow behavior: the result wraps around modulo 2^N at the register size
 	 *
-	 * @pre reg_in必须是激活状态
-	 * @pre add_int应该小于2^N（N为寄存器位数），否则行为取决于模运算
+	 * @pre reg_in must be active
+	 * @pre add_int should be less than 2^N (N is the register bit width), otherwise the behavior
+	 *       depends on modular arithmetic
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto reg = System::add_register("reg", UnsignedInteger, 4);
 	 * Init_Unsafe(reg, 12);  // reg = 12
 	 * // reg = (12 + 3) % 16 = 15
 	 * Add_ConstUInt_InPlace("reg", 3);
-	 * // dagger: reg = (15 + 13) % 16 = 12 (恢复原值)
+	 * // dagger: reg = (15 + 13) % 16 = 12 (restores the original value)
 	 * op.dag(state);
 	 * @endcode
 	 */
@@ -955,19 +965,19 @@ namespace qram_simulator
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 加数（常量） */
+		/** @brief Addend (constant) */
 		size_t add_int;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg_in;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in_ 输入寄存器名称（结果存储于此）
-		 * @param add 加数常量
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg_in_ Input register name (result stored here)
+		 * @param add Addend constant
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		Add_ConstUInt_InPlace(std::string_view reg_in_, size_t add) :
 			reg_in(System::get(reg_in_)), add_int(add)
@@ -981,10 +991,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID（结果存储于此）
-		 * @param add 加数常量
-		 * @throws 当寄存器类型不是整数类型时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID (result stored here)
+		 * @param add Addend constant
+		 * @throws Throws an exception when a register type is not an integer type
 		 */
 		Add_ConstUInt_InPlace(size_t reg_in, size_t add)
 			: reg_in(reg_in), add_int(add)
@@ -998,51 +1008,51 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用加常量操作
-		 * @param state 系统状态向量
+		 * @brief Apply the add-constant operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用加常量操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the add-constant operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用 dagger 操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the dagger operation
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 除法平方根反余弦操作（Out-of-place）
-	 * @details 实现：res ^= arccos(sqrt(lhs / rhs)) / π / 2
+	 * @brief Division square-root arccosine operation (Out-of-place)
+	 * @details Implements: res ^= arccos(sqrt(lhs / rhs)) / π / 2
 	 *
-	 * 用于计算量子旋转角度，常见于量子机器学习算法中。
+	 * Used to compute quantum rotation angles, common in quantum machine learning algorithms.
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：lhs和rhs必须是UnsignedInteger，res必须是Rational
-	 * @note 数值范围：结果在[0, 0.5]范围内，编码为有理数
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: lhs and rhs must be UnsignedInteger, res must be Rational
+	 * @note Numeric range: the result is in [0, 0.5], encoded as a rational
 	 *
-	 * @pre lhs和rhs必须是UnsignedInteger类型
-	 * @pre res必须是Rational类型
-	 * @pre lhs < rhs（否则sqrt参数超出[0,1]范围，可能产生NaN）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre lhs and rhs must be of UnsignedInteger type
+	 * @pre res must be of Rational type
+	 * @pre lhs < rhs (otherwise the sqrt argument exceeds the [0,1] range and may produce NaN)
+	 * @pre all registers must be active
 	 *
-	 * @par 数学公式
+	 * @par Mathematical formula
 	 * output = arccos(√(lhs / rhs)) / (2π)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", UnsignedInteger, 4);
@@ -1057,22 +1067,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t register_lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t register_rhs;
 
-		/** @brief 输出寄存器 ID */
+		/** @brief Output register ID */
 		size_t register_out;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param register_lhs 左操作数寄存器名称
-		 * @param register_rhs 右操作数寄存器名称
-		 * @param register_out 输出寄存器名称
+		 * @brief Constructor (name version)
+		 * @param register_lhs Left operand register name
+		 * @param register_rhs Right operand register name
+		 * @param register_out Output register name
 		 */
 		Div_Sqrt_Arccos_UInt_UInt(std::string_view register_lhs, std::string_view register_rhs, std::string_view register_out)
 			:register_lhs(System::get(register_lhs)),
@@ -1089,10 +1099,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_lhs 左操作数寄存器 ID
-		 * @param reg_rhs 右操作数寄存器 ID
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_lhs Left operand register ID
+		 * @param reg_rhs Right operand register ID
+		 * @param reg_out Output register ID
 		 */
 		Div_Sqrt_Arccos_UInt_UInt(size_t reg_lhs, size_t reg_rhs, size_t reg_out)
 			:register_lhs(reg_lhs),
@@ -1109,40 +1119,40 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用运算操作
-		 * @param state 系统状态向量
+		 * @brief Apply the arithmetic operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用运算操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the arithmetic operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 平方根除法反余弦操作（Out-of-place）
-	 * @details 实现：res ^= arccos(lhs / sqrt(rhs)) / π / 2
+	 * @brief Square-root division arccosine operation (Out-of-place)
+	 * @details Implements: res ^= arccos(lhs / sqrt(rhs)) / π / 2
 	 *
-	 * 用于计算量子旋转角度，常见于量子振幅编码。
+	 * Used to compute quantum rotation angles, common in quantum amplitude encoding.
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：lhs必须是SignedInteger，rhs必须是UnsignedInteger，res必须是Rational
-	 * @note 数值范围：结果在[0, 1)范围内，编码为有理数
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: lhs must be SignedInteger, rhs must be UnsignedInteger, res must be Rational
+	 * @note Numeric range: the result is in [0, 1), encoded as a rational
 	 *
-	 * @pre lhs必须是SignedInteger类型
-	 * @pre rhs必须是UnsignedInteger类型
-	 * @pre res必须是Rational类型
-	 * @pre |lhs| <= sqrt(rhs)（保证arccos参数在[-1,1]范围内）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre lhs must be of SignedInteger type
+	 * @pre rhs must be of UnsignedInteger type
+	 * @pre res must be of Rational type
+	 * @pre |lhs| <= sqrt(rhs) (guarantees the arccos argument is within [-1,1])
+	 * @pre all registers must be active
 	 *
-	 * @par 数学公式
+	 * @par Mathematical formula
 	 * output = arccos(lhs / √rhs) / (2π)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", SignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", UnsignedInteger, 4);
@@ -1157,22 +1167,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t register_lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t register_rhs;
 
-		/** @brief 输出寄存器 ID */
+		/** @brief Output register ID */
 		size_t register_out;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs 左操作数寄存器名称
-		 * @param rhs 右操作数寄存器名称
-		 * @param out 输出寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs Left operand register name
+		 * @param rhs Right operand register name
+		 * @param out Output register name
 		 */
 		Sqrt_Div_Arccos_Int_UInt(std::string_view lhs, std::string_view rhs, std::string_view out)
 			:register_lhs(System::get(lhs)),
@@ -1189,10 +1199,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_lhs 左操作数寄存器 ID
-		 * @param reg_rhs 右操作数寄存器 ID
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_lhs Left operand register ID
+		 * @param reg_rhs Right operand register ID
+		 * @param reg_out Output register ID
 		 */
 		Sqrt_Div_Arccos_Int_UInt(size_t reg_lhs, size_t reg_rhs, size_t reg_out)
 			:register_lhs(reg_lhs),
@@ -1209,15 +1219,15 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用运算操作
-		 * @param state 系统状态向量
+		 * @brief Apply the arithmetic operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用运算操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the arithmetic operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
@@ -1225,24 +1235,24 @@ namespace qram_simulator
 
 
 	/**
-	 * @brief 获取旋转角度操作（Out-of-place）
-	 * @details 计算从lhs到rhs的极坐标角度：res ^= atan2(rhs, lhs) / (2π)
+	 * @brief Get rotation angle operation (Out-of-place)
+	 * @details Computes the polar angle from lhs to rhs: res ^= atan2(rhs, lhs) / (2π)
 	 *
-	 * 将笛卡尔坐标(lhs, rhs)转换为极坐标角度，结果编码在[0, 1)范围内。
+	 * Converts the Cartesian coordinates (lhs, rhs) to a polar angle; the result is encoded in the range [0, 1).
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：lhs和rhs可以是SignedInteger或UnsignedInteger，res必须是Rational
-	 * @note 数值范围：结果在[0, 1)范围内（归一化的角度）
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: lhs and rhs may be SignedInteger or UnsignedInteger, res must be Rational
+	 * @note Numeric range: the result is in [0, 1) (a normalized angle)
 	 *
-	 * @pre res必须是Rational类型
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre res must be of Rational type
+	 * @pre all registers must be active
 	 *
-	 * @par 数学公式
-	 * - 如果 lhs == 0 且 rhs >= 0: output = 0.25 (90°)
-	 * - 如果 lhs == 0 且 rhs < 0: output = 0.75 (270°)
-	 * - 其他: output = atan2(rhs, lhs) / (2π) 归一化到[0,1)
+	 * @par Mathematical formula
+	 * - If lhs == 0 and rhs >= 0: output = 0.25 (90°)
+	 * - If lhs == 0 and rhs < 0: output = 0.75 (270°)
+	 * - Otherwise: output = atan2(rhs, lhs) / (2π) normalized to [0,1)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", SignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", SignedInteger, 4);
@@ -1257,22 +1267,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t register_lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t register_rhs;
 
-		/** @brief 输出寄存器 ID */
+		/** @brief Output register ID */
 		size_t register_out;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_lhs 左操作数寄存器名称
-		 * @param reg_rhs 右操作数寄存器名称
-		 * @param reg_out 输出寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_lhs Left operand register name
+		 * @param reg_rhs Right operand register name
+		 * @param reg_out Output register name
 		 */
 		GetRotateAngle_Int_Int(std::string_view reg_lhs, std::string_view reg_rhs, std::string_view reg_out)
 			:register_lhs(System::get(reg_lhs)),
@@ -1282,10 +1292,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_lhs 左操作数寄存器 ID
-		 * @param reg_rhs 右操作数寄存器 ID
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_lhs Left operand register ID
+		 * @param reg_rhs Right operand register ID
+		 * @param reg_out Output register ID
 		 */
 		GetRotateAngle_Int_Int(size_t reg_lhs, size_t reg_rhs, size_t reg_out)
 			:register_lhs(reg_lhs),
@@ -1295,49 +1305,50 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用运算操作
-		 * @param state 系统状态向量
+		 * @brief Apply the arithmetic operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用运算操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the arithmetic operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数减法操作（Out-of-place）
-	 * @details 实现 out-of-place 减法：res ^= lhs - rhs
+	 * @brief Unsigned integer subtraction operation (Out-of-place)
+	 * @details Implements out-of-place subtraction: res ^= lhs - rhs
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，差在无符号 64 位回绕域上求值，
-	 *       取 mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the difference is evaluated on the
+	 *       unsigned 64-bit wrapping domain,
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Sub_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Sub_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1354,10 +1365,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Sub_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -1374,46 +1385,47 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用减法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the subtraction operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用减法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the subtraction operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数取负操作（Out-of-place）
-	 * @details 实现 out-of-place 取负：res ^= 0 - reg
+	 * @brief Unsigned integer negation operation (Out-of-place)
+	 * @details Implements out-of-place negation: res ^= 0 - reg
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：reg、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，负值在无符号 64 位回绕域上求值
-	 *       （等价于按 64 位二补码取负），取 mod 2^res_width 后 XOR 进 res
-	 *       （docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: reg and res must both be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; negative values are evaluated on the unsigned 64-bit
+	 *       wrapping domain
+	 *       (equivalent to 64-bit two's complement negation), then XORed into res after mod 2^res_width
+	 *       (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Neg_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ 输入寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ Input register name
+		 * @param res_ Result register name
 		 */
 		Neg_UInt(std::string_view reg_, std::string_view res_)
 			: reg(System::get(reg_)), res(System::get(res_))
@@ -1429,9 +1441,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_ 输入寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_ Input register ID
+		 * @param res_ Result register ID
 		 */
 		Neg_UInt(size_t reg_, size_t res_)
 			: reg(reg_), res(res_)
@@ -1447,47 +1459,48 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用取负操作
-		 * @param state 系统状态向量
+		 * @brief Apply the negation operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用取负操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the negation operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 有符号整数取绝对值操作（Out-of-place）
-	 * @details 实现 out-of-place 取绝对值：res ^= |reg|，reg 按二补码符号扩展读入
+	 * @brief Signed integer absolute value operation (Out-of-place)
+	 * @details Implements out-of-place absolute value: res ^= |reg|, where reg is read with
+	 *          two's complement sign extension
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：reg 必须是 SignedInteger，res 必须是 UnsignedInteger
-	 * @note 宽度与截断：reg 符号扩展到 64 位后取绝对值，结果取
-	 *       mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
-	 * @note 边界行为：输入为最小负数（w = 64 时的 INT64_MIN）时，
-	 *       -v 按回绕仍为自身，输出保持最小负数的位模式
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: reg must be SignedInteger, res must be UnsignedInteger
+	 * @note Width and truncation: reg is sign-extended to 64 bits, then the absolute value is taken; the result is
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
+	 * @note Boundary behavior: when the input is the most negative value (INT64_MIN for w = 64),
+	 *       -v still wraps to itself, and the output keeps the bit pattern of the most negative value
 	 */
 	struct Abs_SInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ 输入寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ Input register name
+		 * @param res_ Result register name
 		 */
 		Abs_SInt(std::string_view reg_, std::string_view res_)
 			: reg(System::get(reg_)), res(System::get(res_))
@@ -1503,9 +1516,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_ 输入寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_ Input register ID
+		 * @param res_ Result register ID
 		 */
 		Abs_SInt(size_t reg_, size_t res_)
 			: reg(reg_), res(res_)
@@ -1521,49 +1534,50 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用取绝对值操作
-		 * @param state 系统状态向量
+		 * @brief Apply the absolute value operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用取绝对值操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the absolute value operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数乘法操作（Out-of-place）
-	 * @details 实现 out-of-place 乘法：res ^= lhs * rhs
+	 * @brief Unsigned integer multiplication operation (Out-of-place)
+	 * @details Implements out-of-place multiplication: res ^= lhs * rhs
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，按 128 位全精度乘积取低 64 位，
-	 *       再取 mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the low 64 bits of the full-precision
+	 *       128-bit product are taken,
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Mul_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Mul_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1580,10 +1594,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Mul_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -1600,52 +1614,53 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用乘法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the multiplication operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用乘法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the multiplication operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数除法操作（Out-of-place）
-	 * @details 实现 out-of-place 除法：res ^= lhs / rhs（整数除法，向下取整）
+	 * @brief Unsigned integer division operation (Out-of-place)
+	 * @details Implements out-of-place division: res ^= lhs / rhs (integer division, rounding down)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 全域化：除数为零时商取 0，不抛定义域异常（可逆性要求算子
-	 *       在全部基矢上是确定性函数；docs/operators.md《宽度与截断约定》）；
-	 *       溢出信息由专用 flag 算子另行报告
-	 * @note 宽度与截断：操作数零扩展，商域 ≤ 64 位，
-	 *       取 mod 2^res_width 后 XOR 进 res
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Total domain: when the divisor is zero the quotient is 0 and no domain exception is thrown
+	 *       (reversibility requires the operator
+	 *       to be a deterministic function on all basis vectors; docs/operators.md "Width and Truncation Convention");
+	 *       overflow information is reported separately by dedicated flag operators
+	 * @note Width and truncation: operands are zero-extended, quotient domain <= 64 bits,
+	 *       then XORed into res after taking mod 2^res_width
 	 */
 	struct Div_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Div_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1662,10 +1677,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Div_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -1682,47 +1697,48 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用除法操作
-		 * @param state 系统状态向量
+		 * @brief Apply the division operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用除法操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the division operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数平方根操作（Out-of-place）
-	 * @details 实现 out-of-place 开方：res ^= floor(sqrt(reg))
+	 * @brief Unsigned integer square root operation (Out-of-place)
+	 * @details Implements out-of-place square root: res ^= floor(sqrt(reg))
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：reg、res 都必须是 UnsignedInteger
-	 * @note 实现细节：纯整数逐位开方算法（isqrt_u64），无浮点参与，
-	 *       CPU 与 CUDA 结果按位一致
-	 * @note 宽度与截断：操作数零扩展，商域 ≤ 64 位，
-	 *       取 mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: reg and res must both be UnsignedInteger
+	 * @note Implementation detail: a pure integer bit-by-bit square root algorithm (isqrt_u64) with no
+	 *       floating point involved,
+	 *       CPU and CUDA results are bit-for-bit identical
+	 * @note Width and truncation: operands are zero-extended, quotient domain <= 64 bits,
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Sqrt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ 输入寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ Input register name
+		 * @param res_ Result register name
 		 */
 		Sqrt_UInt(std::string_view reg_, std::string_view res_)
 			: reg(System::get(reg_)), res(System::get(res_))
@@ -1738,9 +1754,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_ 输入寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_ Input register ID
+		 * @param res_ Result register ID
 		 */
 		Sqrt_UInt(size_t reg_, size_t res_)
 			: reg(reg_), res(res_)
@@ -1756,54 +1772,54 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用开方操作
-		 * @param state 系统状态向量
+		 * @brief Apply the square root operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用开方操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the square root operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 布尔条件选择操作（Out-of-place）
-	 * @details 实现 out-of-place 二选一：res ^= (cond ? lhs : rhs)，cond 读第 0 位
+	 * @brief Boolean conditional select operation (Out-of-place)
+	 * @details Implements out-of-place two-way select: res ^= (cond ? lhs : rhs), cond reads bit 0
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：cond 必须是 Boolean（宽度为 1），
-	 *       lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，被选中的值取
-	 *       mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: cond must be Boolean (width 1),
+	 *       lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the selected value is
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Select_Bool_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 条件寄存器 ID */
+		/** @brief Condition register ID */
 		size_t cond;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param cond_ 条件寄存器名称
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param cond_ Condition register name
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Select_Bool_UInt_UInt(std::string_view cond_, std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: cond(System::get(cond_)), lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1822,11 +1838,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param cond_ 条件寄存器 ID
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param cond_ Condition register ID
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Select_Bool_UInt_UInt(size_t cond_, size_t lhs_, size_t rhs_, size_t res_)
 			: cond(cond_), lhs(lhs_), rhs(rhs_), res(res_)
@@ -1845,49 +1861,49 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用条件选择操作
-		 * @param state 系统状态向量
+		 * @brief Apply the conditional select operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用条件选择操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the conditional select operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数按位与操作（Out-of-place）
-	 * @details 实现 out-of-place 按位与：res ^= lhs & rhs
+	 * @brief Unsigned integer bitwise AND operation (Out-of-place)
+	 * @details Implements out-of-place bitwise AND: res ^= lhs & rhs
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，结果取
-	 *       mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the result is
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct And_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		And_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1904,10 +1920,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		And_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -1924,49 +1940,49 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用按位与操作
-		 * @param state 系统状态向量
+		 * @brief Apply the bitwise AND operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用按位与操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the bitwise AND operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数按位或操作（Out-of-place）
-	 * @details 实现 out-of-place 按位或：res ^= lhs | rhs
+	 * @brief Unsigned integer bitwise OR operation (Out-of-place)
+	 * @details Implements out-of-place bitwise OR: res ^= lhs | rhs
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，结果取
-	 *       mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the result is
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Or_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Or_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -1983,10 +1999,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Or_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -2003,49 +2019,49 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用按位或操作
-		 * @param state 系统状态向量
+		 * @brief Apply the bitwise OR operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用按位或操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the bitwise OR operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数按位异或操作（Out-of-place）
-	 * @details 实现 out-of-place 按位异或：res ^= lhs ^ rhs
+	 * @brief Unsigned integer bitwise XOR operation (Out-of-place)
+	 * @details Implements out-of-place bitwise XOR: res ^= lhs ^ rhs
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 都必须是 UnsignedInteger
-	 * @note 宽度与截断：操作数零扩展，结果取
-	 *       mod 2^res_width 后 XOR 进 res（docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must all be UnsignedInteger
+	 * @note Width and truncation: operands are zero-extended; the result is
+	 *       then XORed into res after taking mod 2^res_width (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Xor_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 结果寄存器 ID */
+		/** @brief Result register ID */
 		size_t res;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Result register name
 		 */
 		Xor_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_))
@@ -2062,10 +2078,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ Result register ID
 		 */
 		Xor_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_)
 			: lhs(lhs_), rhs(rhs_), res(res_)
@@ -2082,49 +2098,50 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用按位异或操作
-		 * @param state 系统状态向量
+		 * @brief Apply the bitwise XOR operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用按位异或操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the bitwise XOR operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 有符号整数小于比较操作（Out-of-place）
-	 * @details 实现 out-of-place 有符号比较：flag ^= (lhs < rhs)
+	 * @brief Signed integer less-than comparison operation (Out-of-place)
+	 * @details Implements out-of-place signed comparison: flag ^= (lhs < rhs)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs 必须是 SignedInteger，flag 必须是 Boolean（宽度 1）
-	 * @note 谓词在全精度域上求值：操作数符号扩展到 64 位后比较
-	 *       （docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs and rhs must be SignedInteger, flag must be Boolean (width 1)
+	 * @note The predicate is evaluated on the full-precision domain: operands are sign-extended to 64 bits
+	 *       and then compared
+	 *       (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Less_SInt_SInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 小于结果 flag 寄存器 ID */
+		/** @brief Less-than result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param flag_ 小于结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param flag_ Register name of the less-than result flag
 		 */
 		Less_SInt_SInt(std::string_view lhs_, std::string_view rhs_, std::string_view flag_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), flag_id(System::get(flag_))
@@ -2141,10 +2158,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param flag_ 小于结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param flag_ Register ID of the less-than result flag
 		 */
 		Less_SInt_SInt(size_t lhs_, size_t rhs_, size_t flag_)
 			: lhs(lhs_), rhs(rhs_), flag_id(flag_)
@@ -2161,55 +2178,56 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用有符号小于比较操作
-		 * @param state 系统状态向量
+		 * @brief Apply the signed less-than comparison operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用有符号小于比较操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the signed less-than comparison operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号加法进位标志操作（Out-of-place flag 算子）
-	 * @details 报告 lhs + rhs 相对 res 宽度 w 的进位输出：flag ^= carry_out_w(lhs + rhs)
+	 * @brief Unsigned addition carry flag operation (Out-of-place flag operator)
+	 * @details Reports the carry-out of lhs + rhs relative to res width w: flag ^= carry_out_w(lhs + rhs)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 必须是 UnsignedInteger，flag 必须是 Boolean（宽度 1）
-	 * @note out 参数仅提供宽度，不读其值：res 只用于确定进位判定的目标宽度 w，
-	 *       本算子不读写 res（docs/operators.md《宽度与截断约定》）
-	 * @note 谓词在全精度域上求值：w = 64 时按 64 位回绕判定，
-	 *       w < 64 时按 a + b >= 2^w 判定
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must be UnsignedInteger, flag must be Boolean (width 1)
+	 * @note The out parameter only provides the width and its value is never read: res is only used to determine
+	 *       the target width w of the carry test,
+	 *       this operator does not read or write res (docs/operators.md "Width and Truncation Convention")
+	 * @note The predicate is evaluated on the full-precision domain: when w = 64 it is decided by 64-bit wraparound,
+	 *       when w < 64 it is decided by a + b >= 2^w
 	 */
 	struct Carry_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 提供目标宽度的 out 寄存器 ID（不读其值） */
+		/** @brief ID of the out register providing the target width (its value is not read) */
 		size_t res;
 
-		/** @brief 进位结果 flag 寄存器 ID */
+		/** @brief Carry result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 提供目标宽度的 out 寄存器名称
-		 * @param flag_ 进位结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Name of the out register providing the target width
+		 * @param flag_ Register name of the carry result flag
 		 */
 		Carry_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_, std::string_view flag_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_)), flag_id(System::get(flag_))
@@ -2227,11 +2245,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 提供目标宽度的 out 寄存器 ID
-		 * @param flag_ 进位结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ ID of the out register providing the target width
+		 * @param flag_ Register ID of the carry result flag
 		 */
 		Carry_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_, size_t flag_)
 			: lhs(lhs_), rhs(rhs_), res(res_), flag_id(flag_)
@@ -2249,56 +2267,57 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用进位标志操作
-		 * @param state 系统状态向量
+		 * @brief Apply the carry flag operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用进位标志操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the carry flag operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 有符号加法溢出标志操作（Out-of-place flag 算子）
-	 * @details 报告 lhs + rhs 相对 res 宽度 w 的有符号溢出：flag ^= overflow_w(lhs + rhs)
+	 * @brief Signed addition overflow flag operation (Out-of-place flag operator)
+	 * @details Reports signed overflow of lhs + rhs relative to res width w: flag ^= overflow_w(lhs + rhs)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs 必须是 SignedInteger，res 必须是 UnsignedInteger，
-	 *       flag 必须是 Boolean（宽度 1）
-	 * @note out 参数仅提供宽度，不读其值：res 只用于确定溢出判定的目标宽度 w，
-	 *       本算子不读写 res（docs/operators.md《宽度与截断约定》）
-	 * @note 谓词在全精度域上求值：操作数符号扩展后截断到 w 位，
-	 *       按同号相加、结果变号判定
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs and rhs must be SignedInteger, res must be UnsignedInteger,
+	 *       flag must be Boolean (width 1)
+	 * @note The out parameter only provides the width and its value is never read: res is only used to determine
+	 *       the target width w of the overflow test,
+	 *       this operator does not read or write res (docs/operators.md "Width and Truncation Convention")
+	 * @note The predicate is evaluated on the full-precision domain: operands are sign-extended, truncated to w bits,
+	 *       and decided by same-sign addition with the result changing sign
 	 */
 	struct Overflow_SInt_SInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 提供目标宽度的 out 寄存器 ID（不读其值） */
+		/** @brief ID of the out register providing the target width (its value is not read) */
 		size_t res;
 
-		/** @brief 溢出结果 flag 寄存器 ID */
+		/** @brief Overflow result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 提供目标宽度的 out 寄存器名称
-		 * @param flag_ 溢出结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Name of the out register providing the target width
+		 * @param flag_ Register name of the overflow result flag
 		 */
 		Overflow_SInt_SInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_, std::string_view flag_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_)), flag_id(System::get(flag_))
@@ -2316,11 +2335,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 提供目标宽度的 out 寄存器 ID
-		 * @param flag_ 溢出结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ ID of the out register providing the target width
+		 * @param flag_ Register ID of the overflow result flag
 		 */
 		Overflow_SInt_SInt(size_t lhs_, size_t rhs_, size_t res_, size_t flag_)
 			: lhs(lhs_), rhs(rhs_), res(res_), flag_id(flag_)
@@ -2338,55 +2357,58 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用溢出标志操作
-		 * @param state 系统状态向量
+		 * @brief Apply the overflow flag operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用溢出标志操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the overflow flag operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号乘法溢出标志操作（Out-of-place flag 算子）
-	 * @details 报告 lhs * rhs 是否超出 res 宽度 w 的表示范围：flag ^= (lhs * rhs 不含于 w 位)
+	 * @brief Unsigned multiplication overflow flag operation (Out-of-place flag operator)
+	 * @details Reports whether lhs * rhs exceeds the representable range of res width w:
+	 *          flag ^= (lhs * rhs not contained in w bits)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：lhs、rhs、res 必须是 UnsignedInteger，flag 必须是 Boolean（宽度 1）
-	 * @note out 参数仅提供宽度，不读其值：res 只用于确定溢出判定的目标宽度 w，
-	 *       本算子不读写 res（docs/operators.md《宽度与截断约定》）
-	 * @note 谓词在全精度域上求值：乘积经 64 位高低半分解（等价 128 位精度），
-	 *       高 64 位非零或低 64 位超出 w 位范围即判定溢出
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: lhs, rhs, and res must be UnsignedInteger, flag must be Boolean (width 1)
+	 * @note The out parameter only provides the width and its value is never read: res is only used to determine
+	 *       the target width w of the overflow test,
+	 *       this operator does not read or write res (docs/operators.md "Width and Truncation Convention")
+	 * @note The predicate is evaluated on the full-precision domain: the product is decomposed
+	 *       into 64-bit high/low halves (equivalent to 128-bit precision),
+	 *       overflow is decided when the high 64 bits are nonzero or the low 64 bits exceed the w-bit range
 	 */
 	struct MulOverflow_UInt_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs;
 
-		/** @brief 提供目标宽度的 out 寄存器 ID（不读其值） */
+		/** @brief ID of the out register providing the target width (its value is not read) */
 		size_t res;
 
-		/** @brief 溢出结果 flag 寄存器 ID */
+		/** @brief Overflow result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lhs_ 左操作数寄存器名称
-		 * @param rhs_ 右操作数寄存器名称
-		 * @param res_ 提供目标宽度的 out 寄存器名称
-		 * @param flag_ 溢出结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lhs_ Left operand register name
+		 * @param rhs_ Right operand register name
+		 * @param res_ Name of the out register providing the target width
+		 * @param flag_ Register name of the overflow result flag
 		 */
 		MulOverflow_UInt_UInt(std::string_view lhs_, std::string_view rhs_, std::string_view res_, std::string_view flag_)
 			: lhs(System::get(lhs_)), rhs(System::get(rhs_)), res(System::get(res_)), flag_id(System::get(flag_))
@@ -2404,11 +2426,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lhs_ 左操作数寄存器 ID
-		 * @param rhs_ 右操作数寄存器 ID
-		 * @param res_ 提供目标宽度的 out 寄存器 ID
-		 * @param flag_ 溢出结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lhs_ Left operand register ID
+		 * @param rhs_ Right operand register ID
+		 * @param res_ ID of the out register providing the target width
+		 * @param flag_ Register ID of the overflow result flag
 		 */
 		MulOverflow_UInt_UInt(size_t lhs_, size_t rhs_, size_t res_, size_t flag_)
 			: lhs(lhs_), rhs(rhs_), res(res_), flag_id(flag_)
@@ -2426,45 +2448,45 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用乘法溢出标志操作
-		 * @param state 系统状态向量
+		 * @brief Apply the multiplication overflow flag operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用乘法溢出标志操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the multiplication overflow flag operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数判零操作（Out-of-place flag 算子）
-	 * @details 实现 out-of-place 判零：flag ^= (reg == 0)
+	 * @brief Unsigned integer zero-test operation (Out-of-place flag operator)
+	 * @details Implements out-of-place zero test: flag ^= (reg == 0)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：reg 必须是 UnsignedInteger，flag 必须是 Boolean（宽度 1）
-	 * @note 谓词在全精度域上求值：操作数零扩展后与 0 比较
-	 *       （docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: reg must be UnsignedInteger, flag must be Boolean (width 1)
+	 * @note The predicate is evaluated on the full-precision domain: operands are zero-extended and compared with 0
+	 *       (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct IsZero_UInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg;
 
-		/** @brief 判零结果 flag 寄存器 ID */
+		/** @brief Zero-test result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ 输入寄存器名称
-		 * @param flag_ 判零结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ Input register name
+		 * @param flag_ Register name of the zero-test result flag
 		 */
 		IsZero_UInt(std::string_view reg_, std::string_view flag_)
 			: reg(System::get(reg_)), flag_id(System::get(flag_))
@@ -2480,9 +2502,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_ 输入寄存器 ID
-		 * @param flag_ 判零结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_ Input register ID
+		 * @param flag_ Register ID of the zero-test result flag
 		 */
 		IsZero_UInt(size_t reg_, size_t flag_)
 			: reg(reg_), flag_id(flag_)
@@ -2498,45 +2520,46 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用判零操作
-		 * @param state 系统状态向量
+		 * @brief Apply the zero-test operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用判零操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the zero-test operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 有符号整数负数判定操作（Out-of-place flag 算子）
-	 * @details 实现 out-of-place 负数判定：flag ^= (reg < 0)
+	 * @brief Signed integer negative-test operation (Out-of-place flag operator)
+	 * @details Implements out-of-place negative test: flag ^= (reg < 0)
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：reg 必须是 SignedInteger，flag 必须是 Boolean（宽度 1）
-	 * @note 谓词在全精度域上求值：操作数按二补码符号扩展后与 0 比较
-	 *       （docs/operators.md《宽度与截断约定》）
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: reg must be SignedInteger, flag must be Boolean (width 1)
+	 * @note The predicate is evaluated on the full-precision domain: operands are two's complement
+	 *       sign-extended and compared with 0
+	 *       (docs/operators.md "Width and Truncation Convention")
 	 */
 	struct Negative_SInt : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t reg;
 
-		/** @brief 负数判定结果 flag 寄存器 ID */
+		/** @brief Negative-test result flag register ID */
 		size_t flag_id;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ 输入寄存器名称
-		 * @param flag_ 负数判定结果 flag 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ Input register name
+		 * @param flag_ Register name of the negative-test result flag
 		 */
 		Negative_SInt(std::string_view reg_, std::string_view flag_)
 			: reg(System::get(reg_)), flag_id(System::get(flag_))
@@ -2552,9 +2575,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_ 输入寄存器 ID
-		 * @param flag_ 负数判定结果 flag 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_ Input register ID
+		 * @param flag_ Register ID of the negative-test result flag
 		 */
 		Negative_SInt(size_t reg_, size_t flag_)
 			: reg(reg_), flag_id(flag_)
@@ -2570,42 +2593,42 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用负数判定操作
-		 * @param state 系统状态向量
+		 * @brief Apply the negative-test operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用负数判定操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the negative-test operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 任意整数累加操作（In-place）
-	 * @details 实现 in-place 加法：lhs += rhs，支持有符号和无符号整数
+	 * @brief Arbitrary integer accumulation operation (In-place)
+	 * @details Implements in-place addition: lhs += rhs, supporting signed and unsigned integers
 	 *
-	 * 这是一个in-place操作，需要显式实现dagger来保证unitary。
-	 * dagger实现：lhs -= rhs (mod 2^N)
+	 * This is an in-place operation; an explicit dagger implementation is required to guarantee unitarity.
+	 * dagger implementation: lhs -= rhs (mod 2^N)
 	 *
-	 * @note Unitary性质：通过模运算保证双射性
-	 * @note 数据类型：lhs和rhs可以是UnsignedInteger或SignedInteger
-	 * @note 溢出行为：结果按lhs寄存器大小模2^N回绕
-	 * @note 类型组合：支持混合类型（如lhs为SignedInteger，rhs为UnsignedInteger）
-	 * @note 读扩展（宽度与截断约定）：rhs按其寄存器声明类型扩展——
-	 *       UnsignedInteger 零扩展，SignedInteger 符号扩展；宽度与类型在
-	 *       执行期读取，不在构造期快照
+	 * @note Unitarity: bijectivity is guaranteed by modular arithmetic
+	 * @note Data type: lhs and rhs may be UnsignedInteger or SignedInteger
+	 * @note Overflow behavior: the result wraps around modulo 2^N at the lhs register size
+	 * @note Type combination: mixed types are supported (e.g. lhs is SignedInteger, rhs is UnsignedInteger)
+	 * @note Read extension (width and truncation convention): rhs is extended per its declared register type --
+	 *       UnsignedInteger is zero-extended and SignedInteger sign-extended; width and type are
+	 *       read at execution time, not snapshotted at construction time
 	 *
-	 * @pre lhs和rhs必须是整数类型（UnsignedInteger或SignedInteger，debug 校验）
-	 * @pre lhs与rhs不得为同一寄存器（别名检查，always-on）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre lhs and rhs must be of integer type (UnsignedInteger or SignedInteger, debug checked)
+	 * @pre lhs and rhs must not be the same register (alias check, always-on)
+	 * @pre all registers must be active
 	 *
-	 * @warning 有符号整数的溢出行为是未定义的（C++标准），使用时需谨慎
+	 * @warning Overflow behavior of signed integers is undefined (C++ standard); use with caution
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto lhs = System::add_register("lhs", UnsignedInteger, 4);
 	 * auto rhs = System::add_register("rhs", UnsignedInteger, 4);
@@ -2613,7 +2636,7 @@ namespace qram_simulator
 	 * Init_Unsafe(rhs, 6);  // rhs = 6
 	 * // lhs = (8 + 6) % 16 = 14
 	 * Add_AnyInt_AnyInt_InPlace("lhs", "rhs");
-	 * // dagger: lhs = (14 - 6) % 16 = 8 (恢复原值)
+	 * // dagger: lhs = (14 - 6) % 16 = 8 (restores the original value)
 	 * op.dag(state);
 	 * @endcode
 	 */
@@ -2622,16 +2645,16 @@ namespace qram_simulator
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t lhs_id;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t rhs_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_lhs 左操作数寄存器名称
-		 * @param reg_rhs 右操作数寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_lhs Left operand register name
+		 * @param reg_rhs Right operand register name
 		 */
 		Add_AnyInt_AnyInt_InPlace(std::string_view reg_lhs, std::string_view reg_rhs)
 			: lhs_id(System::get(reg_lhs)), rhs_id(System::get(reg_rhs))
@@ -2650,9 +2673,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_lhs 左操作数寄存器 ID
-		 * @param reg_rhs 右操作数寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_lhs Left operand register ID
+		 * @param reg_rhs Right operand register ID
 		 */
 		Add_AnyInt_AnyInt_InPlace(size_t reg_lhs, size_t reg_rhs)
 			: lhs_id(reg_lhs), rhs_id(reg_rhs)
@@ -2673,57 +2696,58 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 按寄存器声明类型扩展读取右操作数
-		 * @details UnsignedInteger 零扩展；SignedInteger 符号扩展（二补码位模式）。
-		 *          宽度与类型在执行期读取（宽度与截断约定）。
-		 * @param s 当前基矢
-		 * @param id 右操作数寄存器 ID
-		 * @return 扩展后的 64 位位模式
+		 * @brief Read the right operand with extension according to the register's declared type
+		 * @details UnsignedInteger is zero-extended; SignedInteger is sign-extended (two's complement bit pattern).
+		 *          Width and type are read at execution time (width and truncation convention).
+		 * @param s Current basis vector
+		 * @param id Right operand register ID
+		 * @return The extended 64-bit bit pattern
 		 */
 		static uint64_t _extended_rhs(const System& s, size_t id);
 
 		/**
-		 * @brief 应用累加操作
-		 * @param state 系统状态向量
+		 * @brief Apply the accumulate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用累加操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the accumulate operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用 dagger 操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the dagger operation
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 赋值操作（Out-of-place）
-	 * @details 实现寄存器复制：register_2 ^= register_1
+	 * @brief Assignment operation (Out-of-place)
+	 * @details Implements register copy: register_2 ^= register_1
 	 *
-	 * 这是量子计算中"复制"操作的标准实现。通过XOR实现，应用两次会恢复原值。
+	 * This is the standard implementation of the "copy" operation in quantum computing. Implemented
+	 * via XOR; applying it twice restores the original value.
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为XOR是自逆操作
-	 * @note 数据类型：任意类型，只要两个寄存器大小相同
-	 * @note 语义：register_2 = register_2 ⊕ register_1
-	 *           如果register_2初始为0，则效果为 register_2 = register_1
+	 * @note Unitarity: self-adjoint operator (U^† = U), because XOR is self-inverse
+	 * @note Data type: any type, as long as the two registers have the same size
+	 * @note Semantics: register_2 = register_2 ⊕ register_1
+	 *           If register_2 is initially 0, the effect is register_2 = register_1
 	 *
-	 * @pre register_1和register_2大小必须相同
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre register_1 and register_2 must have the same size
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto src = System::add_register("src", UnsignedInteger, 4);
 	 * auto dst = System::add_register("dst", UnsignedInteger, 4);
@@ -2731,7 +2755,7 @@ namespace qram_simulator
 	 * Init_Unsafe(dst, 0);  // dst = 0
 	 * // dst = 0 ⊕ 7 = 7
 	 * Assign("src", "dst");
-	 * // 再次应用：dst = 7 ⊕ 7 = 0 (恢复原值)
+	 * // Applied again: dst = 7 ⊕ 7 = 0 (restores the original value)
 	 * Assign("src", "dst");
 	 * @endcode
 	 */
@@ -2739,16 +2763,16 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 第一个寄存器 ID */
+		/** @brief First register ID */
 		size_t register_1;
 
-		/** @brief 第二个寄存器 ID */
+		/** @brief Second register ID */
 		size_t register_2;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg1 第一个寄存器名称
-		 * @param reg2 第二个寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg1 First register name
+		 * @param reg2 Second register name
 		 */
 		Assign(std::string_view reg1, std::string_view reg2)
 			:register_1(System::get(reg1)), register_2(System::get(reg2))
@@ -2758,9 +2782,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg1 第一个寄存器 ID
-		 * @param reg2 第二个寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg1 First register ID
+		 * @param reg2 Second register ID
 		 */
 		Assign(size_t reg1, size_t reg2)
 			:register_1(reg1), register_2(reg2)
@@ -2772,37 +2796,39 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用赋值操作
-		 * @param state 系统状态向量
+		 * @brief Apply the assignment operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用赋值操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the assignment operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 无符号整数比较操作（Out-of-place）
-	 * @details 比较两个无符号整数，输出小于和等于标志
+	 * @brief Unsigned integer comparison operation (Out-of-place)
+	 * @details Compares two unsigned integers, outputting the less-than and equal flags
 	 *
-	 * 实现：
+	 * Implementation:
 	 * - compare_less_id ^= (left < right)
 	 * - compare_equal_id ^= (left == right)
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：left_id和right_id必须是UnsignedInteger，compare_less_id和compare_equal_id必须是Boolean
-	 * @note 语义：输出标志是XOR到结果寄存器，如果初始为0则直接存储比较结果
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: left_id and right_id must be UnsignedInteger; compare_less_id and compare_equal_id
+	 *       must be Boolean
+	 * @note Semantics: the output flags are XORed into the result registers; if initially 0,
+	 *       the comparison result is stored directly
 	 *
-	 * @pre left_id和right_id必须是UnsignedInteger类型
-	 * @pre compare_less_id和compare_equal_id必须是Boolean类型（大小为1）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre left_id and right_id must be of UnsignedInteger type
+	 * @pre compare_less_id and compare_equal_id must be of Boolean type (size 1)
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto left = System::add_register("left", UnsignedInteger, 4);
 	 * auto right = System::add_register("right", UnsignedInteger, 4);
@@ -2819,24 +2845,24 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t left_id;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t right_id;
 
-		/** @brief 小于比较结果寄存器 ID */
+		/** @brief Less-than comparison result register ID */
 		size_t compare_less_id;
 
-		/** @brief 等于比较结果寄存器 ID */
+		/** @brief Equality comparison result register ID */
 		size_t compare_equal_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param left_register 左操作数寄存器名称
-		 * @param right_register 右操作数寄存器名称
-		 * @param compare_less 小于结果寄存器名称
-		 * @param compare_equal 等于结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param left_register Left operand register name
+		 * @param right_register Right operand register name
+		 * @param compare_less Register name of the less-than result
+		 * @param compare_equal Register name of the equality result
 		 */
 		Compare_UInt_UInt(
 			std::string_view left_register,
@@ -2861,11 +2887,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lreg 左操作数寄存器 ID
-		 * @param rreg 右操作数寄存器 ID
-		 * @param compare_less 小于结果寄存器 ID
-		 * @param compare_equal 等于结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lreg Left operand register ID
+		 * @param rreg Right operand register ID
+		 * @param compare_less Register ID of the less-than result
+		 * @param compare_equal Register ID of the equality result
 		 */
 		Compare_UInt_UInt(size_t lreg, size_t rreg,
 			size_t compare_less, size_t compare_equal)
@@ -2889,35 +2915,36 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用比较操作
-		 * @param state 系统状态向量
+		 * @brief Apply the comparison operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用比较操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the comparison operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 小于比较操作（Out-of-place）
-	 * @details 比较两个无符号整数，仅输出小于标志
+	 * @brief Less-than comparison operation (Out-of-place)
+	 * @details Compares two unsigned integers, outputting only the less-than flag
 	 *
-	 * 实现：compare_less_id ^= (left < right)
+	 * Implementation: compare_less_id ^= (left < right)
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：left_id和right_id必须是UnsignedInteger，compare_less_id必须是Boolean
-	 * @note 语义：输出标志是XOR到结果寄存器，如果初始为0则直接存储比较结果
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: left_id and right_id must be UnsignedInteger, compare_less_id must be Boolean
+	 * @note Semantics: the output flags are XORed into the result registers; if initially 0,
+	 *       the comparison result is stored directly
 	 *
-	 * @pre left_id和right_id必须是UnsignedInteger类型
-	 * @pre compare_less_id必须是Boolean类型（大小为1）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre left_id and right_id must be of UnsignedInteger type
+	 * @pre compare_less_id must be of Boolean type (size 1)
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto left = System::add_register("left", UnsignedInteger, 4);
 	 * auto right = System::add_register("right", UnsignedInteger, 4);
@@ -2933,20 +2960,20 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t left_id;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t right_id;
 
-		/** @brief 小于结果寄存器 ID */
+		/** @brief Less-than result register ID */
 		size_t compare_less_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param lreg 左操作数寄存器名称
-		 * @param rreg 右操作数寄存器名称
-		 * @param compare_less 小于结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param lreg Left operand register name
+		 * @param rreg Right operand register name
+		 * @param compare_less Register name of the less-than result
 		 */
 		Less_UInt_UInt(
 			std::string_view lreg,
@@ -2966,10 +2993,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param lreg 左操作数寄存器 ID
-		 * @param rreg 右操作数寄存器 ID
-		 * @param compare_less 小于结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param lreg Left operand register ID
+		 * @param rreg Right operand register ID
+		 * @param compare_less Register ID of the less-than result
 		 */
 		Less_UInt_UInt(size_t lreg, size_t rreg, size_t compare_less)
 			: left_id(lreg), right_id(rreg), compare_less_id(compare_less)
@@ -2986,41 +3013,41 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用小于比较操作
-		 * @param state 系统状态向量
+		 * @brief Apply the less-than comparison operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用小于比较操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the less-than comparison operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 通用交换操作（In-place）
-	 * @details 交换两个寄存器的完整值
+	 * @brief General swap operation (In-place)
+	 * @details Swaps the complete values of two registers
 	 *
-	 * 实现：使用std::swap交换两个寄存器的value字段。
-	 * 这是一个自伴操作，应用两次等于恒等操作。
+	 * Implementation: swaps the value fields of the two registers using std::swap.
+	 * This is a self-adjoint operation; applying it twice yields the identity operation.
 	 *
-	 * @note Unitary性质：自伴算子，Swap^2 = I
-	 * @note 数据类型：任意类型，但两个寄存器大小必须相同
-	 * @note 实现细节：直接交换寄存器值，不涉及XOR或算术运算
+	 * @note Unitarity: self-adjoint operator, Swap^2 = I
+	 * @note Data type: any type, but the two registers must have the same size
+	 * @note Implementation detail: register values are swapped directly, without XOR or arithmetic operations
 	 *
-	 * @pre id1和id2大小必须相同
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre id1 and id2 must have the same size
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto reg1 = System::add_register("reg1", UnsignedInteger, 4);
 	 * auto reg2 = System::add_register("reg2", UnsignedInteger, 4);
 	 * Init_Unsafe(reg1, 5);  // reg1 = 5
 	 * Init_Unsafe(reg2, 10); // reg2 = 10
-	 * // 交换后: reg1 = 10, reg2 = 5
+	 * // After the swap: reg1 = 10, reg2 = 5
 	 * Swap_General_General("reg1", "reg2");
 	 * @endcode
 	 */
@@ -3029,17 +3056,17 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 第一个寄存器 ID */
+		/** @brief First register ID */
 		size_t id1;
 
-		/** @brief 第二个寄存器 ID */
+		/** @brief Second register ID */
 		size_t id2;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param regname1 第一个寄存器名称
-		 * @param regname2 第二个寄存器名称
-		 * @throws 当寄存器大小不匹配时抛出异常
+		 * @brief Constructor (name version)
+		 * @param regname1 First register name
+		 * @param regname2 Second register name
+		 * @throws Throws an exception when register sizes do not match
 		 */
 		Swap_General_General(std::string_view regname1, std::string_view regname2)
 		{
@@ -3056,9 +3083,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param regname1 第一个寄存器 ID
-		 * @param regname2 第二个寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param regname1 First register ID
+		 * @param regname2 Second register ID
 		 */
 		Swap_General_General(size_t regname1, size_t regname2)
 			: id1(regname1), id2(regname2)
@@ -3075,35 +3102,36 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用交换操作
-		 * @param state 系统状态向量
+		 * @brief Apply the swap operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用交换操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the swap operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 获取中点操作（Out-of-place）
-	 * @details 计算两个无符号整数的中点值：mid ^= (left + right) / 2
+	 * @brief Get midpoint operation (Out-of-place)
+	 * @details Computes the midpoint of two unsigned integers: mid ^= (left + right) / 2
 	 *
-	 * 常用于量子算法中的二分查找和中点计算。
+	 * Commonly used for binary search and midpoint computation in quantum algorithms.
 	 *
-	 * @note Unitary性质：自伴算子，通过XOR实现
-	 * @note 数据类型：left_id、right_id、mid_id都必须是UnsignedInteger
-	 * @note 溢出行为：加法可能溢出，但除法后结果正确（整数除法向下取整）
+	 * @note Unitarity: self-adjoint operator, implemented via XOR
+	 * @note Data type: left_id, right_id, and mid_id must all be UnsignedInteger
+	 * @note Overflow behavior: the addition may overflow, but the result after division is correct
+	 *       (integer division, rounding down)
 	 *
-	 * @pre left_id、right_id、mid_id必须是UnsignedInteger类型
-	 * @pre 三个寄存器大小必须相同
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre left_id, right_id, and mid_id must be of UnsignedInteger type
+	 * @pre the three registers must have the same size
+	 * @pre all registers must be active
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
 	 * auto left = System::add_register("left", UnsignedInteger, 4);
 	 * auto right = System::add_register("right", UnsignedInteger, 4);
@@ -3119,20 +3147,20 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 左操作数寄存器 ID */
+		/** @brief Left operand register ID */
 		size_t left_id;
 
-		/** @brief 右操作数寄存器 ID */
+		/** @brief Right operand register ID */
 		size_t right_id;
 
-		/** @brief 中点结果寄存器 ID */
+		/** @brief Midpoint result register ID */
 		size_t mid_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param left_register_ 左操作数寄存器名称
-		 * @param right_register_ 右操作数寄存器名称
-		 * @param mid_register_ 中点结果寄存器名称
+		 * @brief Constructor (name version)
+		 * @param left_register_ Left operand register name
+		 * @param right_register_ Right operand register name
+		 * @param mid_register_ Midpoint result register name
 		 */
 		GetMid_UInt_UInt(
 			std::string_view left_register_,
@@ -3158,10 +3186,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param left_register_ 左操作数寄存器 ID
-		 * @param right_register_ 右操作数寄存器 ID
-		 * @param mid_register_ 中点结果寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param left_register_ Left operand register ID
+		 * @param right_register_ Right operand register ID
+		 * @param mid_register_ Midpoint result register ID
 		 */
 		GetMid_UInt_UInt(
 			size_t left_register_, size_t right_register_, size_t mid_register_)
@@ -3185,104 +3213,107 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用中点计算操作
-		 * @param state 系统状态向量
+		 * @brief Apply the midpoint computation operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用中点计算操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA: apply the midpoint computation operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
-	/** @brief 通用算术函数类型 */
+	/** @brief Generic arithmetic function type */
 	using GenericArithmetic = std::function<std::vector<size_t>(const std::vector<size_t>&)>;
 
 	/**
-	 * @brief 自定义算术操作（Out-of-place）
-	 * @details 允许用户定义自定义算术函数并应用到量子状态
+	 * @brief Custom arithmetic operation (Out-of-place)
+	 * @details Allows the user to define a custom arithmetic function and apply it to the quantum state
 	 *
-	 * 用户可以提供一个函数 func: vector<size_t> -> vector<size_t>，
-	 * 操作将输入寄存器的值传入func，然后将输出XOR到输出寄存器。
+	 * The user can provide a function func: vector<size_t> -> vector<size_t>,
+	 * The operation passes the input register values to func and then XORs the output into the output registers.
 	 *
-	 * @note Unitary性质：自伴算子（U^† = U），因为使用XOR实现
-	 * @note 约束：func必须是确定性的纯函数，否则无法保证unitary
+	 * @note Unitarity: self-adjoint operator (U^† = U), because it is implemented with XOR
+	 * @note Constraint: func must be a deterministic pure function, otherwise unitarity cannot be guaranteed
 	 *
 	 * ────────────────────────────────────────────────────────────────────────
-	 * @par 设计备注：CustomArithmetic 的"模拟器特权"语义与未来演进方向
+	 * @par Design notes: the "simulator privilege" semantics of CustomArithmetic and its future evolution
 	 *
-	 * 当前实现是一个**"模拟器特权"原语**：它直接在 SparseState 的每个基态上
-	 * 调用 host C++ / Python 回调 func，把 f(x) XOR 到输出寄存器。这等价于
-	 * 一个理想化的 oracle U_f|x⟩|y⟩ = |x⟩|y ⊕ f(x)⟩，但**没有对应的物理量子
-	 * 电路** —— 真实硬件无法"读出基态值再调用任意函数"。因此：
+	 * The current implementation is a **"simulator privilege" primitive**: on each basis state of
+	 * the SparseState it directly
+	 * calls a host C++ / Python callback func, XORing f(x) into the output register. This is equivalent to
+	 * an idealized oracle U_f|x⟩|y⟩ = |x⟩|y ⊕ f(x)⟩, but **with no corresponding physical quantum
+	 * circuit** -- real hardware cannot "read out basis state values and then call an arbitrary function". Therefore:
 	 *
-	 *   1. CustomArithmetic 仅在稀疏态模拟器中有意义；
-	 *   2. 任何"将算法 lower 到物理后端 / Clifford+T / OriginIR"的 pass 都
-	 *      不应该把 CustomArithmetic 作为合法目标原语；
-	 *   3. 上层 DSL（如 qec_compiler/dsl_runtime/dsl）不应允许 YAML composite
-	 *      直接引用 CustomArithmetic，否则编译出来的电路无法被物理执行。
+	 *   1. CustomArithmetic is only meaningful in a sparse state simulator;
+	 *   2. Any pass that "lowers an algorithm to a physical backend / Clifford+T / OriginIR"
+	 *      should not treat CustomArithmetic as a valid target primitive;
+	 *   3. Upper-layer DSLs (e.g. qec_compiler/dsl_runtime/dsl) should not allow YAML composites to
+	 *      reference CustomArithmetic directly, otherwise the compiled circuit cannot be physically executed.
 	 *
-	 * @par 未来演进：建立 quantum-libm + 智能 lowering 策略
+	 * @par Future evolution: build quantum-libm + intelligent lowering strategy
 	 *
-	 * 类比 C 标准库：math.h 的 sin/exp/log 并不是 CPU 指令，而是 libm 用
-	 * 一组小型 ALU 原子（+, −, ×, ÷, FMA, sqrt）+ 区间归约 + 多项式逼近
-	 * + 查表实现的软件库。同样地，量子里我们应当：
+	 * By analogy with the C standard library: sin/exp/log in math.h are not CPU instructions; libm implements them with
+	 * a software library from a small set of ALU primitives (+, −, ×, ÷, FMA, sqrt) + range reduction + polynomial
+	 * approximation + table lookup. Similarly, in the quantum world we should:
 	 *
 	 *   ┌──────────────────────────────────────────────────────────────────┐
-	 *   │ Tier 0 — 量子算术 ISA：                                          │
-	 *   │   QAdd / QSub / QMul / QDiv / QMod / QShift / QSwap / Toffoli /  │
-	 *   │   多控 X、Cliff+T 基底等已有原语                                 │
+	 *   │ Tier 0 — quantum arithmetic ISA:                                    │
+	 *   │   QAdd / QSub / QMul / QDiv / QMod / QShift / QSwap / Toffoli /     │
+	 *   │ multi-controlled X, Clifford+T basis, and other existing primitives │
 	 *   ├──────────────────────────────────────────────────────────────────┤
-	 *   │ Tier 1 — 倒数 / 平方根 / 模逆（Newton 迭代 over Tier 0）          │
+	 *   │ Tier 1 — reciprocal / square root / modular inverse (Newton iteration over Tier 0) │
 	 *   ├──────────────────────────────────────────────────────────────────┤
-	 *   │ Tier 2 — 初等函数：sin/cos/exp/log via 区间归约 + 多项式 +        │
-	 *   │   QROM 查系数表 + Horner（全部 Tier 0 / Tier 1 拼接）             │
+	 *   │ Tier 2 — elementary functions: sin/cos/exp/log via range reduction +                    │
+	 *   │ polynomial + QROM coefficient table lookup + Horner (all composed from Tier 0 / Tier 1) │
 	 *   ├──────────────────────────────────────────────────────────────────┤
-	 *   │ Tier 3 — 黑盒查找表：QROM / SELECT-SWAP（Babbush et al. 2018）    │
-	 *   │   适用于离散小定义域；展开为 O(2^n) 多控 X 链                     │
+	 *   │ Tier 3 — black-box lookup tables: QROM / SELECT-SWAP (Babbush et al. 2018)           │
+	 *   │ Suitable for small discrete domains; expands into an O(2^n) multi-controlled X chain │
 	 *   └──────────────────────────────────────────────────────────────────┘
 	 *
-	 * 在此架构下，CustomArithmetic 不再是终点，而是一个 trait 接口：
+	 * Under this architecture, CustomArithmetic is no longer an endpoint but a trait interface:
 	 *
-	 *   - 它接受用户提供的 func 与定义域 / 精度 / 目标后端 等元信息；
-	 *   - 一个**智能 lowering 策略选择器**根据这些信息选择落地路径：
-	 *       * 定义域 ≤ 2^k（k 较小，典型 k ≤ 8） → QROM 展开
-	 *       * func 是多项式 / 解析光滑函数 → 多项式逼近 + Horner
-	 *       * func 是模幂 / 模乘等结构化算术 → 直接用 Mod_Mult 等专用原语
-	 *       * 仅模拟器目标且 func 难以分解 → 保留为 host 回调（即当前行为）
-	 *   - 选择器不必是一段简单代码，而是一个考虑 N（位宽）、ε（误差预算）、
-	 *     T-count 预算、是否容错等多维约束的 cost 模型。
+	 *   - It accepts the user-provided func along with metadata such as domain / precision / target backend;
+	 *   - An **intelligent lowering strategy selector** chooses the landing path based on this information:
+	 *       * Domain <= 2^k (k small, typically k <= 8) -> QROM expansion
+	 *       * func is a polynomial / analytic smooth function -> polynomial approximation + Horner
+	 *       * func is structured arithmetic such as modular exponentiation / modular multiplication
+	 *         -> use dedicated primitives such as Mod_Mult directly
+	 *       * Simulator-only target and func is hard to decompose -> keep as a host callback (i.e. current behavior)
+	 *   - The selector need not be simple code, but a cost model considering N (bit width), ε (error budget),
+	 *     T-count budget, fault tolerance, and other multi-dimensional constraints.
 	 *
-	 * @par 关于 Shor (mod-pow) 的特别说明
+	 * @par Special note on Shor (mod-pow)
 	 *
-	 * Shor 算法里的 controlled modular exponentiation **不应该**走
-	 * CustomArithmetic 这条路 —— 它本质上是 controlled-Mod_Mult 链
-	 * (in-place 操作)，而 CustomArithmetic 的 XOR 语义只描述
-	 * out-of-place 的 |x⟩|y⟩→|x⟩|y⊕f(x)⟩，并且 LUT 展开会让 Shor
-	 * 无法 scale 到 2048 bit。正确做法是直接调
-	 * Mod_Mult_UInt_ConstUInt_InPlace，按 j = 0..2n-1 累乘
-	 * a^(2^j) mod N，每个被 work_reg 的第 j 位 controlled。Shor 的
-	 * lowering 优化（windowed arithmetic、Beauregard、Häner-Roetteler-
-	 * Soeken 等）均建立在这条 in-place 链上而非 LUT 上。
+	 * The controlled modular exponentiation in Shor's algorithm **should not** take the
+	 * CustomArithmetic route -- it is essentially a controlled-Mod_Mult chain
+	 * (an in-place operation), whereas CustomArithmetic's XOR semantics only describe
+	 * the out-of-place |x⟩|y⟩→|x⟩|y⊕f(x)⟩, and LUT expansion would prevent Shor
+	 * from scaling to 2048 bits. The correct approach is to call
+	 * Mod_Mult_UInt_ConstUInt_InPlace directly, accumulating the product over j = 0..2n-1 of
+	 * a^(2^j) mod N, each factor controlled by bit j of work_reg. Shor's
+	 * lowering optimizations (windowed arithmetic, Beauregard, Häner-Roetteler-
+	 * Soeken, etc.) are all built on this in-place chain rather than on LUTs.
 	 *
-	 * @warning 在该架构落地之前，请把 CustomArithmetic 视为
-	 *          "simulator-only oracle"，不要在面向物理硬件的算法描述
-	 *          (DSL composite、IR codegen pass) 中引用它。
+	 * @warning Until this architecture lands, please treat CustomArithmetic as
+	 *          a "simulator-only oracle"; do not reference it in algorithm descriptions
+	 *          targeting physical hardware (DSL composites, IR codegen passes).
 	 * ────────────────────────────────────────────────────────────────────────
 	 *
-	 * @pre 输入和输出寄存器数量必须在构造函数中正确指定
-	 * @pre func必须是确定性的（相同的输入总是产生相同的输出）
-	 * @pre 所有寄存器必须是激活状态
+	 * @pre the numbers of input and output registers must be correctly specified in the constructor
+	 * @pre func must be deterministic (the same input always produces the same output)
+	 * @pre all registers must be active
 	 *
-	 * @warning 用户负责确保func不会导致信息丢失（即func应该是输入的确定性函数）
+	 * @warning The user is responsible for ensuring func does not cause information loss (i.e. func
+	 *          should be a deterministic function of its input)
 	 *
-	 * @par 示例
+	 * @par Example
 	 * @code
-	 * // 自定义函数：输出 = 输入 * 2
+	 * // Custom function: output = input * 2
 	 * GenericArithmetic double_func = [](const std::vector<size_t>& inputs) {
 	 *     return std::vector<size_t>{inputs[0] * 2};
 	 * };
@@ -3302,22 +3333,22 @@ namespace qram_simulator
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 输入寄存器 ID 列表 */
+		/** @brief List of input register IDs */
 		std::vector<size_t> input_ids;
 
-		/** @brief 输出寄存器 ID 列表 */
+		/** @brief List of output register IDs */
 		std::vector<size_t> output_ids;
 
-		/** @brief 自定义算术函数 */
+		/** @brief Custom arithmetic function */
 		GenericArithmetic func;
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param input_registers 输入寄存器 ID 列表
-		 * @param input_size 输入寄存器数量
-		 * @param output_size 输出寄存器数量
-		 * @param func 自定义算术函数
-		 * @throws 当输入输出大小不匹配时抛出异常
+		 * @brief Constructor (ID version)
+		 * @param input_registers List of input register IDs
+		 * @param input_size Number of input registers
+		 * @param output_size Number of output registers
+		 * @param func Custom arithmetic function
+		 * @throws Throws an exception when input and output sizes do not match
 		 */
 		CustomArithmetic(const std::vector<size_t>& input_registers,
 			size_t input_size, size_t output_size,
@@ -3341,11 +3372,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param input_registers 输入寄存器名称列表
-		 * @param input_size 输入寄存器数量
-		 * @param output_size 输出寄存器数量
-		 * @param func 自定义算术函数
+		 * @brief Constructor (name version)
+		 * @param input_registers List of input register names
+		 * @param input_size Number of input registers
+		 * @param output_size Number of output registers
+		 * @param func Custom arithmetic function
 		 */
 		CustomArithmetic(const std::vector<std::string>& input_registers,
 			size_t input_size, size_t output_size, GenericArithmetic func)
@@ -3370,8 +3401,8 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 应用自定义算术操作
-		 * @param state 系统状态向量
+		 * @brief Apply the custom arithmetic operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const
 		{
@@ -3397,7 +3428,7 @@ namespace qram_simulator
 				std::vector<size_t> output_values = func(input_values);
 
 				/* write the output reversibly via XOR, masked to the output width
-				   (宽度与截断约定，docs/operators.md) */
+				   (width and truncation convention, docs/operators.md) */
 				for (size_t i = 0; i < output_ids.size(); ++i)
 				{
 					const size_t out_size = System::size_of(output_ids[i]);

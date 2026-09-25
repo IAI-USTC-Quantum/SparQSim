@@ -2922,7 +2922,8 @@ class Carry_UInt_UInt(SelfAdjointOperator):
 
     Computes: flag ^= carry_out(lhs + rhs) relative to the width w of res,
     i.e. whether the full-precision sum is >= 2^w (at w = 64 the predicate is
-    64-bit wraparound). out/res 参数仅提供宽度,不读其值.
+    64-bit wraparound). The out/res parameters only provide the width; their
+    values are not read.
 
     Args:
         lhs: Name/ID of the first input register.
@@ -8735,7 +8736,8 @@ class MulOverflow_UInt_UInt(SelfAdjointOperator):
 
     Computes: flag ^= (lhs * rhs does not fit in w bits), where w is the width of
     res; the product is evaluated at full precision (128-bit, via 64-bit hi/lo
-    decomposition). out/res 参数仅提供宽度,不读其值.
+    decomposition). The out/res parameters only provide the width; their
+    values are not read.
 
     Args:
         lhs: Name/ID of the first input register.
@@ -10685,7 +10687,8 @@ class Overflow_SInt_SInt(SelfAdjointOperator):
 
     Computes: flag ^= overflow(lhs + rhs) at width w of res: operands are
     sign-extended, truncated to w bits, and the same-sign/addends/result-sign-
-    flip rule is applied. out/res 参数仅提供宽度,不读其值.
+    flip rule is applied. The out/res parameters only provide the width;
+    their values are not read.
 
     Args:
         lhs: Name/ID of the SignedInteger left operand register.

@@ -1,7 +1,8 @@
 /**
  * @file condrot.h
- * @brief 条件旋转门操作定义
- * @details 实现基于条件的旋转操作，包括有理数条件旋转和通用函数条件旋转
+ * @brief Controlled rotation gate operation definitions
+ * @details Implements condition-based rotation operations, including rational-number conditional rotation and
+ *          general-function conditional rotation
  */
 
 #pragma once
@@ -10,10 +11,10 @@
 namespace qram_simulator
 {
 	/**
-	 * @brief 创建旋转函数（基于值和位数）
-	 * @param value 输入值
-	 * @param n_digit 位数
-	 * @return 2x2 旋转矩阵
+	 * @brief Create a rotation function (based on a value and the number of digits)
+	 * @param value Input value
+	 * @param n_digit Number of digits
+	 * @return 2x2 rotation matrix
 	 */
 	HOST_DEVICE inline u22_t make_func(uint64_t value, size_t n_digit)
 	{
@@ -34,10 +35,10 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 创建逆向旋转函数（基于值和位数）
-	 * @param value 输入值
-	 * @param n_digit 位数
-	 * @return 2x2 逆向旋转矩阵
+	 * @brief Create an inverse rotation function (based on a value and the number of digits)
+	 * @param value Input value
+	 * @param n_digit Number of digits
+	 * @return 2x2 inverse rotation matrix
 	 */
 	HOST_DEVICE inline u22_t make_func_inv(uint64_t value, size_t n_digit)
 	{
@@ -58,24 +59,25 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 有理数条件旋转门（单比特）
-	 * @details 基于有理数输入寄存器的值对布尔输出寄存器进行条件旋转
+	 * @brief Rational-number controlled rotation gate (single qubit)
+	 * @details Performs a controlled rotation on the Boolean output register based on the value of the
+	 *          rational input register
 	 */
 		struct CondRot_Rational_Bool : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t register_in;
 
-		/** @brief 输出寄存器 ID */
+		/** @brief Output register ID */
 		size_t register_out;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 输入寄存器名称
-		 * @param reg_out 输出寄存器名称
-		 * @throws 当类型不匹配时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg_in Input register name
+		 * @param reg_out Output register name
+		 * @throws Throws an exception when the types do not match
 		 */
 		CondRot_Rational_Bool(std::string_view reg_in, std::string_view reg_out)
 			:register_in(System::get(reg_in)), register_out(System::get(reg_out))
@@ -89,9 +91,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID
-		 * @param reg_out 输出寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID
+		 * @param reg_out Output register ID
 		 */
 		CondRot_Rational_Bool(size_t reg_in, size_t reg_out)
 			:register_in(reg_in), register_out(reg_out)
@@ -105,16 +107,16 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用条件旋转操作
-		 * @param state 系统状态向量
+		 * @brief Apply the controlled rotation operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
-			void dag(std::vector<System>& state) const;
+		void dag(std::vector<System>& state) const;
 		};
 
 		struct CondRot_Fixed_Bool : CondRot_Rational_Bool
@@ -125,30 +127,30 @@ namespace qram_simulator
 		};
 
 	/**
-	 * @brief 通用条件旋转门（单比特）
-	 * @details 基于通用函数对布尔输出寄存器进行条件旋转
-	 * @tparam Callable 角度计算函数类型
+	 * @brief General controlled rotation gate (single qubit)
+	 * @details Performs a controlled rotation on the Boolean output register based on a general function
+	 * @tparam Callable Type of the angle computation function
 	 */
 	template<typename Callable = std::function<u22_t(uint64_t)>>
 	struct CondRot_General_Bool_Fast : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 输入寄存器 ID */
+		/** @brief Input register ID */
 		size_t in_id;
 
-		/** @brief 输出寄存器 ID */
+		/** @brief Output register ID */
 		size_t out_id;
 
-		/** @brief 角度计算函数 */
+		/** @brief Angle computation function */
 		Callable func;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 输入寄存器名称
-		 * @param reg_out 输出寄存器名称
-		 * @param angle_function 角度计算函数
-		 * @throws 当类型不匹配或输出寄存器大小不为1时抛出异常
+		 * @brief Constructor (name version)
+		 * @param reg_in Input register name
+		 * @param reg_out Output register name
+		 * @param angle_function Angle computation function
+		 * @throws Throws an exception when the types do not match or the output register size is not 1
 		 */
 		CondRot_General_Bool_Fast(std::string_view reg_in, std::string_view reg_out, Callable angle_function)
 			: in_id(System::get(reg_in)), out_id(System::get(reg_out)), func(angle_function)
@@ -164,10 +166,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 输入寄存器 ID
-		 * @param reg_out 输出寄存器 ID
-		 * @param angle_function 角度计算函数
+		 * @brief Constructor (ID version)
+		 * @param reg_in Input register ID
+		 * @param reg_out Output register ID
+		 * @param angle_function Angle computation function
 		 */
 		CondRot_General_Bool_Fast(size_t reg_in, size_t reg_out, Callable angle_function)
 			: in_id(reg_in), out_id(reg_out), func(angle_function)
@@ -183,10 +185,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 成对操作
-		 * @param zero |0> 分支索引
-		 * @param one |1> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Operate on a pair
+		 * @param zero |0> branch index
+		 * @param one |1> branch index
+		 * @param state System state vector
 		 */
 		void operate_pair(size_t zero, size_t one, std::vector<System>& state) const
 		{
@@ -201,9 +203,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 单独操作 |0> 分支
-		 * @param zero |0> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Operate on the |0> branch alone
+		 * @param zero |0> branch index
+		 * @param state System state vector
 		 */
 		void operate_alone_zero(size_t zero, std::vector<System>& state) const
 		{
@@ -219,9 +221,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 单独操作 |1> 分支
-		 * @param one |1> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Operate on the |1> branch alone
+		 * @param one |1> branch index
+		 * @param state System state vector
 		 */
 		void operate_alone_one(size_t one, std::vector<System>& state) const
 		{
@@ -237,8 +239,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用通用条件旋转操作（V2 实现）
-		 * @param state 系统状态向量
+		 * @brief Apply the general controlled rotation operation (V2 implementation)
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const
 		{
@@ -308,8 +310,8 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用通用条件旋转操作
-		 * @param s CUDA 稀疏状态
+		 * @brief CUDA apply the general controlled rotation operation
+		 * @param s CUDA sparse state
 		 */
 		void operator()(CuSparseState& s) const;
 #endif

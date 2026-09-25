@@ -718,7 +718,7 @@ TEST_F(QuantumArithmeticTest, GeneralizedCheckInplaceUnitarity)
 
 // ============ Width & Truncation Convention Helpers ============
 // Reference helpers for the new arithmetic operators (docs/operators.md
-// 《宽度与截断约定》). Kept independent of the library's internal helpers so
+// "Width and Truncation Convention"). Kept independent of the library's internal helpers so
 // the tests encode the documented contract, not the implementation.
 namespace {
     uint64_t ref_width_mask(size_t w) {

@@ -1,7 +1,8 @@
 /**
  * @file partial_trace.cu
- * @brief partial_trace 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 partial_trace.h 中声明的 PartialTrace、Select、SelectRange（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of partial_trace
+ * @details Implements PartialTrace, Select, SelectRange declared in partial_trace.h with thrust device
+ *          vectors and CUDA kernels (GPU path; GPU builds are currently disabled in CMake)
  */
 #include "partial_trace.h"
 #include "cuda_utils.cuh"

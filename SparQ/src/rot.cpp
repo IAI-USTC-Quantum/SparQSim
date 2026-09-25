@@ -1,7 +1,7 @@
 /**
  * @file rot.cpp
- * @brief 一般旋转与态制备实现
- * @details 实现 rot.h 中声明的 Rot_GeneralUnitary（一般酉旋转）与 Rot_GeneralStatePrep（一般态制备）
+ * @brief General rotation and state preparation implementation
+ * @details Implements Rot_GeneralUnitary (general unitary rotation) and Rot_GeneralStatePrep (general state preparation) declared in rot.h
  */
 #include "rot.h"
 #include "system_operations.h"

@@ -1,4 +1,4 @@
-"""PySparQ 类型存根 - 从 _core 模块重新导出所有公共 API。"""
+"""PySparQ type stubs - re-exports all public API from the _core module."""
 from __future__ import annotations
 
 import pysparq._core as _core
@@ -178,7 +178,7 @@ def print(state: SparseState, mode: int | "StatePrintDisplay" = 1, precision: in
 
 
 def test_import() -> None:
-    """测试 PySparQ 导入是否正常工作。"""
+    """Test that the PySparQ import works correctly."""
     ...
 
 

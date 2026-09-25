@@ -1,10 +1,12 @@
 /**
  * @file core.cpp
- * @brief PySparQ 核心 Python 绑定模块（_core）实现
- * @details 通过 PYBIND11_MODULE 将 SparQ 核心库导出到 Python：
- *          System/SparseState 与寄存器管理、基础量子门、测量/复位/概率查询、
- *          偏迹、QFT、QRAM、量子算术与比较、状态排序、系统级操作等；
- *          具体绑定内容按各头文件分节标记组织（如 hadamard.h、measurement.h 等）
+ * @brief Implementation of the PySparQ core Python binding module (_core)
+ * @details Exports the SparQ core library to Python via PYBIND11_MODULE:
+ *          System/SparseState and register management, basic quantum gates,
+ *          measurement/reset/probability queries, partial trace, QFT, QRAM,
+ *          quantum arithmetic and comparisons, state sorting, system-level
+ *          operations, etc.; the bindings are organized into sections marked
+ *          per header file (e.g. hadamard.h, measurement.h, etc.)
  */
 
 #ifdef __GNUC__
@@ -236,7 +238,7 @@ Example:
     BIND_SELF_ADJOINT_OPERATOR(ModuleInheritance_Test_SelfAdjoint)
         .def(py::init<>());
 
-    // 绑定枚举类型
+    // Bind enum types
     py::enum_<StatePrintDisplay>(m, "StatePrintDisplay")
         .value("Default", StatePrintDisplay::Default)
         .value("Detail", StatePrintDisplay::Detail)
@@ -244,20 +246,20 @@ Example:
         .value("Prob", StatePrintDisplay::Prob)
         .export_values();
 
-    // CheckNormalization 绑定
+    // CheckNormalization binding
     BIND_SELF_ADJOINT_OPERATOR(CheckNormalization)
         .def(py::init<>())
         .def(py::init<double>(), py::arg("threshold"));
 
-    // CheckNan 绑定
+    // CheckNan binding
     BIND_SELF_ADJOINT_OPERATOR(CheckNan)
         .def(py::init<>());
 
-    // ViewNormalization 绑定
+    // ViewNormalization binding
     BIND_SELF_ADJOINT_OPERATOR(ViewNormalization)
         .def(py::init<>());
 
-    // StatePrint 绑定
+    // StatePrint binding
     BIND_SELF_ADJOINT_OPERATOR(StatePrint)
         .def(py::init<int32_t>(), py::arg("disp") = 0)
         .def(py::init<int32_t, int>(), py::arg("disp"), py::arg("precision"))
@@ -284,17 +286,17 @@ Example:
         "Uses Detail display mode (shows register names and types).\n"
         "Output is captured by Jupyter/IPython notebooks.");
 
-    // TestRemovable 绑定
+    // TestRemovable binding
     BIND_SELF_ADJOINT_OPERATOR(TestRemovable)
         .def(py::init<std::string_view>(), py::arg("register_name"))
         .def(py::init<size_t>(), py::arg("register_id"));
 
-    // CheckDuplicateKey 绑定
+    // CheckDuplicateKey binding
     BIND_SELF_ADJOINT_OPERATOR(CheckDuplicateKey)
         .def(py::init<>());
 
     /* hadamard.h */
-    // 绑定Hadamard_Int
+    // Bind Hadamard_Int
     BIND_SELF_ADJOINT_OPERATOR(Hadamard_Int, R"doc(
 Apply Hadamard transform to an integer register.
 
@@ -312,19 +314,19 @@ Example:
         .def(py::init<size_t, size_t>(), py::arg("reg_in"), py::arg("n_digits"))
             BIND_CONTROLLABLE_METHODS(Hadamard_Int);
 
-    // 绑定Hadamard_Int_Full
+    // Bind Hadamard_Int_Full
     BIND_SELF_ADJOINT_OPERATOR(Hadamard_Int_Full)
         .def(py::init<std::string_view>(), py::arg("reg_in"))
         .def(py::init<size_t>(), py::arg("reg_in"))
             BIND_CONTROLLABLE_METHODS(Hadamard_Int_Full);
 
-    // 绑定Hadamard_Bool
+    // Bind Hadamard_Bool
     BIND_SELF_ADJOINT_OPERATOR(Hadamard_Bool)
         .def(py::init<std::string_view>(), py::arg("reg_in"))
         .def(py::init<size_t>(), py::arg("reg_in"))
             BIND_CONTROLLABLE_METHODS(Hadamard_Bool);
 
-    // 绑定Hadamard_Partial（需要特殊处理std::set参数）
+    // Bind Hadamard_Partial (requires special handling of the std::set parameter)
     BIND_SELF_ADJOINT_OPERATOR(Hadamard_Partial)
         .def(py::init([](std::string_view reg_in, py::set positions)
                       {
@@ -362,7 +364,7 @@ Example:
             BIND_CONTROLLABLE_METHODS(GlobalPhase);
 
     /* partial_trace.h */
-    // PartialTrace 绑定
+    // PartialTrace binding
     py::class_<PartialTrace>(m, "PartialTrace")
         .def(py::init<const std::vector<std::string> &>(),
              py::arg("partial_trace_register_names"))
@@ -375,27 +377,27 @@ Example:
         .def("__call__",
              (std::pair<std::vector<uint64_t>, double> (PartialTrace::*)(SparseState &) const) & PartialTrace::operator(), py::arg("state"));
 
-    // PartialTraceSelect 绑定
+    // PartialTraceSelect binding
     py::class_<PartialTraceSelect>(m, "PartialTraceSelect")
-        // 多版本构造函数
+        // Multiple constructor overloads
         .def(py::init<const std::map<std::string_view, uint64_t> &>(),
              py::arg("name_value_map"))
         .def(py::init<const std::map<size_t, uint64_t> &>(),
              py::arg("id_value_map"))
         .def(py::init<const std::vector<size_t> &, const std::vector<uint64_t> &>(),
              py::arg("reg_ids"), py::arg("select_values"))
-        // 调用操作符
+        // Call operator
         .def("__call__",
              (double (PartialTraceSelect::*)(SparseState &) const) & PartialTraceSelect::operator(), py::arg("state"));
 
-    // PartialTraceSelectRange 绑定
+    // PartialTraceSelectRange binding
     py::class_<PartialTraceSelectRange>(m, "PartialTraceSelectRange")
-        // 范围构造版本
+        // Range-constructor overloads
         .def(py::init<std::string, std::pair<size_t, size_t>>(),
              py::arg("register_name"), py::arg("select_range"))
         .def(py::init<size_t, std::pair<size_t, size_t>>(),
              py::arg("register_id"), py::arg("select_range"))
-        // 操作符绑定
+        // Operator binding
         .def("__call__",
              (double (PartialTraceSelectRange::*)(SparseState &) const) & PartialTraceSelectRange::operator(), py::arg("state"));
 
@@ -421,7 +423,7 @@ Example:
           "Use set_seed() instead when reproducibility is required.");
 
     /* measurement.h */
-    // MeasureZ 绑定：可播种的投影式 Z 基测量（坍缩+重新归一化）
+    // MeasureZ binding: seedable projective Z-basis measurement (collapse + renormalize)
     py::class_<MeasureZ>(m, "MeasureZ", R"doc(
 Projective Z-basis (computational basis) measurement.
 
@@ -444,7 +446,7 @@ Example:
              (std::pair<std::vector<uint64_t>, double> (MeasureZ::*)(SparseState &) const) & MeasureZ::operator(),
              py::arg("state"));
 
-    // Reset 绑定：测量 + 经典条件翻转，将寄存器强制复位到给定经典值
+    // Reset binding: measurement + classically conditioned flips, forcing registers to a given classical value
     py::class_<Reset>(m, "Reset", R"doc(
 Reset one or more registers to a definite classical value (default 0).
 
@@ -470,7 +472,7 @@ Example:
         .def("__call__",
              (std::vector<uint64_t> (Reset::*)(SparseState &) const) & Reset::operator(), py::arg("state"));
 
-    // Probability 绑定：只读 Born 概率查询，不改变状态
+    // Probability binding: read-only Born-rule probability query, does not modify the state
     py::class_<Probability>(m, "Probability", R"doc(
 Read-only Born-rule probability query (does not modify the state).
 
@@ -502,7 +504,7 @@ Example:
              py::arg("state"), py::arg("register_name"));
 
     /* qft.h */
-    // 绑定QFT
+    // Bind QFT
     BIND_BASE_OPERATOR(QFT, R"doc(
 Quantum Fourier Transform on a register.
 
@@ -517,14 +519,16 @@ Example:
     # ... computation ...
     InverseQFT("data")(state)  # Apply inverse QFT
 )doc")
-        // 寄存器名称/ID构造
+        // Register name/ID constructors
         .def(py::init<std::string_view>(), py::arg("reg_name"))
         .def(py::init<size_t>(), py::arg("reg_id"))
-        // dagger（逆 QFT）——与其它带 dag 的算子一致，经 SparseState 重载虚派发到 QFT::dag
+        // dagger (inverse QFT) - consistent with other operators exposing dag,
+        // virtually dispatched through the SparseState overload to QFT::dag
         BIND_DAG_METHODS(QFT)
             BIND_CONTROLLABLE_METHODS(QFT);
 
-    // 绑定 InverseQFT（已按 docs/naming_conventions.md 完成更名；Python 侧旧小写名由 __init__.py 的弃用别名提供）
+    // Bind InverseQFT (renamed per docs/naming_conventions.md; the old lowercase
+    // Python name is provided as a deprecated alias in __init__.py)
     BIND_BASE_OPERATOR(InverseQFT, R"doc(
 Inverse Quantum Fourier Transform on a register.
 
@@ -539,12 +543,15 @@ Args:
             BIND_CONTROLLABLE_METHODS(InverseQFT);
 
     /* qram.h */
-    // module_local：qram_qutrit::QRAMCircuit 也被 qram-simulator 包的薄绑定
-    // 注册（Python 名 QRAMCircuitQutrit）；pybind11 类型注册表按 C++ typeid
-    // 全局键控，两个模块都注册全局类型时后导入者报
-    // "generic_type: type ... is already registered"。标 module_local 后各自
-    // 注册进模块局部表，两个包可在同一进程共存。该类型实例仅在 pysparq
-    // 模块内创建/传递（QRAMLoad 参数），不跨模块流动，局部化无副作用。
+    // module_local: qram_qutrit::QRAMCircuit is also registered by the thin
+    // binding of the qram-simulator package (Python name QRAMCircuitQutrit);
+    // the pybind11 type registry is keyed globally by C++ typeid, and when
+    // both modules register a global type, the later import fails with
+    // "generic_type: type ... is already registered". Marking it module_local
+    // registers each copy into its own module-local table, so both packages
+    // can coexist in one process. Instances of this type are only
+    // created/passed within the pysparq module (as QRAMLoad parameters) and
+    // never flow across modules, so localization has no side effects.
     py::class_<qram_qutrit::QRAMCircuit>(m, "QRAMCircuit_qutrit", py::module_local())
         .def(py::init<size_t, size_t>(), py::arg("addr_size"), py::arg("data_size"))
         .def(py::init<size_t, size_t, const memory_t &>(), py::arg("addr_size"), py::arg("data_size"), py::arg("memory"))
@@ -552,7 +559,7 @@ Args:
         .def_readonly("address_size", &qram_qutrit::QRAMCircuit::address_size)
         .def_readonly("data_size", &qram_qutrit::QRAMCircuit::data_size);
 
-    // 绑定QRAMLoad
+    // Bind QRAMLoad
     BIND_SELF_ADJOINT_OPERATOR(QRAMLoad, R"doc(
 Load classical data into quantum superposition via QRAM.
 
@@ -572,31 +579,31 @@ Note:
     Use QRAMLoadFast for optimized execution when address distribution
     is uniform.
 )doc")
-        // 构造函数（处理寄存器名称到ID的转换）
+        // Constructors (handle register-name-to-ID conversion)
         .def(py::init<qram_qutrit::QRAMCircuit *, std::string_view, std::string_view>(),
              py::arg("qram"), py::arg("addr_reg"), py::arg("data_reg"))
         .def(py::init<qram_qutrit::QRAMCircuit *, size_t, size_t>(),
              py::arg("qram"), py::arg("addr_reg_id"), py::arg("data_reg_id"))
 
-        // 可控方法绑定
+        // Controllable-method bindings
         BIND_CONTROLLABLE_METHODS(QRAMLoad)
 
-        // 核心属性
+        // Core properties
         .def_readonly("qram_circuit", &QRAMLoad::qram)
         .def_readonly_static("version", &QRAMLoad::version);
 
-    // 绑定QRAMLoadFast
+    // Bind QRAMLoadFast
     BIND_SELF_ADJOINT_OPERATOR(QRAMLoadFast)
-        // 构造方法（复用相同的内存管理策略）
+        // Constructors (reuse the same memory-management strategy)
         .def(py::init<qram_qutrit::QRAMCircuit *, std::string_view, std::string_view>(),
              py::arg("qram"), py::arg("addr_reg"), py::arg("data_reg"))
         .def(py::init<qram_qutrit::QRAMCircuit *, size_t, size_t>(),
              py::arg("qram"), py::arg("addr_reg_id"), py::arg("data_reg_id"))
 
-        // 可控方法绑定（不含SELF_ADJOINT）
+        // Controllable-method bindings (no SELF_ADJOINT)
         BIND_CONTROLLABLE_METHODS(QRAMLoadFast);
 
-    // 基础算术操作绑定
+    // Basic arithmetic operation bindings
     BIND_SELF_ADJOINT_OPERATOR(X_Bool)
     BIND_CONTROLLABLE_METHODS(X_Bool)
         .def(py::init<std::string_view, size_t>(),
@@ -609,7 +616,7 @@ Note:
         .def(py::init<std::string_view>(), py::arg("reg"))
         .def(py::init<size_t>(), py::arg("reg_id"));
 
-    // 交换操作绑定
+    // Swap operation bindings
     BIND_SELF_ADJOINT_OPERATOR(Swap_Bool_Bool)
         .def(py::init<std::string_view, size_t, std::string_view, size_t>(),
              py::arg("reg1"), py::arg("digit1"), py::arg("reg2"), py::arg("digit2"))
@@ -618,7 +625,7 @@ Note:
 
             BIND_CONTROLLABLE_METHODS(Swap_Bool_Bool);
 
-    // 位移操作
+    // Shift operations
     BIND_BASE_OPERATOR(ShiftLeft_InPlace)
         .def(py::init<std::string_view, size_t>(),
              py::arg("reg"), py::arg("shift_bits"))
@@ -635,7 +642,7 @@ Note:
             BIND_DAG_METHODS(ShiftRight_InPlace)
             BIND_CONTROLLABLE_METHODS(ShiftRight_InPlace);
 
-    // 算术运算绑定
+    // Arithmetic operation bindings
     BIND_SELF_ADJOINT_OPERATOR(Mult_UInt_ConstUInt)
         .def(py::init<std::string_view, size_t, std::string_view>(),
              py::arg("input_reg"), py::arg("multiplier"), py::arg("output_reg"))
@@ -715,7 +722,7 @@ Example:
             BIND_DAG_METHODS(Add_ConstUInt_InPlace)
             BIND_CONTROLLABLE_METHODS(Add_ConstUInt_InPlace);
 
-    // 复杂算术操作
+    // Complex arithmetic operations
     BIND_SELF_ADJOINT_OPERATOR(Div_Sqrt_Arccos_UInt_UInt)
         .def(py::init<std::string_view, std::string_view, std::string_view>(),
              py::arg("lhs_reg"), py::arg("rhs_reg"), py::arg("out_reg"))
@@ -740,7 +747,7 @@ Example:
 
             BIND_CONTROLLABLE_METHODS(GetRotateAngle_Int_Int);
 
-    // 算术扩展操作（宽度与截断约定见 docs/operators.md）
+    // Extended arithmetic operations (width and truncation conventions in docs/operators.md)
     BIND_SELF_ADJOINT_OPERATOR(Sub_UInt_UInt, R"doc(
 Subtract two unsigned integer registers.
 
@@ -980,7 +987,8 @@ Carry-out flag of an unsigned addition at the res width.
 
 Computes: flag ^= carry_out(lhs + rhs) relative to the width w of res,
 i.e. whether the full-precision sum is >= 2^w (at w = 64 the predicate is
-64-bit wraparound). out/res 参数仅提供宽度,不读其值.
+64-bit wraparound). The out/res parameters only provide the width; their
+values are not read.
 
 Args:
     lhs: Name/ID of the first input register.
@@ -1003,7 +1011,8 @@ Signed-addition overflow flag at the res width.
 
 Computes: flag ^= overflow(lhs + rhs) at width w of res: operands are
 sign-extended, truncated to w bits, and the same-sign/addends/result-sign-
-flip rule is applied. out/res 参数仅提供宽度,不读其值.
+flip rule is applied. The out/res parameters only provide the width; their
+values are not read.
 
 Args:
     lhs: Name/ID of the SignedInteger left operand register.
@@ -1026,7 +1035,8 @@ Multiplication overflow flag relative to the res width.
 
 Computes: flag ^= (lhs * rhs does not fit in w bits), where w is the width of
 res; the product is evaluated at full precision (128-bit, via 64-bit hi/lo
-decomposition). out/res 参数仅提供宽度,不读其值.
+decomposition). The out/res parameters only provide the width; their values
+are not read.
 
 Args:
     lhs: Name/ID of the first input register.
@@ -1092,14 +1102,14 @@ Example:
             BIND_DAG_METHODS(Add_AnyInt_AnyInt_InPlace)
                 BIND_CONTROLLABLE_METHODS(Add_AnyInt_AnyInt_InPlace);
 
-    // 通用赋值操作
+    // General assignment operation
     BIND_SELF_ADJOINT_OPERATOR(Assign)
         .def(py::init<std::string_view, std::string_view>(), py::arg("src"), py::arg("dst"))
         .def(py::init<size_t, size_t>(), py::arg("src_id"), py::arg("dst_id"))
 
             BIND_CONTROLLABLE_METHODS(Assign);
 
-    // 比较操作绑定
+    // Comparison operation bindings
     BIND_SELF_ADJOINT_OPERATOR(Compare_UInt_UInt)
         .def(py::init<std::string_view, std::string_view, std::string_view, std::string_view>(),
              py::arg("left_reg"), py::arg("right_reg"),
@@ -1110,7 +1120,7 @@ Example:
 
             BIND_CONTROLLABLE_METHODS(Compare_UInt_UInt);
 
-    // 小于比较绑定
+    // Less-than comparison binding
     BIND_SELF_ADJOINT_OPERATOR(Less_UInt_UInt)
         .def(py::init<std::string_view, std::string_view, std::string_view>(),
              py::arg("left_reg"), py::arg("right_reg"), py::arg("less_flag_reg"))
@@ -1119,12 +1129,12 @@ Example:
 
             BIND_CONTROLLABLE_METHODS(Less_UInt_UInt);
 
-    // 通用寄存器交换绑定
+    // General register swap binding
     BIND_SELF_ADJOINT_OPERATOR(Swap_General_General)
         .def(py::init([](std::string_view reg1, std::string_view reg2)
                       {
-		// 禁止交换同一寄存器
-		if (reg1 == reg2)
+			// Swapping the same register is forbidden
+			if (reg1 == reg2)
 			throw std::invalid_argument("Cannot swap the same register");
 		return new Swap_General_General(System::get(reg1), System::get(reg2)); }),
              py::arg("reg1"), py::arg("reg2"))
@@ -1132,7 +1142,7 @@ Example:
 
             BIND_CONTROLLABLE_METHODS(Swap_General_General);
 
-    // 中值计算绑定
+    // Midpoint computation binding
     BIND_SELF_ADJOINT_OPERATOR(GetMid_UInt_UInt)
         .def(py::init<std::string_view, std::string_view, std::string_view>(),
              py::arg("left_reg"), py::arg("right_reg"), py::arg("mid_reg"))
@@ -1141,7 +1151,7 @@ Example:
 
             BIND_CONTROLLABLE_METHODS(GetMid_UInt_UInt);
 
-    // 通用算术运算符
+    // Generic arithmetic operator
     BIND_SELF_ADJOINT_OPERATOR(CustomArithmetic)
         .def(py::init([](py::list input_registers, py::int_ input_size, py::int_ output_size, py::function func)
                       {
@@ -1169,7 +1179,7 @@ Example:
 	    BIND_CONTROLLABLE_METHODS(CustomArithmetic);
 
     /* quantum_interfere_basic.h */
-    // 哈希函数对象绑定
+    // Hash functor bindings
     py::class_<StateHashExceptKey>(m, "StateHashExceptKey")
         .def(py::init<size_t>(), py::arg("excluded_id"))
         .def("__call__", &StateHashExceptKey::operator());
@@ -1179,7 +1189,7 @@ Example:
              py::arg("target_id"), py::arg("excluded_qubits"))
         .def("__call__", &StateHashExceptQubits::operator());
 
-    // 等价比较器绑定
+    // Equality comparator bindings
     py::class_<StateEqualExceptKey>(m, "StateEqualExceptKey")
         .def(py::init<size_t>(), py::arg("excluded_id"))
         .def("__call__", &StateEqualExceptKey::operator());
@@ -1189,7 +1199,7 @@ Example:
              py::arg("target_id"), py::arg("excluded_qubits"))
         .def("__call__", &StateEqualExceptQubits::operator());
 
-    // 排序比较器绑定
+    // Ordering comparator bindings
     py::class_<StateLessExceptKey>(m, "StateLessExceptKey")
         .def(py::init<size_t>(), py::arg("excluded_id"))
         .def("__call__", &StateLessExceptKey::operator());
@@ -1200,7 +1210,7 @@ Example:
         .def("__call__", &StateLessExceptQubits::operator());
 
     /* rot.h */
-    // 通用旋转绑定
+    // General rotation binding
     // BIND_BASE_OPERATOR(Rot_General_Bool)
     //	.def(py::init<std::string_view, size_t, std::array<std::complex<double>, 4>>(),
     //		py::arg("reg"), py::arg("digit"), py::arg("matrix"))
@@ -1208,7 +1218,7 @@ Example:
     //		py::arg("reg_id"), py::arg("digit"), py::arg("matrix"))
     //	BIND_CONTROLLABLE_METHODS(Rot_General_Bool);
 
-    //// 基本布尔旋转绑定
+    //// Basic Boolean rotation binding
     // BIND_BASE_OPERATOR(Rot_Bool)
     //	.def(py::init<std::string_view, std::array<std::complex<double>, 4>>(),
     //		py::arg("reg"), py::arg("matrix"))
@@ -1216,7 +1226,7 @@ Example:
     //		py::arg("reg_id"), py::arg("matrix"))
     //	BIND_CONTROLLABLE_METHODS(Rot_Bool);
 
-    // 通用酉矩阵绑定
+    // General unitary matrix binding
     BIND_BASE_OPERATOR(Rot_GeneralUnitary)
         .def(py::init<std::string_view, const DenseMatrix<complex_t> &>(),
              py::arg("reg"), py::arg("unitary_matrix"))
@@ -1224,7 +1234,7 @@ Example:
              py::arg("reg_id"), py::arg("unitary_matrix"))
             BIND_CONTROLLABLE_METHODS(Rot_GeneralUnitary);
 
-    // 状态准备绑定
+    // State preparation binding
     BIND_BASE_OPERATOR(Rot_GeneralStatePrep)
         .def(py::init<std::string_view, const std::vector<std::complex<double>> &>(),
              py::arg("reg"), py::arg("state_vector"))
@@ -1232,12 +1242,12 @@ Example:
              py::arg("reg_id"), py::arg("state_vector"))
             BIND_CONTROLLABLE_METHODS(Rot_GeneralStatePrep);
 
-    // 辅助函数绑定
+    // Helper function binding
     m.def("stateprep_unitary_build_schmidt", &stateprep_unitary_build_schmidt,
           py::arg("state_vector"), "Build unitary for state preparation");
 
     /* sort_state.h */
-    // 排序操作绑定
+    // Sorting operation bindings
     BIND_SELF_ADJOINT_OPERATOR(SortExceptKey)
         .def(py::init<std::string_view>(), py::arg("key"))
         .def(py::init<size_t>(), py::arg("key_id"));
@@ -1265,7 +1275,7 @@ Example:
              py::arg("key1"), py::arg("key2"));
 
     /* system_operations.h */
-    // 系统分割组合
+    // System splitting and combining
 
     m.def("split_systems", (SparseState (*)(SparseState &state, const std::vector<size_t> &, const std::vector<size_t> &, const std::vector<std::pair<size_t, size_t>> &, const std::vector<std::pair<size_t, size_t>> &))&split_systems,
           py::arg("state"),
@@ -1277,7 +1287,7 @@ Example:
     m.def("combine_systems", (void (*)(SparseState &, const SparseState &))&combine_systems,
           py::arg("to"), py::arg("from_"));
 
-    // 寄存器操作
+    // Register operations
     py::class_<SplitRegister>(m, "SplitRegister")
         .def(py::init<std::string_view, std::string_view, size_t>(),
              py::arg("first"), py::arg("second"), py::arg("size"))
@@ -1288,12 +1298,12 @@ Example:
              py::arg("first"), py::arg("second"))
         .def("__call__", (size_t (CombineRegister::*)(SparseState &) const) & CombineRegister::operator());
 
-    //// 系统重置
+    //// System reset
     // py::class_<ResetSystems>(m, "ResetSystems")
     //	.def(py::init<>())
     //	.def("__call__", &ResetSystems::operator());
 
-    // 寄存器管理
+    // Register management
     py::class_<MoveBackRegister>(m, "MoveBackRegister")
         .def(py::init<std::string_view>(), py::arg("reg"))
         .def(py::init<size_t>(), py::arg("reg_id"))
@@ -1314,7 +1324,7 @@ Example:
         .def(py::init<size_t>(), py::arg("reg_id"))
         .def("__call__", (void (RemoveRegister::*)(SparseState &) const) & RemoveRegister::operator());
 
-    // 栈操作
+    // Stack operations
     BIND_BASE_OPERATOR(Push)
         .def(py::init<std::string_view, std::string_view>(),
              py::arg("reg"), py::arg("garbage"))
@@ -1325,7 +1335,7 @@ Example:
         .def(py::init<std::string_view>(), py::arg("reg"))
         .def(py::init<size_t>(), py::arg("reg_id"));
 
-    // 状态清理
+    // State cleanup
     BIND_SELF_ADJOINT_OPERATOR(ClearZero)
         .def(py::init<>())
         .def(py::init<double>(), py::arg("epsilon"));

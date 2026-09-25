@@ -1,8 +1,8 @@
 /**
  * @file quantum_interfere_basic.h
- * @brief 量子干涉基础工具定义
- * @details 提供状态哈希、相等比较、小于比较等基础工具类，
- *          用于量子干涉操作中的状态管理和查找
+ * @brief Quantum interference basic utility definitions
+ * @details Provides basic utility classes such as state hashing, equality comparison and less-than comparison,
+ *          used for state management and lookup in quantum interference operations
  */
 
 #pragma once
@@ -12,152 +12,152 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 排除指定键的状态哈希
-	 * @details 计算状态哈希值时排除指定寄存器
+	 * @brief State hash excluding a specified key
+	 * @details Excludes the specified register when computing the state hash value
 	 */
 	struct StateHashExceptKey {
-		/** @brief 排除的键（寄存器 ID） */
+		/** @brief Excluded key (register ID) */
 		size_t id;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 排除的寄存器 ID
+		 * @brief Constructor
+		 * @param id_ ID of the excluded register
 		 */
 		StateHashExceptKey(size_t id_)
 			: id(id_)
 		{}
 
 		/**
-		 * @brief 计算哈希值
-		 * @param v 系统状态
-		 * @return 哈希值
+		 * @brief Compute the hash value
+		 * @param v System state
+		 * @return Hash value
 		 */
 		size_t operator()(const System& v) const;
 	};
 
 	/**
-	 * @brief 排除指定量子位的状态哈希
-	 * @details 计算状态哈希值时排除寄存器的指定量子位
+	 * @brief State hash excluding specified qubits
+	 * @details Excludes the specified qubits of a register when computing the state hash value
 	 */
 	struct StateHashExceptQubits {
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位位置集合 */
+		/** @brief Set of qubit positions */
 		std::set<size_t> qubit_positions;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 寄存器 ID
-		 * @param qubit_positions_ 量子位位置集合
+		 * @brief Constructor
+		 * @param id_ Register ID
+		 * @param qubit_positions_ Set of qubit positions
 		 */
 		StateHashExceptQubits(size_t id_, std::set<size_t> qubit_positions_)
 			: id(id_), qubit_positions(qubit_positions_)
 		{}
 
-		/**
-		 * @brief 计算哈希值
-		 * @param v 系统状态
-		 * @return 哈希值
-		 */
+	/**
+	 * @brief Compute the hash value
+	 * @param v System state
+	 * @return Hash value
+	 */
 		size_t operator()(const System& v) const;
 	};
 
 	/**
-	 * @brief 排除指定键的状态相等比较
-	 * @details 比较两个状态是否相等时排除指定寄存器
+	 * @brief State equality comparison excluding a specified key
+	 * @details Excludes the specified register when comparing two states for equality
 	 */
 	struct StateEqualExceptKey {
-		/** @brief 排除的键（寄存器 ID） */
+		/** @brief Excluded key (register ID) */
 		size_t id;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 排除的寄存器 ID
+		 * @brief Constructor
+		 * @param id_ ID of the excluded register
 		 */
 		StateEqualExceptKey(size_t id_) : id(id_) {}
 
 		/**
-		 * @brief 相等比较
-		 * @param v1 第一个系统状态
-		 * @param v2 第二个系统状态
-		 * @return 是否相等
+		 * @brief Equality comparison
+		 * @param v1 First system state
+		 * @param v2 Second system state
+		 * @return Whether they are equal
 		 */
 		size_t operator()(const System& v1, const System& v2) const;
 	};
 
 	/**
-	 * @brief 排除指定量子位的状态相等比较
-	 * @details 比较两个状态是否相等时排除寄存器的指定量子位
+	 * @brief State equality comparison excluding specified qubits
+	 * @details Excludes the specified qubits of a register when comparing two states for equality
 	 */
 	struct StateEqualExceptQubits {
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位位置集合 */
+		/** @brief Set of qubit positions */
 		std::set<size_t> qubit_positions;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 寄存器 ID
-		 * @param qubit_positions_ 量子位位置集合
+		 * @brief Constructor
+		 * @param id_ Register ID
+		 * @param qubit_positions_ Set of qubit positions
 		 */
 		StateEqualExceptQubits(size_t id_, std::set<size_t> qubit_positions_) : id(id_), qubit_positions(qubit_positions_) {}
 
 		/**
-		 * @brief 相等比较
-		 * @param v1 第一个系统状态
-		 * @param v2 第二个系统状态
-		 * @return 是否相等
+		 * @brief Equality comparison
+		 * @param v1 First system state
+		 * @param v2 Second system state
+		 * @return Whether they are equal
 		 */
 		size_t operator()(const System& v1, const System& v2) const;
 	};
 
 	/**
-	 * @brief 排除指定键的状态小于比较
-	 * @details 比较两个状态大小时排除指定寄存器
+	 * @brief State less-than comparison excluding a specified key
+	 * @details Excludes the specified register when comparing the order of two states
 	 */
 	struct StateLessExceptKey {
-		/** @brief 排除的键（寄存器 ID） */
+		/** @brief Excluded key (register ID) */
 		size_t id;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 排除的寄存器 ID
+		 * @brief Constructor
+		 * @param id_ ID of the excluded register
 		 */
 		StateLessExceptKey(size_t id_) : id(id_) {}
 
 		/**
-		 * @brief 小于比较
-		 * @param v1 第一个系统状态
-		 * @param v2 第二个系统状态
-		 * @return 是否小于
+		 * @brief Less-than comparison
+		 * @param v1 First system state
+		 * @param v2 Second system state
+		 * @return Whether v1 is less than v2
 		 */
 		size_t operator()(const System& v1, const System& v2) const;
 	};
 
 	/**
-	 * @brief 排除指定量子位的状态小于比较
-	 * @details 比较两个状态大小时排除寄存器的指定量子位
+	 * @brief State less-than comparison excluding specified qubits
+	 * @details Excludes the specified qubits of a register when comparing the order of two states
 	 */
 	struct StateLessExceptQubits {
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 位掩码 */
+		/** @brief Bit mask */
 		size_t mask;
 
-		/** @brief 量子位 ID 集合 */
+		/** @brief Set of qubit IDs */
 		std::set<size_t> qubit_ids;
 
 		/**
-		 * @brief 构造函数
-		 * @param id_ 寄存器 ID
-		 * @param qubit_ids_ 量子位 ID 集合
+		 * @brief Constructor
+		 * @param id_ Register ID
+		 * @param qubit_ids_ Set of qubit IDs
 		 */
 		StateLessExceptQubits(size_t id_, std::set<size_t> qubit_ids_) : id(id_), qubit_ids(qubit_ids_)
 		{
@@ -165,9 +165,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 移除指定位
-		 * @param val 原始值
-		 * @return 移除位后的值
+		 * @brief Remove the specified bit
+		 * @param val Original value
+		 * @return Value with the bit removed
 		 */
 		inline size_t remove_digits(size_t val) const
 		{
@@ -175,9 +175,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 创建位掩码
-		 * @param qubit_ids 量子位 ID 集合
-		 * @return 位掩码
+		 * @brief Create a bit mask
+		 * @param qubit_ids Set of qubit IDs
+		 * @return Bit mask
 		 */
 		inline size_t make_mask(const std::set<size_t>& qubit_ids)
 		{
@@ -191,10 +191,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 小于比较
-		 * @param v1 第一个系统状态
-		 * @param v2 第二个系统状态
-		 * @return 是否小于
+		 * @brief Less-than comparison
+		 * @param v1 First system state
+		 * @param v2 Second system state
+		 * @return Whether v1 is less than v2
 		 */
 		size_t operator()(const System& v1, const System& v2) const;
 	};

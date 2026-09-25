@@ -1,7 +1,8 @@
 /** 
  * @file sparse_state_simulator.h
- * @brief 稀疏态模拟器主入口文件
- * @details 包含稀疏态模拟器的所有核心组件头文件引用，是用户使用 SparQ 库的主要入口点
+ * @brief Sparse state simulator main entry file
+ * @details Includes all core component headers of the sparse state simulator; it is the main entry point
+ *          for users of the SparQ library
  */
 
 #pragma once
@@ -25,8 +26,8 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
-	 * @details 包含所有量子计算模拟相关的类、函数和数据结构
+	 * @brief QRAM sparse state simulator namespace
+	 * @details Contains all classes, functions, and data structures related to quantum computing simulation
 	 */
 
 } // namespace qram_simulator

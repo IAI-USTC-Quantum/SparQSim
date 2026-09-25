@@ -1,7 +1,7 @@
 /**
  * @file condrot.cpp
- * @brief 条件旋转算子实现
- * @details 实现 condrot.h 中声明的 CondRot_Rational_Bool、CondRot_General_Bool_Fast 等条件旋转算子
+ * @brief Controlled rotation operator implementation
+ * @details Implements the controlled rotation operators declared in condrot.h, such as CondRot_Rational_Bool and CondRot_General_Bool_Fast
  */
 #include "condrot.h"
 #include "system_operations.h"

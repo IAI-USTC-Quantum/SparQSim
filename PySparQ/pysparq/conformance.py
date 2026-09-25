@@ -497,7 +497,7 @@ def assert_controls(
 
 
 # ---------------------------------------------------------------------------
-# Width & truncation convention helpers (docs/operators.md《宽度与截断约定》)
+# Width & truncation convention helpers (docs/operators.md, "Width and truncation conventions")
 # ---------------------------------------------------------------------------
 
 
@@ -539,7 +539,7 @@ def width_matrix_case(
 ) -> None:
     """Run the full conformance matrix across a set of width combinations.
 
-    Implements the reversibility coverage required by 《宽度与截断约定》:
+    Implements the reversibility coverage required by the width and truncation conventions:
     for every combo in ``width_combos`` (a tuple of widths, one per register
     in the order ``specs_factory`` expects):
 
@@ -587,8 +587,9 @@ def width_matrix_case(
             all_pairs = list(_iter_combos({n: p for n, p in zip(input_names, pools)}))
             step = max(1, len(all_pairs) // max(1, sampled_pairs))
             pairs = all_pairs[::step][:sampled_pairs]
-            # 碰撞/dagger 辅助检查接受 sweep 字典(内部做笛卡尔积),
-            # 用选中对的坐标并集——它是选中对的有界超集。
+            # The collision/dagger helper checks accept a sweep dict (they
+            # take the Cartesian product internally); use the union of the
+            # coordinates of the selected pairs - a bounded superset of them.
             sweep = {
                 name: sorted({c[name] for c in pairs}) for name in input_names
             }

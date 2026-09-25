@@ -1,7 +1,8 @@
 /**
  * @file basic_gates.cpp
- * @brief 基础量子门实现
- * @details 实现 basic_gates.h 中声明的 Phase、Pauli (X/Y/Z)、S、T、RX/RY/RZ、SX、U2、U3 等标准量子门
+ * @brief Basic quantum gate implementation
+ * @details Implements the standard quantum gates declared in basic_gates.h: Phase, Pauli (X/Y/Z), S, T,
+ *          RX/RY/RZ, SX, U2, U3, etc.
  */
 #include "basic_gates.h"
 

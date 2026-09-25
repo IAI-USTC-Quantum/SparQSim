@@ -1,8 +1,9 @@
 /**
  * @file basic_gates.h
- * @brief 量子门操作定义
- * @details 包含单量子门、多量子门、受控门等基础量子操作实现，
- *          支持 Phase、Rotation、Pauli (X/Y/Z)、S、T、RX/RY/RZ、SX、U2、U3 等标准门
+ * @brief Quantum gate operation definitions
+ * @details Contains implementations of basic quantum operations such as single-qubit gates, multi-qubit gates,
+ *          and controlled gates, supporting standard gates such as Phase, Rotation, Pauli (X/Y/Z), S, T,
+ *          RX/RY/RZ, SX, U2, and U3
  */
 
 #pragma once
@@ -13,25 +14,25 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 量子门基类
-	 * @details 所有量子门的基类，管理寄存器 ID 和量子位索引
+	 * @brief Quantum gate base class
+	 * @details Base class of all quantum gates, managing the register ID and qubit index
 	 */
 	struct GateBase {
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位索引 */
+		/** @brief Qubit index */
 		size_t digit;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @throws 当位索引超出范围时抛出异常
+		 * @brief Constructor (name + bit index)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @throws Throws an exception when the bit index is out of range
 		 */
 		GateBase(std::string_view reg_, size_t digit_) 
 			: id(System::get(reg_)), digit(digit_) 
@@ -42,9 +43,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID + 位索引）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
+		 * @brief Constructor (ID + bit index)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
 		 */
 		GateBase(size_t id_, size_t digit_) : id(id_), digit(digit_)
 		{
@@ -54,36 +55,36 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（仅名称，默认位索引为0）
-		 * @param reg_ 寄存器名称
+		 * @brief Constructor (name only, default bit index 0)
+		 * @param reg_ Register name
 		 */
 		GateBase(std::string_view reg_) : GateBase(System::get(reg_), 0) {}
 
 		/**
-		 * @brief 构造函数（仅ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID only, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		GateBase(size_t id_) : GateBase(id_, 0) {}
 	};
 
 	/**
-	 * @brief 相位门
-	 * @details 在指定量子位上应用相位旋转 e^{iλ}
+	 * @brief Phase gate
+	 * @details Applies the phase rotation e^{iλ} on the specified qubit
 	 */
 	struct Phase_Bool : BaseOperator, GateBase {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 相位角（弧度） */
+		/** @brief Phase angle (radians) */
 		double lambda;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + 相位角）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param lambda_ 相位角（弧度）
+		 * @brief Constructor (name + bit index + phase angle)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @param lambda_ Phase angle (radians)
 		 */
 		Phase_Bool(std::string_view reg_, size_t digit_, double lambda_)
 			: GateBase(System::get(reg_), digit_), lambda(lambda_)
@@ -91,10 +92,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + 相位角）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param lambda_ 相位角（弧度）
+		 * @brief Constructor (ID + bit index + phase angle)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param lambda_ Phase angle (radians)
 		 */
 		Phase_Bool(size_t id_, size_t digit_, double lambda_)
 			: GateBase(id_, digit_), lambda(lambda_)
@@ -102,56 +103,56 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（名称 + 相位角，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param lambda_ 相位角（弧度）
+		 * @brief Constructor (name + phase angle, default bit index 0)
+		 * @param reg_ Register name
+		 * @param lambda_ Phase angle (radians)
 		 */
 		Phase_Bool(std::string_view reg_, double lambda_) : Phase_Bool(reg_, 0, lambda_) {}
 
 		/**
-		 * @brief 构造函数（ID + 相位角，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param lambda_ 相位角（弧度）
+		 * @brief Constructor (ID + phase angle, default bit index 0)
+		 * @param id_ Register ID
+		 * @param lambda_ Phase angle (radians)
 		 */
 		Phase_Bool(size_t id_, double lambda_) : Phase_Bool(id_, 0, lambda_) {}
 
 		/**
-		 * @brief 应用相位门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the phase gate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 	};
 
 	/**
-	 * @brief 旋转门基类
-	 * @details 实现通用的 2x2 酉矩阵旋转操作
+	 * @brief Rotation gate base class
+	 * @details Implements a generic 2x2 unitary matrix rotation operation
 	 */
 	struct Rot_Bool : BaseOperator, GateBase {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 角度函数类型 */
+		/** @brief Angle function type */
 		using angle_function_t = std::function<u22_t(size_t)>;
 
-		/** @brief 位掩码 */
+		/** @brief Bit mask */
 		uint64_t mask;
 
-		/** @brief 2x2 旋转矩阵 */
+		/** @brief 2x2 rotation matrix */
 		u22_t mat;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + 矩阵）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param mat 2x2 酉矩阵
+		 * @brief Constructor (name + bit index + matrix)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @param mat 2x2 unitary matrix
 		 */
 		Rot_Bool(std::string_view reg_, size_t digit_, u22_t mat)
 			: GateBase(System::get(reg_), digit_), mat(mat)
@@ -160,10 +161,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + 矩阵）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param mat 2x2 酉矩阵
+		 * @brief Constructor (ID + bit index + matrix)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param mat 2x2 unitary matrix
 		 */
 		Rot_Bool(size_t id_, size_t digit_, u22_t mat)
 			: GateBase(id_, digit_), mat(mat)
@@ -172,10 +173,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（名称 + 矩阵，单比特寄存器）
-		 * @param reg_ 寄存器名称
-		 * @param mat 2x2 酉矩阵
-		 * @throws 当寄存器大小不为1时抛出异常
+		 * @brief Constructor (name + matrix, single-bit register)
+		 * @param reg_ Register name
+		 * @param mat 2x2 unitary matrix
+		 * @throws Throws an exception when the register size is not 1
 		 */
 		Rot_Bool(std::string_view reg_, u22_t mat) : Rot_Bool(reg_, 0, mat) {
 			if (System::size_of(reg_) != 1) {
@@ -184,10 +185,10 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID + 矩阵，单比特寄存器）
-		 * @param id_ 寄存器 ID
-		 * @param mat 2x2 酉矩阵
-		 * @throws 当寄存器大小不为1时抛出异常
+		 * @brief Constructor (ID + matrix, single-bit register)
+		 * @param id_ Register ID
+		 * @param mat 2x2 unitary matrix
+		 * @throws Throws an exception when the register size is not 1
 		 */
 		Rot_Bool(size_t id_, u22_t mat) : Rot_Bool(id_, 0, mat) {
 			if (System::size_of(id_) != 1) {
@@ -196,118 +197,118 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 在指定范围执行旋转操作
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
+		 * @brief Perform the rotation over the given range
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
 		 */
 		void operate(size_t l, size_t r, std::vector<System>& state) const;
 
 		/**
-		 * @brief 检查矩阵是否为对角矩阵
-		 * @param data 2x2 矩阵
-		 * @return 是否为对角矩阵
+		 * @brief Check whether the matrix is diagonal
+		 * @param data 2x2 matrix
+		 * @return Whether the matrix is diagonal
 		 */
 		static bool _is_diagonal(const u22_t& data);
 
 		/**
-		 * @brief 对角矩阵操作实现
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
-		 * @param mat 2x2 对角矩阵
+		 * @brief Diagonal matrix operation implementation
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
+		 * @param mat 2x2 diagonal matrix
 		 */
 		void _operate_diagonal(size_t l, size_t r,
 			std::vector<System>& state, const u22_t& mat) const;
 
 		/**
-		 * @brief 检查矩阵是否为反对角矩阵
-		 * @param data 2x2 矩阵
-		 * @return 是否为反对角矩阵
+		 * @brief Check whether the matrix is anti-diagonal
+		 * @param data 2x2 matrix
+		 * @return Whether the matrix is anti-diagonal
 		 */
 		static bool _is_off_diagonal(const u22_t& data);
 
 		/**
-		 * @brief 反对角矩阵操作实现
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
-		 * @param mat 2x2 反对角矩阵
+		 * @brief Anti-diagonal matrix operation implementation
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
+		 * @param mat 2x2 anti-diagonal matrix
 		 */
 		void _operate_off_diagonal(size_t l, size_t r,
 			std::vector<System>& state, const u22_t& mat) const;
 
 		/**
-		 * @brief 一般矩阵操作实现
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
-		 * @param mat 2x2 一般酉矩阵
+		 * @brief General matrix operation implementation
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
+		 * @param mat 2x2 general unitary matrix
 		 */
 		void _operate_general(size_t l, size_t r,
 			std::vector<System>& state, const u22_t& mat) const;
 
 		/**
-		 * @brief 成对操作（|0> 和 |1> 都存在的分支）
-		 * @param zero |0> 分支索引
-		 * @param one |1> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Paired operation (branches where both |0> and |1> exist)
+		 * @param zero |0> branch index
+		 * @param one |1> branch index
+		 * @param state System state vector
 		 */
 		void operate_pair(size_t zero, size_t one, std::vector<System>& state) const;
 
 		/**
-		 * @brief 单独操作 |0> 分支
-		 * @param zero |0> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Operate on the |0> branch alone
+		 * @param zero |0> branch index
+		 * @param state System state vector
 		 */
 		void operate_alone_zero(size_t zero, std::vector<System>& state) const;
 
 		/**
-		 * @brief 单独操作 |1> 分支
-		 * @param one |1> 分支索引
-		 * @param state 系统状态向量
+		 * @brief Operate on the |1> branch alone
+		 * @param one |1> branch index
+		 * @param state System state vector
 		 */
 		void operate_alone_one(size_t one, std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用旋转门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the rotation gate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 对角矩阵操作
+		 * @brief CUDA diagonal matrix operation
 		 */
 		void cu_operate_diagonal(CuSparseState& s, complex_t u00, complex_t u11) const;
 
 		/**
-		 * @brief CUDA 反对角矩阵操作
+		 * @brief CUDA anti-diagonal matrix operation
 		 */
 		void cu_operate_off_diagonal(CuSparseState& s, complex_t u01, complex_t u10) const;
 
 		/**
-		 * @brief CUDA 一般矩阵操作
+		 * @brief CUDA general matrix operation
 		 */
 		void cu_operate_general(CuSparseState& s, complex_t u00, complex_t u01, complex_t u10, complex_t u11) const;
 
 		/**
-		 * @brief CUDA 应用旋转门操作
-		 * @param s CUDA 稀疏状态
+		 * @brief CUDA apply the rotation gate operation
+		 * @param s CUDA sparse state
 		 */
 		void operator()(CuSparseState& s) const;
 #endif
 	};
 
 	/**
-	 * @brief X 门（Pauli-X / NOT 门）
-	 * @details 翻转量子位状态 |0> <-> |1>
+	 * @brief X gate (Pauli-X / NOT gate)
+	 * @details Flips the qubit state |0> <-> |1>
 	 */
 	struct X_Bool : SelfAdjointOperator, GateBase {
 		using SelfAdjointOperator::operator();
@@ -316,9 +317,9 @@ namespace qram_simulator
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称 + 位索引）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
+		 * @brief Constructor (name + bit index)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
 		 */
 		X_Bool(std::string_view reg_, size_t digit_)
 			: GateBase(System::get(reg_), digit_)
@@ -326,9 +327,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID + 位索引）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
+		 * @brief Constructor (ID + bit index)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
 		 */
 		X_Bool(size_t id_, size_t digit_)
 			: GateBase(id_, digit_)
@@ -336,35 +337,35 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（名称，默认位索引为0）
-		 * @param reg_ 寄存器名称
+		 * @brief Constructor (name, default bit index 0)
+		 * @param reg_ Register name
 		 */
 		X_Bool(std::string_view reg_) : X_Bool(reg_, 0) {}
 
 		/**
-		 * @brief 构造函数（ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		X_Bool(size_t id_) : X_Bool(id_, 0) {}
 
 		/**
-		 * @brief 应用 X 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the X gate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用 X 门操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the X gate operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief Y 门（Pauli-Y 门）
-	 * @details 在 Bloch 球上绕 Y 轴旋转 π 角度
+	 * @brief Y gate (Pauli-Y gate)
+	 * @details Rotates by an angle of π around the Y axis on the Bloch sphere
 	 */
 	struct Y_Bool : SelfAdjointOperator, GateBase {
 		using SelfAdjointOperator::operator();
@@ -376,15 +377,15 @@ namespace qram_simulator
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 提取 Y 门的矩阵表示
-		 * @return Y 门的稠密矩阵
+		 * @brief Extract the matrix representation of the Y gate
+		 * @return Dense matrix of the Y gate
 		 */
 		DenseMatrix<complex_t> extract_matrix();
 	};
 
 	/**
-	 * @brief Z 门（Pauli-Z 门）
-	 * @details 相位翻转门，施加 π 相位
+	 * @brief Z gate (Pauli-Z gate)
+	 * @details Phase-flip gate, applying a phase of π
 	 */
 	struct Z_Bool : Phase_Bool
 	{
@@ -396,16 +397,16 @@ namespace qram_simulator
 		Z_Bool(std::string_view reg_) : Phase_Bool(reg_, 0, pi) {}
 
 		/**
-		 * @brief 构造函数（ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		Z_Bool(size_t id_) : Phase_Bool(id_, 0, pi) {}
 //void display() const override;
 	};
 
 	/**
-	 * @brief S 门
-	 * @details 相位门，施加 π/2 相位
+	 * @brief S gate
+	 * @details Phase gate, applying a phase of π/2
 	 */
 	struct S_Bool : Phase_Bool
 	{
@@ -417,16 +418,16 @@ namespace qram_simulator
 		S_Bool(std::string_view reg_) : Phase_Bool(reg_, 0, pi / 2) {}
 
 		/**
-		 * @brief 构造函数（ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		S_Bool(size_t id_) : Phase_Bool(id_, 0, pi / 2) {}
 //void display() const override;
 	};
 
 	/**
-	 * @brief T 门
-	 * @details 相位门，施加 π/4 相位
+	 * @brief T gate
+	 * @details Phase gate, applying a phase of π/4
 	 */
 	struct T_Bool : Phase_Bool
 	{
@@ -438,58 +439,58 @@ namespace qram_simulator
 		T_Bool(std::string_view reg_) : Phase_Bool(reg_, 0, pi / 4) {}
 
 		/**
-		 * @brief 构造函数（ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		T_Bool(size_t id_) : Phase_Bool(id_, 0, pi / 4) {}
 //void display() const override;
 	};
 
 	/**
-	 * @brief RX 门（绕 X 轴旋转）
-	 * @details 在 Bloch 球上绕 X 轴旋转指定角度
+	 * @brief RX gate (rotation around the X axis)
+	 * @details Rotates by the given angle around the X axis on the Bloch sphere
 	 */
 	struct RX_Bool : Rot_Bool
 	{
 		using Rot_Bool::operator();
 		using Rot_Bool::dag;
 
-		/** @brief 旋转矩阵 */
+		/** @brief Rotation matrix */
 		u22_t mat;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + 角度）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + bit index + angle)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RX_Bool(std::string_view reg_, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + 角度）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + bit index + angle)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RX_Bool(size_t id_, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（名称 + 角度，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + angle, default bit index 0)
+		 * @param reg_ Register name
+		 * @param angle_ Rotation angle
 		 */
 		RX_Bool(std::string_view reg_, double angle_) : RX_Bool(reg_, 0, angle_) {}
 
 		/**
-		 * @brief 构造函数（ID + 角度，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + angle, default bit index 0)
+		 * @param id_ Register ID
+		 * @param angle_ Rotation angle
 		 */
 		RX_Bool(size_t id_, double angle_) : RX_Bool(id_, 0, angle_) {}
 
 		/**
-		 * @brief 应用 RX 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the RX gate operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -498,50 +499,50 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief RY 门（绕 Y 轴旋转）
-	 * @details 在 Bloch 球上绕 Y 轴旋转指定角度
+	 * @brief RY gate (rotation around the Y axis)
+	 * @details Rotates by the given angle around the Y axis on the Bloch sphere
 	 */
 	struct RY_Bool : Rot_Bool
 	{
 		using Rot_Bool::operator();
 		using Rot_Bool::dag;
 
-		/** @brief 旋转矩阵 */
+		/** @brief Rotation matrix */
 		u22_t mat;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + 角度）
-		 * @param reg 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + bit index + angle)
+		 * @param reg Register name
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RY_Bool(std::string_view reg, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + 角度）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + bit index + angle)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RY_Bool(size_t id_, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（名称 + 角度，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + angle, default bit index 0)
+		 * @param reg_ Register name
+		 * @param angle_ Rotation angle
 		 */
 		RY_Bool(std::string_view reg_, double angle_) : RY_Bool(reg_, 0, angle_) {}
 
 		/**
-		 * @brief 构造函数（ID + 角度，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + angle, default bit index 0)
+		 * @param id_ Register ID
+		 * @param angle_ Rotation angle
 		 */
 		RY_Bool(size_t id_, double angle_) : RY_Bool(id_, 0, angle_) {}
 
 		/**
-		 * @brief 应用 RY 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the RY gate operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -550,102 +551,102 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief RZ 门（绕 Z 轴旋转）
-	 * @details 在 Bloch 球上绕 Z 轴旋转指定角度
+	 * @brief RZ gate (rotation around the Z axis)
+	 * @details Rotates by the given angle around the Z axis on the Bloch sphere
 	 */
 	struct RZ_Bool : BaseOperator, GateBase {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 旋转角度 */
+		/** @brief Rotation angle */
 		double angle;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + 角度）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + bit index + angle)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RZ_Bool(std::string_view reg_, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + 角度）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + bit index + angle)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param angle_ Rotation angle
 		 */
 		RZ_Bool(size_t id_, size_t digit_, double angle_);
 
 		/**
-		 * @brief 构造函数（名称 + 角度，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (name + angle, default bit index 0)
+		 * @param reg_ Register name
+		 * @param angle_ Rotation angle
 		 */
 		RZ_Bool(std::string_view reg_, double angle_) : RZ_Bool(reg_, 0, angle_) {}
 
 		/**
-		 * @brief 构造函数（ID + 角度，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param angle_ 旋转角度
+		 * @brief Constructor (ID + angle, default bit index 0)
+		 * @param id_ Register ID
+		 * @param angle_ Rotation angle
 		 */
 		RZ_Bool(size_t id_, double angle_) : RZ_Bool(id_, 0, angle_) {}
 
 		/**
-		 * @brief 应用 RZ 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the RZ gate operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 	};
 
 	/**
-	 * @brief SX 门（X 的平方根门）
-	 * @details sqrt(X) 门，X 门的一半旋转
+	 * @brief SX gate (square root of the X gate)
+	 * @details The sqrt(X) gate, half the rotation of the X gate
 	 */
 	struct SX_Bool : Rot_Bool
 	{
 		using Rot_Bool::operator();
 		using Rot_Bool::dag;
 
-		/** @brief 旋转矩阵 */
+		/** @brief Rotation matrix */
 		u22_t mat;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
+		 * @brief Constructor (name + bit index)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
 		 */
 		SX_Bool(std::string_view reg_, size_t digit_);
 
 		/**
-		 * @brief 构造函数（ID + 位索引）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
+		 * @brief Constructor (ID + bit index)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
 		 */
 		SX_Bool(size_t id_, size_t digit_);
 
 		/**
-		 * @brief 构造函数（名称，默认位索引为0）
-		 * @param reg_ 寄存器名称
+		 * @brief Constructor (name, default bit index 0)
+		 * @param reg_ Register name
 		 */
 		SX_Bool(std::string_view reg_) : SX_Bool(reg_, 0) {}
 
 		/**
-		 * @brief 构造函数（ID，默认位索引为0）
-		 * @param id_ 寄存器 ID
+		 * @brief Constructor (ID, default bit index 0)
+		 * @param id_ Register ID
 		 */
 		SX_Bool(size_t id_) : SX_Bool(id_, 0) {}
 
 		/**
-		 * @brief 应用 SX 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the SX gate operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -654,60 +655,60 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief U2 门（通用单量子门，2参数）
-	 * @details 通用单量子门，使用 phi 和 lambda 两个参数
+	 * @brief U2 gate (general single-qubit gate, 2 parameters)
+	 * @details A general single-qubit gate using the two parameters phi and lambda
 	 */
 	struct U2_Bool : Rot_Bool
 	{
 		using Rot_Bool::operator();
 		using Rot_Bool::dag;
 
-		/** @brief 旋转矩阵 */
+		/** @brief Rotation matrix */
 		u22_t mat;
 
-		/** @brief phi 参数 */
+		/** @brief phi parameter */
 		double phi;
 
-		/** @brief lambda 参数 */
+		/** @brief lambda parameter */
 		double lambda;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + phi + lambda）
-		 * @param reg_ 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (name + bit index + phi + lambda)
+		 * @param reg_ Register name
+		 * @param digit_ Qubit index
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U2_Bool(std::string_view reg_, size_t digit_, double phi, double lambda);
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + phi + lambda）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (ID + bit index + phi + lambda)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U2_Bool(size_t id_, size_t digit_, double phi, double lambda);
 
 		/**
-		 * @brief 构造函数（名称 + phi + lambda，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (name + phi + lambda, default bit index 0)
+		 * @param reg_ Register name
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U2_Bool(std::string_view reg_, double phi, double lambda) : U2_Bool(reg_, 0, phi, lambda) {}
 
 		/**
-		 * @brief 构造函数（ID + phi + lambda，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (ID + phi + lambda, default bit index 0)
+		 * @param id_ Register ID
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U2_Bool(size_t id_, double phi, double lambda) : U2_Bool(id_, 0, phi, lambda) {}
 
 		/**
-		 * @brief 应用 U2 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the U2 gate operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -716,64 +717,64 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief U3 门（通用单量子门，3参数）
-	 * @details 最通用的单量子门，使用 theta、phi 和 lambda 三个参数
+	 * @brief U3 gate (general single-qubit gate, 3 parameters)
+	 * @details The most general single-qubit gate, using the three parameters theta, phi, and lambda
 	 */
 	struct U3_Bool : Rot_Bool
 	{
 		using Rot_Bool::operator();
 		using Rot_Bool::dag;
 
-		/** @brief theta 参数 */
+		/** @brief theta parameter */
 		double theta;
 
-		/** @brief phi 参数 */
+		/** @brief phi parameter */
 		double phi;
 
-		/** @brief lambda 参数 */
+		/** @brief lambda parameter */
 		double lambda;
 
 		/**
-		 * @brief 构造函数（名称 + 位索引 + theta + phi + lambda）
-		 * @param reg 寄存器名称
-		 * @param digit_ 量子位索引
-		 * @param theta theta 参数
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (name + bit index + theta + phi + lambda)
+		 * @param reg Register name
+		 * @param digit_ Qubit index
+		 * @param theta theta parameter
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U3_Bool(std::string_view reg, size_t digit_, double theta, double phi, double lambda);
 
 		/**
-		 * @brief 构造函数（ID + 位索引 + theta + phi + lambda）
-		 * @param id_ 寄存器 ID
-		 * @param digit_ 量子位索引
-		 * @param theta theta 参数
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (ID + bit index + theta + phi + lambda)
+		 * @param id_ Register ID
+		 * @param digit_ Qubit index
+		 * @param theta theta parameter
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U3_Bool(size_t id_, size_t digit_, double theta, double phi, double lambda);
 
 		/**
-		 * @brief 构造函数（名称 + theta + phi + lambda，默认位索引为0）
-		 * @param reg_ 寄存器名称
-		 * @param theta theta 参数
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (name + theta + phi + lambda, default bit index 0)
+		 * @param reg_ Register name
+		 * @param theta theta parameter
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U3_Bool(std::string_view reg_, double theta, double phi, double lambda) : U3_Bool(reg_, 0, theta, phi, lambda) {}
 
 		/**
-		 * @brief 构造函数（ID + theta + phi + lambda，默认位索引为0）
-		 * @param id_ 寄存器 ID
-		 * @param theta theta 参数
-		 * @param phi phi 参数
-		 * @param lambda lambda 参数
+		 * @brief Constructor (ID + theta + phi + lambda, default bit index 0)
+		 * @param id_ Register ID
+		 * @param theta theta parameter
+		 * @param phi phi parameter
+		 * @param lambda lambda parameter
 		 */
 		U3_Bool(size_t id_, double theta, double phi, double lambda) : U3_Bool(id_, 0, theta, phi, lambda) {}
 
 		/**
-		 * @brief 应用 U3 门操作
-		 * @param state 系统状态向量
+		 * @brief Apply the U3 gate operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{

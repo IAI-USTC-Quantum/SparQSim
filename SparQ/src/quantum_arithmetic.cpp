@@ -1,7 +1,8 @@
 /**
  * @file quantum_arithmetic.cpp
- * @brief 量子算术实现
- * @details 实现 quantum_arithmetic.h 中声明的加减乘除模、移位、比较、交换等量子算术算子
+ * @brief Quantum arithmetic implementation
+ * @details Implements the quantum arithmetic operators declared in quantum_arithmetic.h: addition, subtraction,
+ *          multiplication, division, modular arithmetic, shifts, comparison, swap, etc.
  */
 #include "quantum_arithmetic.h"
 
@@ -543,7 +544,7 @@ namespace qram_simulator
 				continue;
 
 			const int64_t v = get_complement(s.GetAs(reg, uint64_t), System::size_of(reg));
-			/* 最小负数（w = 64）回绕为自身 */
+			/* the most negative value (w = 64) wraps around to itself */
 			const uint64_t magnitude = v < 0 ? (uint64_t)(-v) : (uint64_t)v;
 			auto& result = s.get(res).value;
 			const auto size = System::size_of(res);
@@ -587,7 +588,7 @@ namespace qram_simulator
 			if (ConditionNotSatisfied(s))
 				continue;
 
-			/* 全域化：除数为零时商取 0（宽度与截断约定） */
+			/* total domain: when the divisor is zero the quotient is 0 (width and truncation convention) */
 			const uint64_t a = s.GetAs(lhs, uint64_t);
 			const uint64_t b = s.GetAs(rhs, uint64_t);
 			const uint64_t quotient = b == 0 ? uint64_t{0} : a / b;
@@ -741,7 +742,7 @@ namespace qram_simulator
 			if (ConditionNotSatisfied(s))
 				continue;
 
-			/* res 仅提供宽度 w，不读其值（宽度与截断约定） */
+			/* res only provides the width w; its value is not read (width and truncation convention) */
 			const uint64_t a = s.GetAs(lhs, uint64_t);
 			const uint64_t b = s.GetAs(rhs, uint64_t);
 			const size_t w = System::size_of(res);
@@ -766,7 +767,7 @@ namespace qram_simulator
 			if (ConditionNotSatisfied(s))
 				continue;
 
-			/* res 仅提供宽度 w，不读其值（宽度与截断约定） */
+			/* res only provides the width w; its value is not read (width and truncation convention) */
 			const size_t w = System::size_of(res);
 			const uint64_t mask = width_mask(w);
 			const uint64_t A = static_cast<uint64_t>(
@@ -797,11 +798,11 @@ namespace qram_simulator
 			if (ConditionNotSatisfied(s))
 				continue;
 
-			/* res 仅提供宽度 w，不读其值（宽度与截断约定） */
+			/* res only provides the width w; its value is not read (width and truncation convention) */
 			const uint64_t a = s.GetAs(lhs, uint64_t);
 			const uint64_t b = s.GetAs(rhs, uint64_t);
 			const uint64_t lo = a * b;
-			/* 128 位乘积高 64 位：32 位分块（与 CUDA 侧 mul_hi_u64 位等价） */
+			/* high 64 bits of the 128-bit product: 32-bit blocks (bit-equivalent to CUDA-side mul_hi_u64) */
 			const uint64_t a_lo = uint32_t(a), a_hi = a >> 32;
 			const uint64_t b_lo = uint32_t(b), b_hi = b >> 32;
 			const uint64_t p0 = a_lo * b_lo, p1 = a_lo * b_hi;
@@ -859,7 +860,7 @@ namespace qram_simulator
 	{
 		const size_t size = System::size_of(id);
 		const uint64_t raw = s.get(id).as<uint64_t>(size);
-		// AnyInt 槽：按寄存器声明类型扩展（宽度与截断约定，见 docs/operators.md）
+		// AnyInt slot: extended according to the register's declared type (width and truncation convention, see docs/operators.md)
 		if (System::type_of(id) == SignedInteger)
 			return static_cast<uint64_t>(get_complement(raw, size));
 		return raw;

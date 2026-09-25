@@ -1,8 +1,8 @@
 /**
  * @file system_operations.h
- * @brief 系统操作定义
- * @details 实现量子系统的基本操作，包括系统分割、合并、重置、
- *          寄存器分割/合并/移动/添加/移除等操作
+ * @brief System operations definitions
+ * @details Implements the basic operations on quantum systems, including system splitting, merging, resetting,
+ *          and register splitting/merging/moving/adding/removing operations
  */
 
 #pragma once
@@ -12,17 +12,17 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 分割系统（原地修改版本）
-	 * @param new_state 新状态向量
-	 * @param old_state 旧状态向量
-	 * @param condition_variable_nonzeros 非零条件变量
-	 * @param condition_variable_all_ones 全1条件变量
-	 * @param condition_variable_by_bit 按位条件变量
-	 * @param condition_variable_by_value 按值条件变量
+	 * @brief Split systems (in-place version)
+	 * @param new_state New state vector
+	 * @param old_state Old state vector
+	 * @param condition_variable_nonzeros Nonzero condition variables
+	 * @param condition_variable_all_ones All-ones condition variables
+	 * @param condition_variable_by_bit Per-bit condition variables
+	 * @param condition_variable_by_value Per-value condition variables
 	 */
 	void split_systems(std::vector<System>& new_state, std::vector<System>& old_state,
 		const std::vector<size_t>& condition_variable_nonzeros,
@@ -32,13 +32,13 @@ namespace qram_simulator
 	);
 
 	/**
-	 * @brief 分割系统（返回值版本）
-	 * @param state 状态向量
-	 * @param condition_variable_nonzeros 非零条件变量
-	 * @param condition_variable_all_ones 全1条件变量
-	 * @param condition_variable_by_bit 按位条件变量
-	 * @param condition_variable_by_value 按值条件变量
-	 * @return 分割后的状态向量
+	 * @brief Split systems (return-value version)
+	 * @param state State vector
+	 * @param condition_variable_nonzeros Nonzero condition variables
+	 * @param condition_variable_all_ones All-ones condition variables
+	 * @param condition_variable_by_bit Per-bit condition variables
+	 * @param condition_variable_by_value Per-value condition variables
+	 * @return The split state vector
 	 */
 	std::vector<System> split_systems(std::vector<System>& state,
 		const std::vector<size_t>& condition_variable_nonzeros,
@@ -48,13 +48,13 @@ namespace qram_simulator
 	);
 
 	/**
-	 * @brief 分割稀疏状态
-	 * @param state 稀疏状态
-	 * @param condition_variable_nonzeros 非零条件变量
-	 * @param condition_variable_all_ones 全1条件变量
-	 * @param condition_variable_by_bit 按位条件变量
-	 * @param condition_variable_by_value 按值条件变量
-	 * @return 分割后的稀疏状态
+	 * @brief Split a sparse state
+	 * @param state Sparse state
+	 * @param condition_variable_nonzeros Nonzero condition variables
+	 * @param condition_variable_all_ones All-ones condition variables
+	 * @param condition_variable_by_bit Per-bit condition variables
+	 * @param condition_variable_by_value Per-value condition variables
+	 * @return The split sparse state
 	 */
 	SparseState split_systems(SparseState& state,
 		const std::vector<size_t>& condition_variable_nonzeros,
@@ -64,28 +64,28 @@ namespace qram_simulator
 	);
 
 	/**
-	 * @brief 合并系统（到目标）
-	 * @param to 目标状态向量
-	 * @param from 源状态向量
+	 * @brief Merge systems (into a target)
+	 * @param to Target state vector
+	 * @param from Source state vector
 	 */
 	void combine_systems(std::vector<System>& to, const std::vector<System>& from);
 
 	/**
-	 * @brief 合并稀疏状态（到目标）
-	 * @param to 目标稀疏状态
-	 * @param from 源稀疏状态
+	 * @brief Merge sparse states (into a target)
+	 * @param to Target sparse state
+	 * @param from Source sparse state
 	 */
 	void combine_systems(SparseState& to, const SparseState& from);
 
 #ifdef USE_CUDA
 	/**
-	 * @brief CUDA 分割稀疏状态
-	 * @param state CUDA 稀疏状态
-	 * @param condition_variable_nonzeros 非零条件变量
-	 * @param condition_variable_all_ones 全1条件变量
-	 * @param condition_variable_by_bit 按位条件变量
-	 * @param condition_variable_by_value 按值条件变量
-	 * @return 分割后的 CUDA 稀疏状态
+	 * @brief CUDA split a sparse state
+	 * @param state CUDA sparse state
+	 * @param condition_variable_nonzeros Nonzero condition variables
+	 * @param condition_variable_all_ones All-ones condition variables
+	 * @param condition_variable_by_bit Per-bit condition variables
+	 * @param condition_variable_by_value Per-value condition variables
+	 * @return The split CUDA sparse state
 	 */
 	CuSparseState split_systems(CuSparseState& state,
 		const std::vector<size_t>& condition_variable_nonzeros,
@@ -95,16 +95,16 @@ namespace qram_simulator
 	);
 
 	/**
-	 * @brief CUDA 合并稀疏状态（到目标）
-	 * @param to 目标 CUDA 稀疏状态
-	 * @param from 源 CUDA 稀疏状态
+	 * @brief CUDA merge sparse states (into a target)
+	 * @param to Target CUDA sparse state
+	 * @param from Source CUDA sparse state
 	 */
 	void combine_systems(CuSparseState& to, CuSparseState& from);
 #endif
 
 	/**
 	 * @def SPLIT_BY_CONDITIONS
-	 * @brief 按条件分割系统的宏
+	 * @brief Macro that splits systems by conditions
 	 */
 #define SPLIT_BY_CONDITIONS \
 	std::decay_t<decltype(state)> unconditioned_state(0);\
@@ -121,7 +121,7 @@ namespace qram_simulator
 
 	/**
 	 * @def MERGE_BY_CONDITIONS
-	 * @brief 按条件合并系统的宏
+	 * @brief Macro that merges systems by conditions
 	 */
 #define MERGE_BY_CONDITIONS \
 	if (!unconditioned_state.empty()) {\
@@ -129,30 +129,30 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 重置系统
-	 * @param state 系统状态向量
+	 * @brief Reset systems
+	 * @param state System state vector
 	 */
 	void reset_systems(std::vector<System>& state);
 
 	/**
-	 * @brief 重置稀疏状态
-	 * @param state 稀疏状态
+	 * @brief Reset a sparse state
+	 * @param state Sparse state
 	 */
 	void reset_systems(SparseState& state);
 
 #ifdef USE_CUDA
 	/**
-	 * @brief CUDA 重置稀疏状态
-	 * @param state CUDA 稀疏状态
+	 * @brief CUDA reset a sparse state
+	 * @param state CUDA sparse state
 	 */
 	void reset_systems(CuSparseState& state);
 #endif
 
 	/**
-	 * @brief 添加系统（带系数）
-	 * @param current_state 当前状态向量
-	 * @param new_state 新状态向量
-	 * @param coef 系数
+	 * @brief Add systems (with a coefficient)
+	 * @param current_state Current state vector
+	 * @param new_state New state vector
+	 * @param coef Coefficient
 	 */
 	inline void add_systems(std::vector<System>& current_state, const std::vector<System>& new_state, double coef)
 	{
@@ -175,10 +175,10 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 添加稀疏状态（带系数）
-	 * @param current 当前稀疏状态
-	 * @param new_state 新稀疏状态
-	 * @param coef 系数
+	 * @brief Add sparse states (with a coefficient)
+	 * @param current Current sparse state
+	 * @param new_state New sparse state
+	 * @param coef Coefficient
 	 */
 	inline void add_systems(SparseState& current, const SparseState& new_state, double coef)
 	{
@@ -187,467 +187,467 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 	/**
-	 * @brief CUDA 添加稀疏状态（带系数）
-	 * @param current 当前 CUDA 稀疏状态
-	 * @param new_state 新 CUDA 稀疏状态
-	 * @param coef 系数
+	 * @brief CUDA add sparse states (with a coefficient)
+	 * @param current Current CUDA sparse state
+	 * @param new_state New CUDA sparse state
+	 * @param coef Coefficient
 	 */
 	void add_systems(CuSparseState& current, const CuSparseState& new_state, double coef);
 #endif
 
 	/**
-	 * @brief 分割寄存器操作
-	 * @details 将一个寄存器分割为两个寄存器
+	 * @brief Split-register operation
+	 * @details Splits one register into two registers
 	 */
 	struct SplitRegister {
-		/** @brief 第一个寄存器名称 */
+		/** @brief First register name */
 		std::string first_name;
 
-		/** @brief 第二个寄存器名称 */
+		/** @brief Second register name */
 		std::string second_name;
 
-		/** @brief 第二个寄存器大小 */
+		/** @brief Second register size */
 		size_t second_size;
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param first_id_ 第一个寄存器 ID
-		 * @param second_name_ 第二个寄存器名称
-		 * @param second_size_ 第二个寄存器大小
+		 * @brief Constructor (ID version)
+		 * @param first_id_ First register ID
+		 * @param second_name_ Second register name
+		 * @param second_size_ Second register size
 		 */
 		SplitRegister(size_t first_id_, std::string_view second_name_, size_t second_size_)
 			: first_name(System::name_of(first_id_)), second_name(second_name_), second_size(second_size_) { }
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param first_name_ 第一个寄存器名称
-		 * @param second_name_ 第二个寄存器名称
-		 * @param second_size_ 第二个寄存器大小
+		 * @brief Constructor (name version)
+		 * @param first_name_ First register name
+		 * @param second_name_ Second register name
+		 * @param second_size_ Second register size
 		 */
 		SplitRegister(std::string_view first_name_, std::string_view second_name_, size_t second_size_)
 			: first_name(first_name_), second_name(second_name_), second_size(second_size_) {}
 
 		/**
-		 * @brief 应用分割操作
-		 * @param state 系统状态向量
-		 * @return 新寄存器 ID
+		 * @brief Apply the split operation
+		 * @param state System state vector
+		 * @return New register ID
 		 */
 		size_t operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用分割操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief Apply the split operation (sparse state version)
+		 * @param state Sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用分割操作
-		 * @param state CUDA 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief CUDA apply the split operation
+		 * @param state CUDA sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 合并寄存器操作
-	 * @details 合并两个寄存器（移除第二个）
+	 * @brief Combine-register operation
+	 * @details Merges two registers (removes the second one)
 	 */
 	struct CombineRegister {
-		/** @brief 第一个寄存器名称 */
+		/** @brief First register name */
 		std::string first_name;
 
-		/** @brief 第二个寄存器名称 */
+		/** @brief Second register name */
 		std::string second_name;
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param first_id_ 第一个寄存器 ID
-		 * @param second_id_ 第二个寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param first_id_ First register ID
+		 * @param second_id_ Second register ID
 		 */
 		CombineRegister(size_t first_id_, size_t second_id_)
 			: first_name(System::name_of(first_id_)), second_name(System::name_of(second_id_)) { }
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param first_name_ 第一个寄存器名称
-		 * @param second_name_ 第二个寄存器名称
+		 * @brief Constructor (name version)
+		 * @param first_name_ First register name
+		 * @param second_name_ Second register name
 		 */
 		CombineRegister(std::string_view first_name_, std::string_view second_name_)
 			: first_name(first_name_), second_name(second_name_) { }
 
 		/**
-		 * @brief 应用合并操作
-		 * @param state 系统状态向量
-		 * @return 合并后寄存器 ID
+		 * @brief Apply the combine operation
+		 * @param state System state vector
+		 * @return Combined register ID
 		 */
 		size_t operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用合并操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 合并后寄存器 ID
+		 * @brief Apply the combine operation (sparse state version)
+		 * @param state Sparse state
+		 * @return Combined register ID
 		 */
 		size_t operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用合并操作
-		 * @param state CUDA 稀疏状态
-		 * @return 合并后寄存器 ID
+		 * @brief CUDA apply the combine operation
+		 * @param state CUDA sparse state
+		 * @return Combined register ID
 		 */
 		size_t operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 寄存器后移操作
-	 * @details 改变寄存器位置（不安全，不应作为子流程调用）
+	 * @brief Move-register-back operation
+	 * @details Changes the position of a register (unsafe, must not be called as a subprocedure)
 	 */
 	struct MoveBackRegister
 	{
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t register_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_in Register name
 		 */
 		MoveBackRegister(std::string_view reg_in);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Register ID
 		 */
 		MoveBackRegister(size_t reg_in);
 
 		/**
-		 * @brief 应用后移操作
-		 * @param states 系统状态向量
+		 * @brief Apply the move-back operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 
 		/**
-		 * @brief 应用后移操作（稀疏状态版本）
-		 * @param state 稀疏状态
+		 * @brief Apply the move-back operation (sparse state version)
+		 * @param state Sparse state
 		 */
 		void operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用后移操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the move-back operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 添加寄存器操作
-	 * @details 添加新寄存器到系统
+	 * @brief Add-register operation
+	 * @details Adds a new register to the system
 	 */
 	struct AddRegister {
-		/** @brief 寄存器名称 */
+		/** @brief Register name */
 		std::string register_name;
 
-		/** @brief 寄存器类型 */
+		/** @brief Register type */
 		StateStorageType type;
 
-		/** @brief 寄存器大小 */
+		/** @brief Register size */
 		size_t size;
 
 		/**
-		 * @brief 构造函数
-		 * @param register_name_ 寄存器名称
-		 * @param type_ 寄存器类型
-		 * @param size_ 寄存器大小
+		 * @brief Constructor
+		 * @param register_name_ Register name
+		 * @param type_ Register type
+		 * @param size_ Register size
 		 */
 		AddRegister(std::string_view register_name_, StateStorageType type_, size_t size_);
 
 		/**
-		 * @brief 应用添加操作
-		 * @param state 系统状态向量
-		 * @return 新寄存器 ID
+		 * @brief Apply the add operation
+		 * @param state System state vector
+		 * @return New register ID
 		 */
 		size_t operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用添加操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief Apply the add operation (sparse state version)
+		 * @param state Sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用添加操作
-		 * @param state CUDA 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief CUDA apply the add operation
+		 * @param state CUDA sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 添加寄存器并应用 Hadamard 操作
-	 * @details 添加新寄存器并初始化为均匀叠加态
+	 * @brief Add-register-and-apply-Hadamard operation
+	 * @details Adds a new register and initializes it to a uniform superposition state
 	 */
 	struct AddRegisterWithHadamard {
-		/** @brief 寄存器名称 */
+		/** @brief Register name */
 		std::string register_name;
 
-		/** @brief 寄存器类型 */
+		/** @brief Register type */
 		StateStorageType type;
 
-		/** @brief 寄存器大小 */
+		/** @brief Register size */
 		size_t size;
 
 		/**
-		 * @brief 构造函数
-		 * @param register_name_ 寄存器名称
-		 * @param type_ 寄存器类型
-		 * @param size_ 寄存器大小
+		 * @brief Constructor
+		 * @param register_name_ Register name
+		 * @param type_ Register type
+		 * @param size_ Register size
 		 */
 		AddRegisterWithHadamard(std::string_view register_name_, StateStorageType type_, size_t size_);
 
 		/**
-		 * @brief 应用添加并 Hadamard 操作
-		 * @param state 系统状态向量
-		 * @return 新寄存器 ID
+		 * @brief Apply the add-and-Hadamard operation
+		 * @param state System state vector
+		 * @return New register ID
 		 */
 		size_t operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用添加并 Hadamard 操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief Apply the add-and-Hadamard operation (sparse state version)
+		 * @param state Sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用添加并 Hadamard 操作
-		 * @param state CUDA 稀疏状态
-		 * @return 新寄存器 ID
+		 * @brief CUDA apply the add-and-Hadamard operation
+		 * @param state CUDA sparse state
+		 * @return New register ID
 		 */
 		size_t operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 移除寄存器操作
-	 * @details 从系统中移除指定寄存器
+	 * @brief Remove-register operation
+	 * @details Removes the specified register from the system
 	 */
 	struct RemoveRegister {
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t register_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param register_name 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param register_name Register name
 		 */
 		RemoveRegister(std::string_view register_name);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param register_name_ 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param register_name_ Register ID
 		 */
 		RemoveRegister(size_t register_name_);
 
 		/**
-		 * @brief 应用移除操作
-		 * @param state 系统状态向量
+		 * @brief Apply the remove operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用移除操作（稀疏状态版本）
-		 * @param state 稀疏状态
+		 * @brief Apply the remove operation (sparse state version)
+		 * @param state Sparse state
 		 */
 		void operator()(SparseState& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用移除操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the remove operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 压栈操作
-	 * @details 将寄存器状态压入临时栈
+	 * @brief Push operation
+	 * @details Pushes the register state onto a temporary stack
 	 */
 	struct Push : BaseOperator
 	{
 		using BaseOperator::operator();
 
-		/** @brief 临时寄存器名称 */
+		/** @brief Temporary register name */
 		std::string garbage_name;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t reg_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param regname_ 寄存器名称
-		 * @param garbage_name_ 临时寄存器名称
+		 * @brief Constructor (name version)
+		 * @param regname_ Register name
+		 * @param garbage_name_ Temporary register name
 		 */
 		Push(std::string_view regname_, std::string_view garbage_name_)
 			:reg_id(System::get(regname_)), garbage_name(garbage_name_)
 		{ }
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param regname_ 寄存器 ID
-		 * @param garbage_name_ 临时寄存器名称
+		 * @brief Constructor (ID version)
+		 * @param regname_ Register ID
+		 * @param garbage_name_ Temporary register name
 		 */
 		Push(size_t regname_, std::string_view garbage_name_)
 			: reg_id(regname_), garbage_name(garbage_name_)
 		{ }
 
 		/**
-		 * @brief 应用压栈操作
-		 * @param state 系统状态向量
+		 * @brief Apply the push operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用压栈操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the push operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 出栈操作
-	 * @details 从临时栈恢复寄存器状态
+	 * @brief Pop operation
+	 * @details Restores the register state from the temporary stack
 	 */
 	struct Pop : BaseOperator
 	{
 		using BaseOperator::operator();
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t reg_id;
 
-		/** @brief 寄存器名称 */
+		/** @brief Register name */
 		std::string reg_name;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_name_ 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_name_ Register name
 		 */
 		Pop(std::string_view reg_name_) : reg_id(System::get(reg_name_)), reg_name(reg_name_)
 		{ }
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_name_ 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_name_ Register ID
 		 */
 		Pop(size_t reg_name_) : reg_id(reg_name_)
 		{ }
 
 		/**
-		 * @brief 应用出栈操作
-		 * @param state 系统状态向量
+		 * @brief Apply the pop operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用出栈操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the pop operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 清零操作
-	 * @details 移除振幅接近零的状态分量
+	 * @brief Clear-zero operation
+	 * @details Removes the state components whose amplitudes are close to zero
 	 */
 	struct ClearZero : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 清零阈值 */
+		/** @brief Clear-zero threshold */
 		double eps;
 
 		/**
-		 * @brief 默认构造函数（使用默认 epsilon）
+		 * @brief Default constructor (uses the default epsilon)
 		 */
 		ClearZero() :eps(epsilon) {};
 
 		/**
-		 * @brief 构造函数（指定阈值）
-		 * @param eps_ 清零阈值
+		 * @brief Constructor (with a specified threshold)
+		 * @param eps_ Clear-zero threshold
 		 */
 		ClearZero(double eps_) :eps(eps_) {};
 
 		/**
-		 * @brief 应用清零操作
-		 * @param system_states 系统状态向量
+		 * @brief Apply the clear-zero operation
+		 * @param system_states System state vector
 		 */
 		void operator()(std::vector<System>& system_states) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用清零操作
-		 * @param s CUDA 稀疏状态
+		 * @brief CUDA apply the clear-zero operation
+		 * @param s CUDA sparse state
 		 */
 		void operator()(CuSparseState& s) const;
 #endif
 	};
 
 	/**
-	 * @brief 状态加载操作
-	 * @details 从文件加载量子状态
+	 * @brief State loading operation
+	 * @details Loads a quantum state from a file
 	 */
 	struct StateLoad
 	{
-		/** @brief 主寄存器名称 */
+		/** @brief Main register name */
 		std::string main_reg;
 
-		/** @brief 辅助寄存器 UA 名称 */
+		/** @brief Ancilla register UA name */
 		std::string anc_UA;
 
-		/** @brief 辅助寄存器 4 名称 */
+		/** @brief Ancilla register 4 name */
 		std::string anc_4;
 
-		/** @brief 辅助寄存器 3 名称 */
+		/** @brief Ancilla register 3 name */
 		std::string anc_3;
 
-		/** @brief 辅助寄存器 2 名称 */
+		/** @brief Ancilla register 2 name */
 		std::string anc_2;
 
-		/** @brief 辅助寄存器 1 名称 */
+		/** @brief Ancilla register 1 name */
 		std::string anc_1;
 
-		/** @brief 数据大小 */
+		/** @brief Data size */
 		size_t data_size;
 
-		/** @brief 有理数大小 */
+		/** @brief Rational number size */
 		size_t rational_size;
 
-		/** @brief 保存名称 */
+		/** @brief Save name */
 		std::string savename;
 
 		/**
-		 * @brief 构造函数
-		 * @param main_reg 主寄存器名称
-		 * @param anc_UA 辅助寄存器 UA 名称
-		 * @param anc_4 辅助寄存器 4 名称
-		 * @param anc_3 辅助寄存器 3 名称
-		 * @param anc_2 辅助寄存器 2 名称
-		 * @param anc_1 辅助寄存器 1 名称
-		 * @param ds 数据大小
-		 * @param rs 有理数大小
+		 * @brief Constructor
+		 * @param main_reg Main register name
+		 * @param anc_UA Ancilla register UA name
+		 * @param anc_4 Ancilla register 4 name
+		 * @param anc_3 Ancilla register 3 name
+		 * @param anc_2 Ancilla register 2 name
+		 * @param anc_1 Ancilla register 1 name
+		 * @param ds Data size
+		 * @param rs Rational number size
 		 */
 		StateLoad(
 			std::string main_reg,
@@ -662,48 +662,48 @@ namespace qram_simulator
 			data_size(ds), rational_size(rs) {}
 
 		/**
-		 * @brief 从文件加载状态
-		 * @param savename_ 文件名
-		 * @return 系统状态向量
+		 * @brief Load a state from a file
+		 * @param savename_ File name
+		 * @return System state vector
 		 */
 		std::vector<System> operator()(const std::string& savename_) const;
 
 		/**
-		 * @brief 解析振幅值
-		 * @param line 文件行
-		 * @return 复数振幅
+		 * @brief Parse an amplitude value
+		 * @param line File line
+		 * @return Complex amplitude
 		 */
 		complex_t load_amplitude(const std::string& line) const;
 
 		/**
-		 * @brief 解析寄存器值
-		 * @param line 文件行
-		 * @param reg 寄存器名称
-		 * @return 寄存器值
+		 * @brief Parse a register value
+		 * @param line File line
+		 * @param reg Register name
+		 * @return Register value
 		 */
 		size_t load_reg(const std::string& line, const std::string& reg) const;
 
 		/**
-		 * @brief 解析分支
-		 * @param line 文件行
-		 * @return 系统状态
+		 * @brief Parse a branch
+		 * @param line File line
+		 * @return System state
 		 */
 		System load_branch(const std::string& line) const;
 
 		/**
-		 * @brief 检查是否为分支行
-		 * @param line 文件行
-		 * @return 是否为分支行
+		 * @brief Check whether a line is a branch line
+		 * @param line File line
+		 * @return Whether the line is a branch line
 		 */
 		bool is_branch(const std::string& line) const;
 	};
 
 	/**
-	 * @brief 将状态打印到文件
-	 * @param state 系统状态向量
-	 * @param filename 文件名
-	 * @param precision 精度（默认16）
-	 * @throws 当文件无法打开时抛出异常
+	 * @brief Print a state to a file
+	 * @param state System state vector
+	 * @param filename File name
+	 * @param precision Precision (16 by default)
+	 * @throws Throws an exception when the file cannot be opened
 	 */
 	inline void print_state_to_file(std::vector<System>& state, const std::string &filename, int precision = 16)
 	{

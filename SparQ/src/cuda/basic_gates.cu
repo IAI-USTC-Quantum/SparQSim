@@ -1,7 +1,9 @@
 /**
  * @file basic_gates.cu
- * @brief basic_gates 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 basic_gates.h 中声明的 Phase、Pauli (X/Y/Z)、S、T、RX/RY/RZ、SX、U2、U3 等标准量子门（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of basic_gates
+ * @details Implements with thrust device vectors and CUDA kernels the standard quantum gates declared in
+ *          basic_gates.h: Phase, Pauli (X/Y/Z), S, T, RX/RY/RZ, SX, U2, U3, etc. (GPU path; GPU builds are
+ *          currently disabled in CMake)
  */
 #include "basic_gates.h"
 #include "cuda_utils.cuh"

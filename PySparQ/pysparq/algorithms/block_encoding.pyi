@@ -1,4 +1,4 @@
-"""矩阵块编码算法（三对角和基于 QRAM）。"""
+"""Matrix block encoding algorithms (tridiagonal and QRAM-based)."""
 
 from __future__ import annotations
 
@@ -8,22 +8,22 @@ import numpy as np
 
 
 def get_tridiagonal_matrix(alpha: float, beta: float, dim: int) -> np.ndarray:
-    """返回 dim x dim 的三对角矩阵 alpha*I + beta*T。"""
+    """Return the dim x dim tridiagonal matrix alpha*I + beta*T."""
     ...
 
 
 def get_u_plus(size: int) -> np.ndarray:
-    """返回 size x size 的下移（次对角线）矩阵。"""
+    """Return the size x size down-shift (subdiagonal) matrix."""
     ...
 
 
 def get_u_minus(size: int) -> np.ndarray:
-    """返回 size x size 的上移（超对角线）矩阵。"""
+    """Return the size x size up-shift (superdiagonal) matrix."""
     ...
 
 
 class PlusOneAndOverflow:
-    """将寄存器加 1 并跟踪溢出。"""
+    """Add 1 to a register and track overflow."""
 
     main_reg: str
     overflow: str
@@ -47,7 +47,7 @@ class PlusOneAndOverflow:
 
 
 class BlockEncodingTridiagonal:
-    """三对角矩阵 alpha*I + beta*T 的块编码。"""
+    """Block encoding of the tridiagonal matrix alpha*I + beta*T."""
 
     main_reg: str
     anc_UA: str
@@ -73,7 +73,7 @@ class BlockEncodingTridiagonal:
 
 
 class UR:
-    """基于 QRAM 块编码的右乘算子。"""
+    """Right-multiplication operator based on QRAM block encoding."""
 
     qram: "QRAMCircuit_qutrit"
     column_index: str
@@ -103,7 +103,7 @@ class UR:
 
 
 class UL:
-    """基于 QRAM 块编码的左乘算子。"""
+    """Left-multiplication operator based on QRAM block encoding."""
 
     qram: "QRAMCircuit_qutrit"
     row_index: str
@@ -135,7 +135,7 @@ class UL:
 
 
 class BlockEncodingViaQRAM:
-    """通过 QRAM 对任意矩阵进行块编码。"""
+    """Block encoding of an arbitrary matrix via QRAM."""
 
     qram: "QRAMCircuit_qutrit"
     column_index: str
@@ -166,5 +166,5 @@ class BlockEncodingViaQRAM:
 
 
 def create_block_encoding_demo() -> str:
-    """返回块编码用法的演示脚本字符串。"""
+    """Return a demo script string showing block encoding usage."""
     ...

@@ -1,7 +1,8 @@
 /**
  * @file partial_trace.h
- * @brief 偏迹运算定义
- * @details 实现量子态的偏迹操作，用于约化密度矩阵和概率计算
+ * @brief Partial trace operation definitions
+ * @details Implements partial trace operations on quantum states, used for reduced density matrices
+ *          and probability computation
  */
 
 #pragma once
@@ -13,52 +14,52 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 偏迹操作类
-	 * @details 对指定寄存器执行偏迹运算
+	 * @brief Partial trace operation class
+	 * @details Performs the partial trace operation on the specified registers
 	 */
 	struct PartialTrace {
-		/** @brief 偏迹寄存器 ID 列表 */
+		/** @brief List of partial trace register IDs */
 		std::vector<size_t> partial_trace_registers;
 
 		/**
-		 * @brief 构造函数（名称列表版本）
-		 * @param partial_trace_register_names 寄存器名称列表
+		 * @brief Constructor (name list version)
+		 * @param partial_trace_register_names List of register names
 		 */
 		PartialTrace(const std::vector<std::string>& partial_trace_register_names);
 
 		/**
-		 * @brief 构造函数（ID 列表版本）
-		 * @param partial_trace_register_names 寄存器 ID 列表
+		 * @brief Constructor (ID list version)
+		 * @param partial_trace_register_names List of register IDs
 		 */
 		PartialTrace(const std::vector<size_t>& partial_trace_register_names);
 
 		/**
-		 * @brief 构造函数（单个名称版本）
-		 * @param partial_trace_register_name 寄存器名称
+		 * @brief Constructor (single name version)
+		 * @param partial_trace_register_name Register name
 		 */
 		PartialTrace(std::string_view partial_trace_register_name);
 
 		/**
-		 * @brief 构造函数（单个 ID 版本）
-		 * @param partial_trace_register_name 寄存器 ID
+		 * @brief Constructor (single ID version)
+		 * @param partial_trace_register_name Register ID
 		 */
 		PartialTrace(size_t partial_trace_register_name);
 
 		/**
-		 * @brief 应用偏迹操作
-		 * @param state 系统状态向量
-		 * @return 偏迹后的值列表和概率
+		 * @brief Apply the partial trace operation
+		 * @param state System state vector
+		 * @return List of values and probability after the partial trace
 		 */
 		std::pair<std::vector<uint64_t>, double> operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用偏迹操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 偏迹后的值列表和概率
+		 * @brief Apply the partial trace operation (sparse state version)
+		 * @param state Sparse state
+		 * @return List of values and probability after the partial trace
 		 */
 		std::pair<std::vector<uint64_t>, double> operator()(SparseState& state) const
 		{
@@ -67,64 +68,64 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用偏迹操作
-		 * @param state CUDA 稀疏状态
-		 * @return 偏迹后的值列表和概率
+		 * @brief CUDA apply the partial trace operation
+		 * @param state CUDA sparse state
+		 * @return List of values and probability after the partial trace
 		 */
 		std::pair<std::vector<uint64_t>, double> operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 选择性偏迹操作类
-	 * @details 对指定寄存器执行偏迹运算，并选择特定值
+	 * @brief Selective partial trace operation class
+	 * @details Performs the partial trace operation on the specified registers and selects specific values
 	 */
 	struct PartialTraceSelect {
-		/** @brief 偏迹寄存器 ID 列表 */
+		/** @brief List of partial trace register IDs */
 		std::vector<size_t> partial_trace_registers;
 
-		/** @brief 选择的值列表 */
+		/** @brief List of selected values */
 		std::vector<uint64_t> select_values;
 
 		/**
-		 * @brief 构造函数（名称到值映射版本）
-		 * @param partial_traces 寄存器名称到值的映射
+		 * @brief Constructor (name-to-value map version)
+		 * @param partial_traces Map from register names to values
 		 */
 		PartialTraceSelect(const std::map<std::string_view, uint64_t>& partial_traces);
 
 		/**
-		 * @brief 构造函数（ID 到值映射版本）
-		 * @param partial_traces 寄存器 ID 到值的映射
+		 * @brief Constructor (ID-to-value map version)
+		 * @param partial_traces Map from register IDs to values
 		 */
 		PartialTraceSelect(const std::map<size_t, uint64_t>& partial_traces);
 
 		/**
-		 * @brief 构造函数（名称列表和值列表版本）
-		 * @param partial_trace_regs_ 寄存器名称列表
-		 * @param select_values_ 选择的值列表
+		 * @brief Constructor (name list and value list version)
+		 * @param partial_trace_regs_ List of register names
+		 * @param select_values_ List of selected values
 		 */
 		PartialTraceSelect(const std::vector<std::string>& partial_trace_regs_,
 			const std::vector<uint64_t> &select_values_);
 
 		/**
-		 * @brief 构造函数（ID 列表和值列表版本）
-		 * @param partial_trace_regs_ 寄存器 ID 列表
-		 * @param select_values_ 选择的值列表
+		 * @brief Constructor (ID list and value list version)
+		 * @param partial_trace_regs_ List of register IDs
+		 * @param select_values_ List of selected values
 		 */
 		PartialTraceSelect(const std::vector<size_t>& partial_trace_regs_,
 			const std::vector<uint64_t> &select_values_);
 
 		/**
-		 * @brief 应用选择性偏迹操作
-		 * @param state 系统状态向量
-		 * @return 选中状态的概率
+		 * @brief Apply the selective partial trace operation
+		 * @param state System state vector
+		 * @return Probability of the selected states
 		 */
 		double operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用选择性偏迹操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 选中状态的概率
+		 * @brief Apply the selective partial trace operation (sparse state version)
+		 * @param state Sparse state
+		 * @return Probability of the selected states
 		 */
 		double operator()(SparseState& state) const
 		{
@@ -133,32 +134,32 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用选择性偏迹操作
-		 * @param state CUDA 稀疏状态
-		 * @return 选中状态的概率
+		 * @brief CUDA apply the selective partial trace operation
+		 * @param state CUDA sparse state
+		 * @return Probability of the selected states
 		 */
 		double operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 范围选择性偏迹操作类
-	 * @details 对指定寄存器执行偏迹运算，并选择值范围
+	 * @brief Range-selective partial trace operation class
+	 * @details Performs the partial trace operation on the specified register and selects a range of values
 	 */
 	struct PartialTraceSelectRange {
-		/** @brief 偏迹寄存器 ID */
+		/** @brief Partial trace register ID */
 		size_t partial_trace_register;
 
-		/** @brief 选择范围 */
+		/** @brief Selection range */
 		std::pair<size_t, size_t> select_range;
 
-		/** @brief 结果概率 */
+		/** @brief Result probability */
 		double r = 0.0;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param partial_trace_register_ 寄存器名称
-		 * @param select_range_ 选择范围 [min, max]
+		 * @brief Constructor (name version)
+		 * @param partial_trace_register_ Register name
+		 * @param select_range_ Selection range [min, max]
 		 */
 		PartialTraceSelectRange(std::string_view partial_trace_register_,
 			std::pair<size_t, size_t> select_range_) :
@@ -168,9 +169,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param partial_trace_register_ 寄存器 ID
-		 * @param select_range_ 选择范围 [min, max]
+		 * @brief Constructor (ID version)
+		 * @param partial_trace_register_ Register ID
+		 * @param select_range_ Selection range [min, max]
 		 */
 		PartialTraceSelectRange(size_t partial_trace_register_,
 			std::pair<size_t, size_t> select_range_) :
@@ -180,16 +181,16 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用范围选择性偏迹操作
-		 * @param state 系统状态向量
-		 * @return 选中状态的概率
+		 * @brief Apply the range-selective partial trace operation
+		 * @param state System state vector
+		 * @return Probability of the selected states
 		 */
 		double operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用范围选择性偏迹操作（稀疏状态版本）
-		 * @param state 稀疏状态
-		 * @return 选中状态的概率
+		 * @brief Apply the range-selective partial trace operation (sparse state version)
+		 * @param state Sparse state
+		 * @return Probability of the selected states
 		 */
 		double operator()(SparseState& state) const
 		{
@@ -198,9 +199,9 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用范围选择性偏迹操作
-		 * @param state CUDA 稀疏状态
-		 * @return 选中状态的概率
+		 * @brief CUDA apply the range-selective partial trace operation
+		 * @param state CUDA sparse state
+		 * @return Probability of the selected states
 		 */
 		double operator()(CuSparseState& state);
 #endif

@@ -1,7 +1,7 @@
 /**
  * @file qft.h
- * @brief 量子傅里叶变换 (QFT) 定义
- * @details 实现量子傅里叶变换及其逆变换，支持标准版本和完整版本
+ * @brief Quantum Fourier transform (QFT) definitions
+ * @details Implements the quantum Fourier transform and its inverse, supporting the standard and full versions
  */
 
 #pragma once
@@ -10,41 +10,41 @@
 namespace qram_simulator {
 
 	/**
-	 * @brief 量子傅里叶变换 (QFT)
-	 * @details 对整数寄存器执行量子傅里叶变换
+	 * @brief Quantum Fourier transform (QFT)
+	 * @details Performs the quantum Fourier transform on an integer register
 	 */
 	struct QFT : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位数 */
+		/** @brief Number of qubits */
 		size_t n_digits;
 
-		/** @brief 单位根 omega = e^(2πi/2^n) */
+		/** @brief Root of unity omega = e^(2πi/2^n) */
 		complex_t omega;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ins 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ins Register name
 		 */
 		QFT(std::string_view reg_ins);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Register ID
 		 */
 		QFT(size_t reg_in);
 
 		/**
-		 * @brief 获取指定位置的值（辅助函数）
-		 * @param i 索引
-		 * @param state 系统状态向量
-		 * @return 值的引用
+		 * @brief Get the value at the specified position (helper function)
+		 * @param i Index
+		 * @param state System state vector
+		 * @return Reference to the value
 		 */
 		inline size_t& val(size_t i, std::vector<System>& state) const
 		{
@@ -52,63 +52,63 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 在指定范围执行操作
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
+		 * @brief Perform the operation on the specified range
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
 		 */
 		void operate(size_t l, size_t r, std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 QFT 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the QFT operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger(逆 QFT)操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger (inverse QFT) operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 
 	};
 
 	/**
-	 * @brief 逆量子傅里叶变换 (inverse QFT)
-	 * @details 对整数寄存器执行逆量子傅里叶变换
+	 * @brief Inverse quantum Fourier transform (inverse QFT)
+	 * @details Performs the inverse quantum Fourier transform on an integer register
 	 */
 	struct InverseQFT : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位数 */
+		/** @brief Number of qubits */
 		size_t n_digits;
 
-		/** @brief 单位根 omega = e^(2πi/2^n) */
+		/** @brief Root of unity omega = e^(2πi/2^n) */
 		complex_t omega;
 
 		ClassControllable
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_ins 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_ins Register name
 		 */
 		InverseQFT(std::string_view reg_ins);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Register ID
 		 */
 		InverseQFT(size_t reg_in);
 
 		/**
-		 * @brief 获取指定位置的值（辅助函数）
-		 * @param i 索引
-		 * @param state 系统状态向量
-		 * @return 值的引用
+		 * @brief Get the value at the specified position (helper function)
+		 * @param i Index
+		 * @param state System state vector
+		 * @return Reference to the value
 		 */
 		inline size_t& val(size_t i, std::vector<System>& state) const
 		{
@@ -116,16 +116,16 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 在指定范围执行操作
-		 * @param l 左边界
-		 * @param r 右边界
-		 * @param state 系统状态向量
+		 * @brief Perform the operation on the specified range
+		 * @param l Left boundary
+		 * @param r Right boundary
+		 * @param state System state vector
 		 */
 		void operate(size_t l, size_t r, std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用逆 QFT 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the inverse QFT operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
@@ -135,38 +135,38 @@ namespace qram_simulator {
 	using inverseQFT [[deprecated("use InverseQFT")]] = InverseQFT;
 
 	/**
-	 * @brief 完整量子傅里叶变换
-	 * @details 使用 FFT 算法优化的完整 QFT 实现，包含位反转预处理
+	 * @brief Full quantum Fourier transform
+	 * @details Full QFT implementation optimized with the FFT algorithm, including bit-reversal preprocessing
 	 */
 	struct QFT_Full : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 量子位数 */
+		/** @brief Number of qubits */
 		size_t n_digits;
 
-		/** @brief 单位根 omega = e^(2πi/2^n) */
+		/** @brief Root of unity omega = e^(2πi/2^n) */
 		complex_t omega;
 
-		/** @brief 阈值 */
+		/** @brief Threshold */
 		const size_t few_threshold = n_digits - 1;
 
-		/** @brief 完整状态大小 */
+		/** @brief Full state size */
 		size_t full_size;
 
-		/** @brief 额外振幅因子 */
+		/** @brief Extra amplitude factor */
 		double extra_amplitude;
 
-		/** @brief 位反转表 */
+		/** @brief Bit-reversal table */
 		std::vector<uint64_t> bitrev;
 
 		ClassControllable
 
 		/**
-		 * @brief 预计算位反转表
+		 * @brief Precompute the bit-reversal table
 		 */
 		inline void precompute_bitrev() {
 			profiler _("prefcompute_bitrev");
@@ -189,8 +189,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param reg_in 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param reg_in Register ID
 		 */
 		QFT_Full(size_t reg_in)
 			: id(reg_in), n_digits(System::size_of(reg_in)), 
@@ -202,8 +202,8 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param reg_in 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param reg_in Register name
 		 */
 		QFT_Full(std::string_view reg_in)
 			: id(System::get(reg_in)), n_digits(System::size_of(id)),
@@ -215,10 +215,10 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 获取指定位置的值（辅助函数）
-		 * @param i 索引
-		 * @param state 系统状态向量
-		 * @return 值的引用
+		 * @brief Get the value at the specified position (helper function)
+		 * @param i Index
+		 * @param state System state vector
+		 * @return Reference to the value
 		 */
 		inline size_t& val(size_t i, std::vector<System>& state) const
 		{
@@ -226,43 +226,43 @@ namespace qram_simulator {
 		}
 
 		/**
-		 * @brief 稀疏桶操作
-		 * @param positions 位置列表
-		 * @param state 系统状态向量
+		 * @brief Sparse bucket operation
+		 * @param positions Position list
+		 * @param state System state vector
 		 */
 		void operate_bucket_sparse(const std::vector<size_t>& positions, std::vector<System>& state) const;
 
 		/**
-		 * @brief FFT 实现
-		 * @param positions 位置列表
-		 * @param state 系统状态向量
-		 * @param inverse 是否为逆变换
+		 * @brief FFT implementation
+		 * @param positions Position list
+		 * @param state System state vector
+		 * @param inverse Whether this is the inverse transform
 		 */
 		void fft(const std::vector<size_t>& positions, std::vector<System>& state, bool inverse) const;
 
 		/**
-		 * @brief 原地桶操作
-		 * @param positions 位置列表
-		 * @param state 系统状态向量
+		 * @brief In-place bucket operation
+		 * @param positions Position list
+		 * @param state System state vector
 		 */
 		void operate_bucket_inplace(const std::vector<size_t>& positions, std::vector<System>& state) const;
 
 		/**
-		 * @brief 原地逆桶操作
-		 * @param positions 位置列表
-		 * @param state 系统状态向量
+		 * @brief In-place inverse bucket operation
+		 * @param positions Position list
+		 * @param state System state vector
 		 */
 		void operate_bucket_inplace_inv(const std::vector<size_t>& positions, std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用完整 QFT 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the full QFT operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用 dagger (逆 QFT) 操作
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger (inverse QFT) operation
+		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
 	};

@@ -1,8 +1,8 @@
 /**
  * @file debugger.h
- * @brief 调试工具定义
- * @details 提供量子态的调试、验证和检查工具，包括归一化检查、
- *          NaN 检查、状态打印、块编码提取等功能
+ * @brief Debugging utilities definitions
+ * @details Provides debugging, validation, and checking tools for quantum states, including normalization checks,
+ *          NaN checks, state printing, block encoding extraction, and so on
  */
 
 #pragma once
@@ -16,20 +16,20 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 模块继承测试类
-	 * @details 用于测试 BaseOperator 的继承机制
+	 * @brief Module inheritance test class
+	 * @details Used to test the inheritance mechanism of BaseOperator
 	 */
 	struct ModuleInheritance_Test : BaseOperator {
 		using BaseOperator::operator();
 		using BaseOperator::dag;
 
 		/**
-		 * @brief 应用测试操作
-		 * @param state 系统状态向量
+		 * @brief Apply the test operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -38,24 +38,24 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用测试操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the test operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 自伴模块继承测试类
-	 * @details 用于测试 SelfAdjointOperator 的继承机制
+	 * @brief Self-adjoint module inheritance test class
+	 * @details Used to test the inheritance mechanism of SelfAdjointOperator
 	 */
 	struct ModuleInheritance_Test_SelfAdjoint : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 应用测试操作
-		 * @param state 系统状态向量
+		 * @brief Apply the test operation
+		 * @param state System state vector
 		 */
 		inline void operator()(std::vector<System>& state) const
 		{
@@ -64,268 +64,268 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用测试操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the test operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 归一化检查类
-	 * @details 检查量子态是否归一化（总概率为1）
+	 * @brief Normalization check class
+	 * @details Checks whether a quantum state is normalized (total probability is 1)
 	 */
 	struct CheckNormalization : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 归一化检查阈值 */
+		/** @brief Normalization check threshold */
 		double threshold = 1e-5;
 
 		/**
-		 * @brief 默认构造函数（使用默认阈值）
+		 * @brief Default constructor (uses the default threshold)
 		 */
 		CheckNormalization();
 
 		/**
-		 * @brief 构造函数（指定阈值）
-		 * @param threshold_ 检查阈值
+		 * @brief Constructor (with a specified threshold)
+		 * @param threshold_ Check threshold
 		 */
 		CheckNormalization(double threshold_) : threshold(threshold_) {}
 
 		/**
-		 * @brief 应用归一化检查
-		 * @param state 系统状态向量
-		 * @throws 当不归一化时抛出异常
+		 * @brief Apply the normalization check
+		 * @param state System state vector
+		 * @throws Throws an exception when the state is not normalized
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用归一化检查
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the normalization check
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 归一化检查与重归一化类
-	 * @details 检查量子态归一化，如不归一则重新归一化
+	 * @brief Normalization check and renormalization class
+	 * @details Checks the normalization of a quantum state and renormalizes it if it is not normalized
 	 */
 	struct CheckNormalization_Renormalize : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 归一化检查阈值 */
+		/** @brief Normalization check threshold */
 		double threshold = 1e-5;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		CheckNormalization_Renormalize() {}
 
 		/**
-		 * @brief 构造函数（指定阈值）
-		 * @param threshold_ 检查阈值
+		 * @brief Constructor (with a specified threshold)
+		 * @param threshold_ Check threshold
 		 */
 		CheckNormalization_Renormalize(double threshold_) : threshold(threshold_) {}
 
 		/**
-		 * @brief 应用检查与重归一化
-		 * @param state 系统状态向量
+		 * @brief Apply the check and renormalization
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用检查与重归一化
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the check and renormalization
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief NaN 检查类
-	 * @details 检查量子态中是否存在 NaN 值
+	 * @brief NaN check class
+	 * @details Checks whether NaN values exist in a quantum state
 	 */
 	struct CheckNan : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		CheckNan();
 
 		/**
-		 * @brief 应用 NaN 检查
-		 * @param state 系统状态向量
-		 * @throws 当发现 NaN 时抛出异常
+		 * @brief Apply the NaN check
+		 * @param state System state vector
+		 * @throws Throws an exception when a NaN is found
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用 NaN 检查
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the NaN check
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 归一化查看类
-	 * @details 打印量子态的归一化信息
+	 * @brief Normalization viewing class
+	 * @details Prints the normalization information of a quantum state
 	 */
 	struct ViewNormalization : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		ViewNormalization();
 
 		/**
-		 * @brief 应用归一化查看
-		 * @param state 系统状态向量
+		 * @brief Apply the normalization viewing
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用归一化查看
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the normalization viewing
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 状态打印显示模式枚举
+	 * @brief State print display mode enum
 	 */
 	enum StatePrintDisplay : int32_t
 	{
-		Default = 0,   ///< 默认显示模式
-		Detail = 1,    ///< 详细显示模式
-		Binary = 2,    ///< 二进制显示模式
-		Prob = 4,      ///< 概率显示模式
+		Default = 0,   ///< Default display mode
+		Detail = 1,    ///< Detailed display mode
+		Binary = 2,    ///< Binary display mode
+		Prob = 4,      ///< Probability display mode
 	};
 
 	/**
-	 * @brief 状态打印类
-	 * @details 打印量子态信息到标准输出
+	 * @brief State printing class
+	 * @details Prints quantum state information to standard output
 	 */
 	struct StatePrint : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 打印开关 */
+		/** @brief Print switch */
 		static bool on;
 
-		/** @brief 显示模式 */
+		/** @brief Display mode */
 		int32_t display;
 
-		/** @brief 精度 */
+		/** @brief Precision */
 		int precision;
 
 		/**
-		 * @brief 构造函数（指定显示模式）
-		 * @param disp 显示模式
+		 * @brief Constructor (with a specified display mode)
+		 * @param disp Display mode
 		 */
 		StatePrint(int32_t disp = 0) : display(disp), precision(0) {}
 
 		/**
-		 * @brief 构造函数（指定显示模式和精度）
-		 * @param disp 显示模式
-		 * @param precision 精度
+		 * @brief Constructor (with a specified display mode and precision)
+		 * @param disp Display mode
+		 * @param precision Precision
 		 */
 		StatePrint(int32_t disp, int precision) : display(disp), precision(precision) {}
 
 		/**
-		 * @brief 构造函数（枚举显示模式）
-		 * @param disp 显示模式枚举
+		 * @brief Constructor (enum display mode)
+		 * @param disp Display mode enum
 		 */
 		StatePrint(StatePrintDisplay disp) : display(static_cast<int32_t>(disp)), precision(0) {}
 
 		/**
-		 * @brief 将显示模式转换为字符串
-		 * @return 显示模式字符串
+		 * @brief Convert the display mode to a string
+		 * @return Display mode string
 		 */
 		std::string disp2str() const;
 
 		/**
-		 * @brief 应用状态打印，返回格式化字符串
-		 * @param state 系统状态向量
-		 * @return 格式化状态字符串
+		 * @brief Apply state printing and return the formatted string
+		 * @param state System state vector
+		 * @return Formatted state string
 		 */
 		std::string to_string(std::vector<System>& state) const;
 
 		/**
-		 * @brief 应用状态打印（打印到标准输出）
-		 * @param state 系统状态向量
+		 * @brief Apply state printing (to standard output)
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用状态打印，返回格式化字符串
-		 * @param state CUDA 稀疏状态
-		 * @return 格式化状态字符串
+		 * @brief CUDA apply state printing and return the formatted string
+		 * @param state CUDA sparse state
+		 * @return Formatted state string
 		 */
 		std::string to_string(CuSparseState& state) const;
 
 		/**
-		 * @brief CUDA 应用状态打印（打印到标准输出）
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply state printing (to standard output)
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 可移除性测试类
-	 * @details 测试指定寄存器是否可以安全移除
+	 * @brief Removability test class
+	 * @details Tests whether the specified register can be safely removed
 	 */
 	struct TestRemovable : SelfAdjointOperator {
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t register_id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param register_name 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param register_name Register name
 		 */
 		TestRemovable(std::string_view register_name);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param register_name 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param register_name Register ID
 		 */
 		TestRemovable(size_t register_name);
 
 		/**
-		 * @brief 应用可移除性测试
-		 * @param state 系统状态向量
+		 * @brief Apply the removability test
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用可移除性测试
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the removability test
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 重复键检查类
-	 * @details 检查量子态中是否存在重复的系统键
+	 * @brief Duplicate key check class
+	 * @details Checks whether duplicate system keys exist in a quantum state
 	 */
 	struct CheckDuplicateKey : SelfAdjointOperator
 	{
@@ -333,47 +333,48 @@ namespace qram_simulator
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		CheckDuplicateKey() {}
 
 		/**
-		 * @brief 检查是否存在重复键
-		 * @param system_states 系统状态向量
-		 * @return 是否存在重复键
+		 * @brief Check whether duplicate keys exist
+		 * @param system_states System state vector
+		 * @return Whether duplicate keys exist
 		 */
 		bool has_duplicate(std::vector<System>& system_states) const;
 
 		/**
-		 * @brief 应用重复键检查
-		 * @param system_states 系统状态向量
-		 * @throws 当发现重复键时抛出异常
+		 * @brief Apply the duplicate key check
+		 * @param system_states System state vector
+		 * @throws Throws an exception when duplicate keys are found
 		 */
 		void operator()(std::vector<System>& system_states) const;
 
 #ifdef USE_CUDA
 		/**
-		 * @brief CUDA 应用重复键检查
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the duplicate key check
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 检查原地操作的幺正性（通用版本）
-	 * @details 对任意寄存器布局的原地操作进行幺正性验证：
-	 *          1. 遍历所有 2^total_bits 个输入态
-	 *          2. 执行 round-trip 测试：U then U† (或 U† then U)
-	 *          3. 验证状态未分裂（state.size() == 1）
-	 *          4. 验证 round-trip 恢复到原始值（U*U† = I）
-	 *          5. 验证 bijectivity（无输出碰撞）
-	 * @tparam Op 操作类型（必须继承 BaseOperator）
-	 * @param reg_sizes 每个寄存器的大小（initializer_list），建议总位数 ≤ 16
-	 * @param op_factory 工厂函数：std::vector<size_t>(reg_ids) → Op
-	 * @param dagger 为 false 时执行 U then U†；为 true 时执行 U† then U
-	 * @return 真值表（输入索引 → 输出索引）
-	 * @throws 当操作非幺正（状态分裂）、非双射（输出碰撞）或 round-trip 失败时抛出异常
+	 * @brief Check the unitarity of an in-place operation (general version)
+	 * @details Verifies the unitarity of an in-place operation for an arbitrary register layout:
+	 *          1. Iterate over all 2^total_bits input states
+	 *          2. Perform the round-trip test: U then U† (or U† then U)
+	 *          3. Verify that the state has not split (state.size() == 1)
+	 *          4. Verify that the round-trip restores the original value (U*U† = I)
+	 *          5. Verify bijectivity (no output collisions)
+	 * @tparam Op Operation type (must inherit from BaseOperator)
+	 * @param reg_sizes Size of each register (initializer_list); a total of ≤ 16 bits is recommended
+	 * @param op_factory Factory function: std::vector<size_t>(reg_ids) → Op
+	 * @param dagger When false, executes U then U†; when true, executes U† then U
+	 * @return Truth table (input index → output index)
+	 * @throws Throws an exception when the operation is non-unitary (state split), non-bijective (output collision),
+	 *          or when the round-trip fails
 	 */
 	template <typename Op>
 	std::vector<size_t> check_inplace_unitarity(
@@ -450,15 +451,15 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 提取块编码矩阵（内部实现）
-	 * @tparam BlockEncoding 块编码类型
-	 * @tparam StateType 状态类型
-	 * @param encA 块编码对象
-	 * @param main_reg 主寄存器名称
-	 * @param anc_UA 辅助寄存器名称
-	 * @param is_full 是否完整提取
-	 * @param is_dag 是否为 dagger 版本
-	 * @return 块编码的稠密矩阵表示
+	 * @brief Extract the block encoding matrix (internal implementation)
+	 * @tparam BlockEncoding Block encoding type
+	 * @tparam StateType State type
+	 * @param encA Block encoding object
+	 * @param main_reg Main register name
+	 * @param anc_UA Ancilla register name
+	 * @param is_full Whether to extract the full matrix
+	 * @param is_dag Whether this is the dagger version
+	 * @return Dense matrix representation of the block encoding
 	 */
 	template<typename BlockEncoding, typename StateType = SparseState>
 	DenseMatrix<complex_t> _extract_block_encoding(BlockEncoding encA, std::string_view main_reg, std::string_view anc_UA,
@@ -541,14 +542,14 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 提取块编码矩阵
-	 * @tparam BlockEncoding 块编码类型
-	 * @param encA 块编码对象
-	 * @param main_reg 主寄存器名称
-	 * @param anc_UA 辅助寄存器名称
-	 * @param is_full 是否完整提取
-	 * @param is_dag 是否为 dagger 版本
-	 * @return 块编码的稠密矩阵表示
+	 * @brief Extract the block encoding matrix
+	 * @tparam BlockEncoding Block encoding type
+	 * @param encA Block encoding object
+	 * @param main_reg Main register name
+	 * @param anc_UA Ancilla register name
+	 * @param is_full Whether to extract the full matrix
+	 * @param is_dag Whether this is the dagger version
+	 * @return Dense matrix representation of the block encoding
 	 */
 	template<typename BlockEncoding>
 	DenseMatrix<complex_t> extract_block_encoding(BlockEncoding encA, std::string_view main_reg, std::string_view anc_UA,
@@ -558,10 +559,10 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief 检查两个状态是否相等
-	 * @param state1 第一个状态向量
-	 * @param state2 第二个状态向量
-	 * @throws 当状态不相等时抛出异常并打印差异
+	 * @brief Check whether two states are equal
+	 * @param state1 First state vector
+	 * @param state2 Second state vector
+	 * @throws Throws an exception and prints the difference when the states are not equal
 	 */
 	inline void state_equal_check(std::vector<System> state1, std::vector<System> state2)
 	{	
@@ -595,40 +596,40 @@ namespace qram_simulator
 namespace qram_simulator {
 
 	/**
-	 * @brief CUDA 并行操作测试类
+	 * @brief CUDA parallel operation test class
 	 */
 	struct ParallelOperationTest : BaseOperator {
-		/** @brief 实部 */
+		/** @brief Real part */
 		double real;
 
-		/** @brief 虚部 */
+		/** @brief Imaginary part */
 		double imag;
 
-		/** @brief 值 */
+		/** @brief Value */
 		uint64_t value;
 
 		/**
-		 * @brief 构造函数
-		 * @param real_ 实部
-		 * @param imag_ 虚部
-		 * @param value_ 值
+		 * @brief Constructor
+		 * @param real_ Real part
+		 * @param imag_ Imaginary part
+		 * @param value_ Value
 		 */
 		ParallelOperationTest(double real_, double imag_, uint64_t value_) :
 			real(real_), imag(imag_), value(value_) {
 		}
 
 		/**
-		 * @brief CPU 版本（抛出未实现异常）
-		 * @param state 系统状态向量
-		 * @throws 总是抛出未实现异常
+		 * @brief CPU version (throws a not-implemented exception)
+		 * @param state System state vector
+		 * @throws Always throws a not-implemented exception
 		 */
 		void operator()(std::vector<System>& state) const {
 			throw_not_implemented();
 		}
 
 		/**
-		 * @brief CUDA 应用测试操作
-		 * @param state CUDA 稀疏状态
+		 * @brief CUDA apply the test operation
+		 * @param state CUDA sparse state
 		 */
 		void operator()(CuSparseState& state) const;
 	};

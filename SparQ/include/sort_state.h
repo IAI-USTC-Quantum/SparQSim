@@ -1,8 +1,8 @@
 /**
  * @file sort_state.h
- * @brief 状态排序定义
- * @details 实现量子态的各种排序操作，支持按键排序、
- *          无条件排序、按振幅排序等多种排序方式
+ * @brief State sorting definitions
+ * @details Implements various sorting operations on quantum states, supporting sorting by key,
+ *          unconditional sorting, sorting by amplitude, and other sorting modes
  */
 
 #pragma once
@@ -11,119 +11,119 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/**
-	 * @brief 排除键排序
-	 * @details 排序时排除指定键，使其移到末尾
+	 * @brief Sort excluding a key
+	 * @details Excludes the specified key during sorting, so that it is moved to the end
 	 */
 	struct SortExceptKey : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 排除的键（寄存器 ID） */
+		/** @brief Excluded key (register ID) */
 		size_t id;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param key_ 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param key_ Register name
 		 */
 		SortExceptKey(std::string_view key_)
 			: id(System::get(key_))
 		{}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param key_ 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param key_ Register ID
 		 */
 		SortExceptKey(size_t key_)
 			: id(key_)
 		{}
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 	/**
-	 * @brief 按键排序
-	 * @details 按指定寄存器值排序
+	 * @brief Sort by key
+	 * @details Sorts by the value of the specified register
 	 */
 	struct SortByKey : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 排序键（寄存器 ID） */
+		/** @brief Sort key (register ID) */
 		size_t register_key;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param key 寄存器名称
+		 * @brief Constructor (name version)
+		 * @param key Register name
 		 */
 		SortByKey(std::string_view key);
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param key 寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param key Register ID
 		 */
 		SortByKey(size_t key);
 
 		/**
-		 * @brief 应用排序操作
-		 * @param state 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param state System state vector
 		 */
 		void operator()(std::vector<System>& state) const;
 	};
 
 	/**
-	 * @brief 排除位排序
-	 * @details 排序时排除寄存器的指定位
+	 * @brief Sort excluding a bit
+	 * @details Excludes the specified bit of a register during sorting
 	 */
 	struct SortExceptBit : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 寄存器 ID */
+		/** @brief Register ID */
 		size_t id;
 
-		/** @brief 位索引 */
+		/** @brief Bit index */
 		size_t digit;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param key_ 寄存器名称
-		 * @param digit_ 位索引
+		 * @brief Constructor (name version)
+		 * @param key_ Register name
+		 * @param digit_ Bit index
 		 */
 		SortExceptBit(std::string_view key_, size_t digit_)
 			: id(System::get(key_)), digit(digit_)
 		{}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param key_ 寄存器 ID
-		 * @param digit_ 位索引
+		 * @brief Constructor (ID version)
+		 * @param key_ Register ID
+		 * @param digit_ Bit index
 		 */
 		SortExceptBit(size_t key_, size_t digit_)
 			: id(key_), digit(digit_)
 		{}
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 	/**
-	 * @brief 创建位掩码
-	 * @param qubit_ids 量子位 ID 集合
-	 * @return 位掩码
+	 * @brief Create a bit mask
+	 * @param qubit_ids Set of qubit IDs
+	 * @return Bit mask
 	 */
 	inline uint64_t make_mask(const std::set<size_t>& qubit_ids)
 	{
@@ -137,27 +137,27 @@ namespace qram_simulator
 	}
 
 	/**
-	 * @brief Hadamard 排除键排序
-	 * @details 针对 Hadamard 操作优化的排除键排序
+	 * @brief Hadamard sort-except-key
+	 * @details Excluded-key sorting optimized for the Hadamard operation
 	 */
 	struct SortExceptKeyHadamard : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 排除的键（寄存器 ID） */
+		/** @brief Excluded key (register ID) */
 		size_t id;
 
-		/** @brief 位掩码 */
+		/** @brief Bit mask */
 		uint64_t mask;
 
-		/** @brief 量子位 ID 集合 */
+		/** @brief Set of qubit IDs */
 		std::set<size_t> qubit_ids;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param key_ 寄存器名称
-		 * @param qubit_ids_ 量子位 ID 集合
+		 * @brief Constructor (name version)
+		 * @param key_ Register name
+		 * @param qubit_ids_ Set of qubit IDs
 		 */
 		SortExceptKeyHadamard(std::string_view key_, std::set<size_t> qubit_ids_)
 			: id(System::get(key_)), qubit_ids(qubit_ids_)
@@ -166,9 +166,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param key_ 寄存器 ID
-		 * @param qubit_ids_ 量子位 ID 集合
+		 * @brief Constructor (ID version)
+		 * @param key_ Register ID
+		 * @param qubit_ids_ Set of qubit IDs
 		 */
 		SortExceptKeyHadamard(size_t key_, std::set<size_t> qubit_ids_)
 			: id(key_), qubit_ids(qubit_ids_)
@@ -177,22 +177,22 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 移除指定位
-		 * @param val 原始值
-		 * @return 移除位后的值
+		 * @brief Remove the specified bit
+		 * @param val Original value
+		 * @return Value with the bit removed
 		 */
 		size_t remove_digits(size_t val) const;
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 	/**
-	 * @brief 无条件排序
-	 * @details 对系统状态进行无条件并行排序
+	 * @brief Unconditional sorting
+	 * @details Performs unconditional parallel sorting of the system states
 	 */
 	struct SortUnconditional : SelfAdjointOperator
 	{
@@ -200,20 +200,20 @@ namespace qram_simulator
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		SortUnconditional() {}
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 	/**
-	 * @brief 按振幅排序
-	 * @details 按振幅对系统状态进行排序
+	 * @brief Sort by amplitude
+	 * @details Sorts the system states by amplitude
 	 */
 	struct SortByAmplitude : SelfAdjointOperator
 	{
@@ -221,97 +221,97 @@ namespace qram_simulator
 		using SelfAdjointOperator::dag;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		SortByAmplitude() {}
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 
 	/**
-	 * @brief 双键排序
-	 * @details 按两个寄存器值排序
+	 * @brief Two-key sorting
+	 * @details Sorts by the values of two registers
 	 */
 	struct SortByKey2 : SelfAdjointOperator
 	{
 		using SelfAdjointOperator::operator();
 		using SelfAdjointOperator::dag;
 
-		/** @brief 第一个键（寄存器 ID） */
+		/** @brief First key (register ID) */
 		size_t id1;
 
-		/** @brief 第二个键（寄存器 ID） */
+		/** @brief Second key (register ID) */
 		size_t id2;
 
 		/**
-		 * @brief 构造函数（名称版本）
-		 * @param key1_ 第一个寄存器名称
-		 * @param key2_ 第二个寄存器名称
+		 * @brief Constructor (name version)
+		 * @param key1_ Name of the first register
+		 * @param key2_ Name of the second register
 		 */
 		SortByKey2(std::string_view key1_, std::string_view key2_)
 			: id1(System::get(key1_)), id2(System::get(key2_))
 		{}
 
 		/**
-		 * @brief 构造函数（ID 版本）
-		 * @param key1_ 第一个寄存器 ID
-		 * @param key2_ 第二个寄存器 ID
+		 * @brief Constructor (ID version)
+		 * @param key1_ ID of the first register
+		 * @param key2_ ID of the second register
 		 */
 		SortByKey2(size_t key1_, size_t key2_)
 			: id1(key1_), id2(key2_)
 		{}
 
 		/**
-		 * @brief 应用排序操作
-		 * @param states 系统状态向量
+		 * @brief Apply the sorting operation
+		 * @param states System state vector
 		 */
 		void operator()(std::vector<System>& states) const;
 	};
 
 	/**
-	 * @brief 比较两个系统是否相等（排除指定键）
-	 * @details 用于 CondRot_General_Bool, CondRot_General_Bool_QW, Hadamard_Int 等操作
-	 * @param a 第一个系统
-	 * @param b 第二个系统
-	 * @param out_id 排除的键（寄存器 ID）
-	 * @return 是否相等
+	 * @brief Compare two systems for equality (excluding a specified key)
+	 * @details Used by CondRot_General_Bool, CondRot_General_Bool_QW, Hadamard_Int, etc.
+	 * @param a First system
+	 * @param b Second system
+	 * @param out_id Excluded key (register ID)
+	 * @return Whether they are equal
 	 */
 	bool compare_equal(const System& a, const System& b, size_t out_id);
 
 	/**
-	 * @brief 比较两个系统是否相等（排除两个指定键）
-	 * @details 用于 QRAM::set_branches
-	 * @param a 第一个系统
-	 * @param b 第二个系统
-	 * @param out_id1 排除的第一个键（寄存器 ID）
-	 * @param out_id2 排除的第二个键（寄存器 ID）
-	 * @return 是否相等
+	 * @brief Compare two systems for equality (excluding two specified keys)
+	 * @details Used by QRAM::set_branches
+	 * @param a First system
+	 * @param b Second system
+	 * @param out_id1 First excluded key (register ID)
+	 * @param out_id2 Second excluded key (register ID)
+	 * @return Whether they are equal
 	 */
 	bool compare_equal2(const System& a, const System& b, size_t out_id1, size_t out_id2);
 
 	/**
-	 * @brief 比较两个系统是否相等（排除指定键和掩码位）
-	 * @param a 第一个系统
-	 * @param b 第二个系统
-	 * @param out_id 排除的键（寄存器 ID）
-	 * @param mask 位掩码
-	 * @return 是否相等
+	 * @brief Compare two systems for equality (excluding a specified key and masked bits)
+	 * @param a First system
+	 * @param b Second system
+	 * @param out_id Excluded key (register ID)
+	 * @param mask Bit mask
+	 * @return Whether they are equal
 	 */
 	bool compare_equal_rot(const System& a, const System& b, size_t out_id, uint64_t mask);
 
 	/**
-	 * @brief 比较两个系统是否相等（Hadamard 版本）
-	 * @details 用于 Hadamard_Partial，比较时排除目标量子位和掩码位
-	 * @param a 第一个系统
-	 * @param b 第二个系统
-	 * @param out_id 排除的键（寄存器 ID）
-	 * @param mask 位掩码
-	 * @return 是否相等
+	 * @brief Compare two systems for equality (Hadamard version)
+	 * @details Used by Hadamard_Partial; excludes the target qubit and the masked bits when comparing
+	 * @param a First system
+	 * @param b Second system
+	 * @param out_id Excluded key (register ID)
+	 * @param mask Bit mask
+	 * @return Whether they are equal
 	 */
 	bool compare_equal_hadamard(const System& a, const System& b, size_t out_id, uint64_t mask);
 

@@ -1,7 +1,7 @@
 /**
  * @file partial_trace.cpp
- * @brief 部分迹与读出实现
- * @details 实现 partial_trace.h 中声明的 PartialTrace、Select、SelectRange
+ * @brief Partial trace and readout implementation
+ * @details Implements PartialTrace, Select, SelectRange declared in partial_trace.h
  */
 #include "partial_trace.h"
 

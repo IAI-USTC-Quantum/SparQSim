@@ -1,7 +1,8 @@
 ﻿/**
  * @file global_macros.cu
- * @brief global_macros 的 CUDA 并行实现
- * @details 以 thrust 设备向量与 CUDA 内核实现 global_macros.h 中宏在 CUDA 编译单元所需的定义（GPU 路径，当前 CMake 暂时屏蔽 GPU 构建）
+ * @brief CUDA parallel implementation of global_macros
+ * @details Implements with thrust device vectors and CUDA kernels the definitions required by the macros of
+ *          global_macros.h in CUDA translation units (GPU path; the GPU build is temporarily disabled in CMake)
  */
 #include "global_macros.h"
 #include "cuda_utils.cuh"

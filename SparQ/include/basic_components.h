@@ -1,7 +1,8 @@
 /**
  * @file basic_components.h
- * @brief 基础组件定义
- * @details 定义稀疏态模拟器的核心数据结构和基础类，包括状态存储、系统管理、算子基类等
+ * @brief Basic component definitions
+ * @details Defines the core data structures and base classes of the sparse state simulator, including state
+ *          storage, system management, and the operator base class
  */
 
 #pragma once
@@ -17,86 +18,86 @@
 namespace qram_simulator
 {
 	/** @namespace qram_simulator
-	 * @brief QRAM 稀疏态模拟器命名空间
+	 * @brief QRAM sparse state simulator namespace
 	 */
 
 	/** @typedef StateInfoType
-	 * @brief 状态信息类型
-	 * @details 包含寄存器名称、状态存储类型、大小和激活状态的元组
+	 * @brief State info type
+	 * @details A tuple containing the register name, state storage type, size, and active status
 	 */
 	using StateInfoType = std::tuple<std::string, StateStorageType, size_t, bool>;
 
 	/**
-	 * @brief 获取状态信息中的名称（const 版本）
-	 * @param m 状态信息元组
-	 * @return 寄存器名称的 const 引用
+	 * @brief Get the name from the state info (const version)
+	 * @param m State info tuple
+	 * @return Const reference to the register name
 	 */
 	const std::string& get_name(const StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的名称（非 const 版本）
-	 * @param m 状态信息元组
-	 * @return 寄存器名称的引用
+	 * @brief Get the name from the state info (non-const version)
+	 * @param m State info tuple
+	 * @return Reference to the register name
 	 */
 	std::string& get_name(StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的类型（const 版本）
-	 * @param m 状态信息元组
-	 * @return 状态存储类型的 const 引用
+	 * @brief Get the type from the state info (const version)
+	 * @param m State info tuple
+	 * @return Const reference to the state storage type
 	 */
 	const StateStorageType& get_type(const StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的类型（非 const 版本）
-	 * @param m 状态信息元组
-	 * @return 状态存储类型的引用
+	 * @brief Get the type from the state info (non-const version)
+	 * @param m State info tuple
+	 * @return Reference to the state storage type
 	 */
 	StateStorageType& get_type(StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的大小
-	 * @param m 状态信息元组
-	 * @return 寄存器大小
+	 * @brief Get the size from the state info
+	 * @param m State info tuple
+	 * @return Register size
 	 */
 	size_t get_size(const StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的大小引用
-	 * @param m 状态信息元组
-	 * @return 寄存器大小的引用
+	 * @brief Get a reference to the size in the state info
+	 * @param m State info tuple
+	 * @return Reference to the register size
 	 */
 	size_t& get_size(StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的激活状态
-	 * @param m 状态信息元组
-	 * @return 寄存器激活状态
+	 * @brief Get the active status from the state info
+	 * @param m State info tuple
+	 * @return Register active status
 	 */
 	bool get_status(const StateInfoType& m);
 
 	/**
-	 * @brief 获取状态信息中的激活状态引用
-	 * @param m 状态信息元组
-	 * @return 寄存器激活状态的引用
+	 * @brief Get a reference to the active status in the state info
+	 * @param m State info tuple
+	 * @return Reference to the register active status
 	 */
 	bool& get_status(StateInfoType& m);
 
 	/**
-	 * @brief 状态存储结构
-	 * @details 量子寄存器状态的实际存储单元，使用 uint64_t 存储基础值
+	 * @brief State storage structure
+	 * @details The actual storage unit of a quantum register state, using uint64_t to hold the underlying value
 	 */
 	struct StateStorage
 	{
-		/** @brief 实际存储的值 */
+		/** @brief The actually stored value */
 		uint64_t value = 0;
 
 		/**
-		 * @brief 将值解释为指定类型
-		 * @tparam Ty 目标类型（支持有符号/无符号整数、浮点数、布尔值）
-		 * @param size 位数
-		 * @return 转换后的值
-		 * @throws 当类型不支持时抛出异常
+		 * @brief Interpret the value as the specified type
+		 * @tparam Ty Target type (signed/unsigned integers, floating point, and bool are supported)
+		 * @param size Number of bits
+		 * @return The converted value
+		 * @throws Throws an exception when the type is not supported
 		 */
 		template<typename Ty>
 		Ty as(size_t size) const
@@ -130,102 +131,103 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 构造函数
+		 * @brief Constructor
 		 */
 		HOST_DEVICE StateStorage() {}
 
 		/**
-		 * @brief 安全访问值（非 const 版本）
-		 * @param size 位数
-		 * @return 值的引用
+		 * @brief Safely access the value (non-const version)
+		 * @param size Number of bits
+		 * @return Reference to the value
 		 */
 		HOST_DEVICE uint64_t& val(size_t size);
 
 		/**
-		 * @brief 安全访问值（const 版本）
-		 * @param size 位数
-		 * @return 值
+		 * @brief Safely access the value (const version)
+		 * @param size Number of bits
+		 * @return The value
 		 */
 		HOST_DEVICE uint64_t val(size_t size) const;
 
 		/**
-		 * @brief 相等比较运算符
-		 * @param rhs 右侧操作数
-		 * @return 是否相等
+		 * @brief Equality comparison operator
+		 * @param rhs Right-hand operand
+		 * @return Whether equal
 		 */
 		HOST_DEVICE bool operator==(const StateStorage& rhs) const;
 
 		/**
-		 * @brief 不等比较运算符
-		 * @param rhs 右侧操作数
-		 * @return 是否不等
+		 * @brief Inequality comparison operator
+		 * @param rhs Right-hand operand
+		 * @return Whether not equal
 		 */
 		HOST_DEVICE bool operator!=(const StateStorage& rhs) const;
 
 		/**
-		 * @brief 小于比较运算符
-		 * @param rhs 右侧操作数
-		 * @return 是否小于
+		 * @brief Less-than comparison operator
+		 * @param rhs Right-hand operand
+		 * @return Whether less than
 		 */
 		HOST_DEVICE bool operator<(const StateStorage& rhs) const;
 
 		/**
-		 * @brief 大于比较运算符
-		 * @param rhs 右侧操作数
-		 * @return 是否大于
+		 * @brief Greater-than comparison operator
+		 * @param rhs Right-hand operand
+		 * @return Whether greater than
 		 */
 		HOST_DEVICE bool operator>(const StateStorage& rhs) const;
 
 		/**
-		 * @brief 转换为字符串
-		 * @param info 状态信息
-		 * @return 字符串表示
+		 * @brief Convert to string
+		 * @param info State info
+		 * @return String representation
 		 */
 		std::string to_string(const StateInfoType& info) const;
 
 		/**
-		 * @brief 转换为 IO 字符串
-		 * @param info 状态信息
-		 * @return IO 格式的字符串
+		 * @brief Convert to an IO string
+		 * @param info State info
+		 * @return String in IO format
 		 */
 		std::string to_io_string(const StateInfoType& info) const;
 
 		/**
-		 * @brief 转换为二进制字符串
-		 * @param info 状态信息
-		 * @return 二进制格式的字符串
+		 * @brief Convert to a binary string
+		 * @param info State info
+		 * @return String in binary format
 		 */
 		std::string to_binary_string(const StateInfoType& info) const;
 
 		/**
-		 * @brief 翻转指定位
-		 * @param digit 位索引
+		 * @brief Flip the specified bit
+		 * @param digit Bit index
 		 */
 		HOST_DEVICE void flip(size_t digit);
 	};
 
-	/** @brief 前向声明：稀疏状态 */
+	/** @brief Forward declaration: sparse state */
 	struct SparseState;
 
 #ifdef USE_CUDA
-	/** @brief 前向声明：CUDA 稀疏状态 */
+	/** @brief Forward declaration: CUDA sparse state */
 	struct CuSparseState;
 #endif
 
 	/**
-	 * @brief 系统类
-	 * @details 管理量子寄存器和系统状态的核心类，包含静态寄存器信息和动态状态数据
+	 * @brief System class
+	 * @details Core class managing quantum registers and system state, containing static register information
+	 *          and dynamic state data
 	 */
 	struct System 
 	{
 #ifdef CACHED_REGISTER_SIZE
-		/** @brief CPU 初始预分配容量 / CUDA 固定容量 */
+		/** @brief Initial preallocated capacity on CPU / fixed capacity on CUDA */
 		constexpr static size_t InitialRegisterCapacity = CACHED_REGISTER_SIZE;
 #else
-		/** @brief 默认初始预分配容量 */
+		/** @brief Default initial preallocated capacity */
 		constexpr static size_t InitialRegisterCapacity = 64;
 #endif
-		/** @brief 兼容旧代码；CPU 下该值不再是寄存器数量上限 */
+		/** @brief Kept for old-code compatibility; on CPU this value is no longer the register count limit */
 		constexpr static size_t CachedRegisterSize = InitialRegisterCapacity;
 #ifdef USE_CUDA
 		static_assert(
@@ -233,29 +235,29 @@ namespace qram_simulator
 			"CUDA builds require CachedRegisterSize <= 64");
 #endif
 
-		/** @brief 寄存器信息映射表 */
+		/** @brief Register info map */
 		inline static std::vector<StateInfoType> name_register_map;
 
-		/** @brief 名称→索引的哈希索引（O(1) 查找） */
+		/** @brief Hash index from name to index (O(1) lookup) */
 		inline static std::unordered_map<std::string, size_t> name_to_index;
 
-		/** @brief 哈希索引是否有效（MoveRegister 等操作会使其失效） */
+		/** @brief Whether the hash index is valid (invalidated by operations such as MoveRegister) */
 		inline static bool name_index_valid = true;
 
-		/** @brief 注册名称到哈希索引 */
+		/** @brief Register a name into the hash index */
 		inline static void register_name(std::string name, size_t idx) {
 			name_to_index.emplace(std::move(name), idx);
 		}
 
-		/** @brief 从哈希索引中移除名称 */
+		/** @brief Remove a name from the hash index */
 		inline static void unregister_name(std::string_view name) {
 			name_to_index.erase(std::string(name));
 		}
 
-		/** @brief 使哈希索引失效（MoveRegister 等操作后调用） */
+		/** @brief Invalidate the hash index (called after operations such as MoveRegister) */
 		inline static void invalidate_name_index() { name_index_valid = false; }
 
-		/** @brief 重建哈希索引（惰性触发） */
+		/** @brief Rebuild the hash index (lazily triggered) */
 		inline static void rebuild_name_index() {
 			name_to_index.clear();
 			for (size_t i = 0; i < name_register_map.size(); ++i) {
@@ -265,39 +267,39 @@ namespace qram_simulator
 			}
 		}
 
-		/** @brief 寄存器状态位图（CUDA 快速路径；CPU 状态以 StateInfoType 为准） */
+		/** @brief Register status bitmap (CUDA fast path; on CPU, StateInfoType is authoritative) */
 		inline static uint64_t reg_status_bitmap = 0;
 
-		/** @brief 最大量子比特数统计 */
+		/** @brief Maximum qubit count statistic */
 		inline static size_t max_qubit_count = 0;
 
-		/** @brief 最大寄存器数统计 */
+		/** @brief Maximum register count statistic */
 		inline static size_t max_register_count = 0;
 
-		/** @brief 最大系统大小统计 */
+		/** @brief Maximum system size statistic */
 		inline static size_t max_system_size = 0;
 
-		/** @brief 临时寄存器栈 */
+		/** @brief Temporal register stack */
 		inline static std::vector<size_t> temporal_registers;
 
-		/** @brief 可重用寄存器列表 */
+		/** @brief Reusable register list */
 		inline static std::vector<size_t> reusable_registers;
 
-		/** @brief 状态振幅 */
+		/** @brief State amplitude */
 		complex_t amplitude = 1.0;
 
-		/** @brief CUDA 设备路径要求固定、可平凡复制的寄存器布局 */
+		/** @brief The CUDA device path requires a fixed, trivially copyable register layout */
 #ifdef USE_CUDA
 		std::array<StateStorage, CachedRegisterSize> registers;
 #else
-		/** @brief CPU 寄存器存储；预分配后按需动态增长 */
+		/** @brief CPU register storage; preallocated, then grows on demand */
 		mutable std::vector<StateStorage> registers;
 #endif
 
 		/**
-		 * @brief 获取指定位置的状态组件（非 const 版本）
-		 * @param id 寄存器 ID
-		 * @return 状态存储的引用
+		 * @brief Get the state component at the given position (non-const version)
+		 * @param id Register ID
+		 * @return Reference to the state storage
 		 */
 #ifdef USE_CUDA
 		HOST_DEVICE StateStorage& get(size_t id) {
@@ -313,9 +315,9 @@ namespace qram_simulator
 #endif
 
 		/**
-		 * @brief 获取指定位置的状态组件（const 版本）
-		 * @param id 寄存器 ID
-		 * @return 状态存储的 const 引用
+		 * @brief Get the state component at the given position (const version)
+		 * @param id Register ID
+		 * @return Const reference to the state storage
 		 */
 #ifdef USE_CUDA
 		HOST_DEVICE const StateStorage& get(size_t id) const {
@@ -330,10 +332,11 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 确保 CPU 基态拥有至少 count 个寄存器槽位
-		 * @details get() 会一次同步到当前完整寄存器表，避免同一操作连续
-		 *          获取多个寄存器引用时由后续 vector 扩容使先前引用失效。
-		 * @param count 所需寄存器槽位数
+		 * @brief Ensure the CPU basis state has at least count register slots
+		 * @details get() synchronizes to the full current register table at once, so that earlier
+		 *          references are not invalidated by later vector growth when the same operation
+		 *          acquires multiple register references in sequence.
+		 * @param count Number of register slots needed
 		 */
 		void ensure_register_count(size_t count) const {
 			if (registers.size() < count)
@@ -342,200 +345,200 @@ namespace qram_simulator
 #endif
 
 		/**
-		 * @brief 清除寄存器分配信息
+		 * @brief Clear register allocation information
 		 */
 		static void clear();
 
 		/**
-		 * @brief 获取量子比特总数
-		 * @return 量子比特数
+		 * @brief Get the total number of qubits
+		 * @return Number of qubits
 		 */
 		static size_t get_qubit_count();
 
 		/**
-		 * @brief 获取已激活寄存器数量
-		 * @return 激活寄存器数
+		 * @brief Get the number of activated registers
+		 * @return Number of activated registers
 		 */
 		static size_t get_activated_register_size();
 
 		/**
-		 * @brief 获取最后一个激活的寄存器 ID
-		 * @return 寄存器 ID
+		 * @brief Get the ID of the last activated register
+		 * @return Register ID
 		 */
 		static size_t get_last_activated_register();
 
 		/**
-		 * @brief 访问最后一个激活的寄存器（非 const 版本）
-		 * @return 状态存储的引用
+		 * @brief Access the last activated register (non-const version)
+		 * @return Reference to the state storage
 		 */
 		StateStorage& last_register();
 
 		/**
-		 * @brief 访问最后一个激活的寄存器（const 版本）
-		 * @return 状态存储的 const 引用
+		 * @brief Access the last activated register (const version)
+		 * @return Const reference to the state storage
 		 */
 		const StateStorage& last_register() const;
 
 		/**
-		 * @brief 更新最大系统大小
-		 * @param new_size 新大小
+		 * @brief Update the maximum system size
+		 * @param new_size New size
 		 */
 		static void update_max_size(size_t new_size);
 
 		/**
-		 * @brief 根据名称获取寄存器 ID
-		 * @param name 寄存器名称
-		 * @return 寄存器 ID
+		 * @brief Get register ID by name
+		 * @param name Register name
+		 * @return Register ID
 		 */
 		static size_t get(std::string_view name);
 
 		/**
-		 * @brief 根据名称获取寄存器信息
-		 * @param name 寄存器名称
-		 * @return 状态信息
+		 * @brief Get register info by name
+		 * @param name Register name
+		 * @return State info
 		 */
 		static StateInfoType get_register_info(std::string_view name);
 
 		/**
-		 * @brief 根据 ID 获取寄存器名称
-		 * @param id 寄存器 ID
-		 * @return 寄存器名称的 const 引用
+		 * @brief Get register name by ID
+		 * @param id Register ID
+		 * @return Const reference to the register name
 		 */
 		static const std::string& name_of(size_t id);
 
 		/**
-		 * @brief 根据名称获取寄存器大小
-		 * @param name 寄存器名称
-		 * @return 寄存器大小
+		 * @brief Get register size by name
+		 * @param name Register name
+		 * @return Register size
 		 */
 		static size_t size_of(std::string_view name);
 
 		/**
-		 * @brief 根据 ID 获取寄存器大小
-		 * @param id 寄存器 ID
-		 * @return 寄存器大小
+		 * @brief Get register size by ID
+		 * @param id Register ID
+		 * @return Register size
 		 */
 		static size_t size_of(size_t id);
 
 		/**
-		 * @brief 根据名称获取寄存器类型
-		 * @param name 寄存器名称
-		 * @return 状态存储类型
+		 * @brief Get register type by name
+		 * @param name Register name
+		 * @return State storage type
 		 */
 		static StateStorageType type_of(std::string_view name);
 
 		/**
-		 * @brief 根据 ID 获取寄存器类型
-		 * @param id 寄存器 ID
-		 * @return 状态存储类型
+		 * @brief Get register type by ID
+		 * @param id Register ID
+		 * @return State storage type
 		 */
 		static StateStorageType type_of(size_t id);
 
 		/**
-		 * @brief 根据名称获取寄存器激活状态
-		 * @param name 寄存器名称
-		 * @return 激活状态（true = 激活）
+		 * @brief Get register active status by name
+		 * @param name Register name
+		 * @return Active status (true = active)
 		 */
 		static bool status_of(std::string_view name);
 
 		/**
-		 * @brief 根据 ID 获取寄存器激活状态
-		 * @param id 寄存器 ID
-		 * @return 激活状态（true = 激活）
+		 * @brief Get register active status by ID
+		 * @param id Register ID
+		 * @return Active status (true = active)
 		 */
 		static bool status_of(size_t id);
 
 		/**
-		 * @brief 添加寄存器状态位图标记
-		 * @param pos 位置
+		 * @brief Add a register status bitmap flag
+		 * @param pos Position
 		 */
 		static void add_register_status_bitmap(size_t pos);
 
 		/**
-		 * @brief 移除寄存器状态位图标记
-		 * @param pos 位置
+		 * @brief Remove a register status bitmap flag
+		 * @param pos Position
 		 */
 		static void remove_register_status_bitmap(size_t pos);
 
 		/**
-		 * @brief 添加新寄存器
-		 * @param name 寄存器名称
-		 * @param type 状态存储类型
-		 * @param size 寄存器大小
-		 * @return 寄存器 ID
+		 * @brief Add a new register
+		 * @param name Register name
+		 * @param type State storage type
+		 * @param size Register size
+		 * @return Register ID
 		 */
 		static size_t add_register(std::string_view name, StateStorageType type, size_t size);
 
 		/**
-		 * @brief 同步添加寄存器（初始状态为0）
-		 * @param name 寄存器名称
-		 * @param type 状态存储类型
-		 * @param size 寄存器大小
-		 * @param system_states 系统状态向量
-		 * @return 寄存器 ID
+		 * @brief Add a register synchronously (initial state is 0)
+		 * @param name Register name
+		 * @param type State storage type
+		 * @param size Register size
+		 * @param system_states System state vector
+		 * @return Register ID
 		 */
 		static size_t add_register_synchronous(
 			std::string_view name, StateStorageType type, size_t size,
 			std::vector<System>& system_states);
 
 		/**
-		 * @brief 同步添加寄存器（初始状态为0，SparseState 版本）
-		 * @param name 寄存器名称
-		 * @param type 状态存储类型
-		 * @param size 寄存器大小
-		 * @param system_states 稀疏状态
-		 * @return 寄存器 ID
+		 * @brief Add a register synchronously (initial state is 0, SparseState version)
+		 * @param name Register name
+		 * @param type State storage type
+		 * @param size Register size
+		 * @param system_states Sparse state
+		 * @return Register ID
 		 */
 		static size_t add_register_synchronous(
 			std::string_view name, StateStorageType type, size_t size,
 			SparseState& system_states);
 
 		/**
-		 * @brief 根据 ID 移除寄存器
-		 * @param id 寄存器 ID
+		 * @brief Remove a register by ID
+		 * @param id Register ID
 		 */
 		static void remove_register(size_t id);
 
 		/**
-		 * @brief 根据名称移除寄存器
-		 * @param name 寄存器名称
+		 * @brief Remove a register by name
+		 * @param name Register name
 		 */
 		static void remove_register(std::string_view name);
 
 		/**
-		 * @brief 同步移除寄存器（根据 ID）
-		 * @param id 寄存器 ID
-		 * @param state 系统状态向量
+		 * @brief Remove a register synchronously (by ID)
+		 * @param id Register ID
+		 * @param state System state vector
 		 */
 		static void remove_register_synchronous(size_t id,
 			std::vector<System>& state);
 
 		/**
-		 * @brief 同步移除寄存器（根据名称）
-		 * @param name 寄存器名称
-		 * @param state 系统状态向量
+		 * @brief Remove a register synchronously (by name)
+		 * @param name Register name
+		 * @param state System state vector
 		 */
 		static void remove_register_synchronous(std::string_view name,
 			std::vector<System>& state);
 
 		/**
-		 * @brief 同步移除寄存器（SparseState 版本，根据 ID）
-		 * @param id 寄存器 ID
-		 * @param state 稀疏状态
+		 * @brief Remove a register synchronously (SparseState version, by ID)
+		 * @param id Register ID
+		 * @param state Sparse state
 		 */
 		static void remove_register_synchronous(size_t id,
 			SparseState& state);
 
 		/**
-		 * @brief 同步移除寄存器（SparseState 版本，根据名称）
-		 * @param name 寄存器名称
-		 * @param state 稀疏状态
+		 * @brief Remove a register synchronously (SparseState version, by name)
+		 * @param name Register name
+		 * @param state Sparse state
 		 */
 		static void remove_register_synchronous(std::string_view name,
 			SparseState& state);
 
 		/**
-		 * @brief 构造函数
+		 * @brief Constructor
 		 */
 #ifdef USE_CUDA
 		HOST_DEVICE System() {}
@@ -552,113 +555,113 @@ namespace qram_simulator
 #endif
 
 		/**
-		 * @brief 小于比较运算符
-		 * @param rhs 右侧系统
-		 * @return 是否小于
+		 * @brief Less-than comparison operator
+		 * @param rhs Right-hand system
+		 * @return Whether less than
 		 */
 		HOST_DEVICE bool operator<(const System& rhs) const;
 
 		/**
-		 * @brief 相等比较运算符
-		 * @param rhs 右侧系统
-		 * @return 是否相等
+		 * @brief Equality comparison operator
+		 * @param rhs Right-hand system
+		 * @return Whether equal
 		 */
 		HOST_DEVICE bool operator==(const System& rhs) const;
 
 		/**
-		 * @brief 不等比较运算符
-		 * @param rhs 右侧系统
-		 * @return 是否不等
+		 * @brief Inequality comparison operator
+		 * @param rhs Right-hand system
+		 * @return Whether not equal
 		 */
 		HOST_DEVICE bool operator!=(const System& rhs) const;
 
 		/**
-		 * @brief 转换为字符串
-		 * @return 字符串表示
+		 * @brief Convert to string
+		 * @return String representation
 		 */
 		std::string to_string() const;
 
 		/**
-		 * @brief 转换为字符串（指定精度）
-		 * @param precision 精度
-		 * @return 字符串表示
+		 * @brief Convert to string (with given precision)
+		 * @param precision Precision
+		 * @return String representation
 		 */
 		std::string to_string(int precision) const;
 	};
 
 	/**
-	 * @brief 合并两个系统
-	 * @details 将 s2 的振幅加到 s1，并将 s2.amplitude 设为 0
-	 * @param s1 第一个系统（目标）
-	 * @param s2 第二个系统（源）
+	 * @brief Merge two systems
+	 * @details Adds the amplitude of s2 to s1 and sets s2.amplitude to 0
+	 * @param s1 First system (destination)
+	 * @param s2 Second system (source)
 	 */
 	void merge_system(System& s1, System& s2);
 
 	/**
-	 * @brief 移除接近零的系统
-	 * @param s 系统
-	 * @return 如果应该被移除则返回 true
+	 * @brief Remove systems close to zero
+	 * @param s System
+	 * @return true if it should be removed
 	 */
 	bool remove_system(const System& s);
 
 	/**
-	 * @brief 稀疏状态类
-	 * @details 使用基态向量表示的稀疏量子状态
+	 * @brief Sparse state class
+	 * @details A sparse quantum state represented as a vector of basis states
 	 */
 	struct SparseState
 	{
-		/** @brief 基态向量 */
+		/** @brief Basis state vector */
 		std::vector<System> basis_states;
 
-		/** @brief 向量类型别名 */
+		/** @brief Vector type alias */
 		using vector_type = std::vector<System>;
 
 		/**
-		 * @brief 默认构造函数
+		 * @brief Default constructor
 		 */
 		SparseState() {
 			basis_states.emplace_back();
 		}
 
 		/**
-		 * @brief 指定大小构造函数
-		 * @param size 大小
+	 * @brief Constructor with a given size
+	 * @param size Size
 		 */
 		SparseState(size_t size)
 			: basis_states(size) {}
 
 		/**
-		 * @brief 拷贝构造函数
-		 * @param basis_states_ 基态向量
+	 * @brief Copy constructor
+	 * @param basis_states_ Basis state vector
 		 */
 		SparseState(const std::vector<System>& basis_states_) 
 			: basis_states(basis_states_) {}
 
 		/**
-		 * @brief 移动构造函数
-		 * @param basis_states_ 基态向量
+	 * @brief Move constructor
+	 * @param basis_states_ Basis state vector
 		 */
 		SparseState(std::vector<System>&& basis_states_)
 			: basis_states(std::move(basis_states_)) {}
 
 		/**
-		 * @brief 拷贝构造函数
-		 * @param other 另一个稀疏状态
+	 * @brief Copy constructor
+	 * @param other Another sparse state
 		 */
 		SparseState(const SparseState& other)
 			: basis_states(other.basis_states) {}
 
 		/**
-		 * @brief 移动构造函数
-		 * @param other 另一个稀疏状态
+	 * @brief Move constructor
+	 * @param other Another sparse state
 		 */
 		SparseState(SparseState&& other)
 			: basis_states(std::move(other.basis_states)) {}
 
 		/**
-		 * @brief 拷贝赋值运算符
-		 * @param other 另一个稀疏状态
-		 * @return 自身引用
+	 * @brief Copy assignment operator
+	 * @param other Another sparse state
+	 * @return Reference to itself
 		 */
 		SparseState& operator=(const SparseState& other) {
 			basis_states = other.basis_states;
@@ -666,9 +669,9 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 移动赋值运算符
-		 * @param other 另一个稀疏状态
-		 * @return 自身引用
+	 * @brief Move assignment operator
+	 * @param other Another sparse state
+	 * @return Reference to itself
 		 */
 		SparseState& operator=(SparseState&& other) {
 			basis_states = std::move(other.basis_states);
@@ -676,20 +679,20 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 获取最后一个元素（非 const 版本）
-		 * @return 最后一个系统的引用
+	 * @brief Get the last element (non-const version)
+	 * @return Reference to the last system
 		 */
 		System& back() { return basis_states.back(); }
 
 		/**
-		 * @brief 获取最后一个元素（const 版本）
-		 * @return 最后一个系统的 const 引用
+	 * @brief Get the last element (const version)
+	 * @return Const reference to the last system
 		 */
 		const System& back() const { return basis_states.back(); }
 
 		/**
-		 * @brief 获取起始迭代器
-		 * @return 起始迭代器
+	 * @brief Get the starting iterator
+	 * @return Starting iterator
 		 */
 		vector_type::iterator begin() { return basis_states.begin(); }
 		vector_type::const_iterator begin() const { return basis_states.begin(); }
@@ -701,30 +704,30 @@ namespace qram_simulator
 		vector_type::const_reverse_iterator rend() const { return basis_states.rend(); }
 
 		/**
-		 * @brief 下标访问运算符
-		 * @param i 索引
-		 * @return 系统的引用
+	 * @brief Subscript operator
+	 * @param i Index
+	 * @return Reference to the system
 		 */
 		System& operator[](size_t i) { return basis_states[i]; }
 		const System& operator[](size_t i) const { return basis_states[i]; }
 
 		/**
-		 * @brief 获取大小
-		 * @return 基态数量
+	 * @brief Get the size
+	 * @return Number of basis states
 		 */
 		size_t size() const { return basis_states.size(); }
 
 		/**
-		 * @brief 检查是否为空
-		 * @return 是否为空
+	 * @brief Check whether empty
+	 * @return Whether empty
 		 */
 		bool empty() const { return basis_states.empty(); }
 
 		/**
-		 * @brief 将状态格式化为字符串
-		 * @param display 显示模式（见 StatePrintDisplay）
-		 * @param precision 精度（小数位数）
-		 * @return 格式化状态字符串
+	 * @brief Format the state as a string
+	 * @param display Display mode (see StatePrintDisplay)
+	 * @param precision Precision (number of decimal places)
+	 * @return Formatted state string
 		 */
 		std::string to_string(int32_t display = 0, int precision = 0) const;
 	};
@@ -732,28 +735,28 @@ namespace qram_simulator
 	// Forward declaration of StatePrint (defined in debugger.h)
 	struct StatePrint;
 
-	/** @brief 设备类型枚举 */
+	/** @brief Device type enum */
 	enum DeviceType { CPU, GPU, ANY };
 
-	/** @brief 前向声明：CUDA 稀疏状态 */
+	/** @brief Forward declaration: CUDA sparse state */
 	struct CuSparseState;
 
 	/**
-	 * @brief 算子基类
-	 * @details 所有量子算子的抽象基类，定义了算子的基本接口
+	 * @brief Operator base class
+	 * @details Abstract base class of all quantum operators, defining the basic operator interface
 	 */
 	struct BaseOperator
 	{
 		/**
-		 * @brief 应用算子（纯虚函数）
-		 * @param state 系统状态向量
+		 * @brief Apply the operator (pure virtual function)
+		 * @param state System state vector
 		 */
 		virtual void operator()(std::vector<System>& state) const = 0;
 
 		/**
-		 * @brief 应用共轭转置（ dagger ）操作
-		 * @param state 系统状态向量
-		 * @throws 默认抛出未实现异常
+		 * @brief Apply the conjugate transpose (dagger) operation
+		 * @param state System state vector
+		 * @throws Throws a not-implemented exception by default
 		 */
 		inline virtual void dag(std::vector<System>& state) const
 		{
@@ -761,8 +764,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用算子到 SparseState
-		 * @param state 稀疏状态
+		 * @brief Apply the operator to a SparseState
+		 * @param state Sparse state
 		 */
 		inline void operator()(SparseState& state) const
 		{
@@ -770,8 +773,8 @@ namespace qram_simulator
 		}
 
 		/**
-		 * @brief 应用 dagger 到 SparseState
-		 * @param state 稀疏状态
+		 * @brief Apply dagger to a SparseState
+		 * @param state Sparse state
 		 */
 		inline virtual void dag(SparseState& state) const
 		{
@@ -779,22 +782,22 @@ namespace qram_simulator
 		}
 #ifdef USE_CUDA
 		/**
-		 * @brief 应用算子到 CuSparseState（CUDA 版本）
-		 * @param state CUDA 稀疏状态
+		 * @brief Apply the operator to a CuSparseState (CUDA version)
+		 * @param state CUDA sparse state
 		 */
 		virtual void operator()(CuSparseState& state) const;
 
 		/**
-		 * @brief 应用 dagger 到 CuSparseState（CUDA 版本）
-		 * @param state CUDA 稀疏状态
+		 * @brief Apply dagger to a CuSparseState (CUDA version)
+		 * @param state CUDA sparse state
 		 */
 		virtual void dag(CuSparseState& state) const;
 #endif
 	};
 
 	/**
-	 * @brief 自伴算子类
-	 * @details 继承自 BaseOperator，自伴算子的 dagger 等于自身
+	 * @brief Self-adjoint operator class
+	 * @details Inherits from BaseOperator; the dagger of a self-adjoint operator equals itself
 	 */
 	class SelfAdjointOperator : public BaseOperator {
 	public:
@@ -802,16 +805,16 @@ namespace qram_simulator
 		using BaseOperator::dag;
 
 		/**
-		 * @brief 应用 dagger 操作（自伴算子 dagger 等于自身）
-		 * @param state 系统状态向量
+		 * @brief Apply the dagger operation (the dagger of a self-adjoint operator equals itself)
+		 * @param state System state vector
 		 */
 		inline void dag(std::vector<System>& state) const override {
 			(*this)(state);
 		}
 
 		/**
-		 * @brief 应用 dagger 到 SparseState
-		 * @param state 稀疏状态
+		 * @brief Apply dagger to a SparseState
+		 * @param state Sparse state
 		 */
 		inline void dag(SparseState& state) const override {
 			(*this)(state);
@@ -819,8 +822,8 @@ namespace qram_simulator
 
 #ifdef USE_CUDA
 		/**
-		 * @brief 应用 dagger 到 CuSparseState
-		 * @param state CUDA 稀疏状态
+		 * @brief Apply dagger to a CuSparseState
+		 * @param state CUDA sparse state
 		 */
 		void dag(CuSparseState& state) const override;
 #endif
@@ -828,10 +831,10 @@ namespace qram_simulator
 
 
 #ifdef SINGLE_THREAD
-	/** @brief 执行策略：单线程 */
+	/** @brief Execution policy: single-threaded */
 	constexpr auto exec_policy = std::execution::seq;
 #else
-	/** @brief 执行策略：并行 */
+	/** @brief Execution policy: parallel */
 	constexpr auto exec_policy = std::execution::par;
 #endif
 

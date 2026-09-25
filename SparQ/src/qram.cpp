@@ -1,7 +1,7 @@
 /**
  * @file qram.cpp
- * @brief QRAM 操作实现
- * @details 实现 qram.h 中声明的 QRAMLoad、QRAMLoadFast、QRAMInputGenerator（含噪声模型注入）
+ * @brief QRAM operation implementations
+ * @details Implements QRAMLoad, QRAMLoadFast, QRAMInputGenerator (including noise model injection) declared in qram.h
  */
 #include "qram.h"
 #include "quantum_interfere_basic.h"

@@ -1,7 +1,7 @@
 /**
  * @file hadamard.cpp
- * @brief Hadamard 算子实现
- * @details 实现 hadamard.h 中声明的 Hadamard_Int / Hadamard_Int_Full / Hadamard_Bool / Hadamard_Int_Partial
+ * @brief Hadamard operator implementation
+ * @details Implements Hadamard_Int / Hadamard_Int_Full / Hadamard_Bool / Hadamard_Int_Partial declared in hadamard.h
  */
 #include "hadamard.h"
 #include "system_operations.h"
