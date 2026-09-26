@@ -1,0 +1,1015 @@
+<!doctype html>
+<html class="no-js" lang="zh-CN" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="索引" href="../../../genindex.html"><link rel="search" title="搜索" href="../../../search.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>pysparq.dynamic_operator.compiler - SparQ 文档</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  --color-brand-primary: #2563eb;
+  --color-brand-content: #1d4ed8;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">SparQ 文档</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <span class="sidebar-brand-text">SparQ 文档</span>
+  
+</a>
+<div class="sidebar-langswitch">
+  <span class="sidebar-langswitch-label">Language:</span>
+  <strong>中文</strong>
+  <span class="sidebar-langswitch-sep">·</span>
+  <a href="../../../../en/_modules/pysparq/dynamic_operator/compiler.html">English</a>
+</div><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="搜索" name="q" aria-label="搜索">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/architecture.html">SparQSim 架构</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/examples.html">示例</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../guide/algorithms/index.html">算法指南</a><input aria-label="Toggle navigation of 算法指南" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/algorithms/porting.html">算法移植指南</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/dynamic_operators.html">动态算子扩展</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/rir.html">RIR 解释执行</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../guide/core_concepts/index.html">核心概念</a><input aria-label="Toggle navigation of 核心概念" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/core_concepts/system.html">System 类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/core_concepts/sparse_state.html">SparseState 类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/core_concepts/register_management.html">寄存器管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/core_concepts/register_types.html">寄存器类型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/core_concepts/operators.html">算子</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../guide/development/index.html">量子算法开发指南</a><input aria-label="Toggle navigation of 量子算法开发指南" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/development/workflow.html">开发工作流</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/development/templates.html">代码模板</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/development/verification.html">测试验证</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guide/development/standards.html">代码规范</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">算子参考</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../operators/index.html">算子参考</a><input aria-label="Toggle navigation of 算子参考" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/arithmetic.html">算术算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/gates.html">基本量子门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/hadamard.html">Hadamard 操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/qft.html">量子傅里叶变换 (QFT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/condrot.html">条件旋转算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/phase_ops.html">相位与反射算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/rot_state_prep.html">旋转与态制备</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/qram_ops.html">QRAM 算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/system_ops.html">系统操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/partial_trace.html">部分追迹</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/measurement.html">线路中测量与随机种子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/sort_ops.html">排序算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/dark_magic.html">黑魔法操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../operators/debug.html">调试工具</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">C++ API 参考</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../cpp_api/index.html">C++ API 参考</a><input aria-label="Toggle navigation of C++ API 参考" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/core.html">核心组件与量子门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/measurement.html">测量与读出</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/qram.html">QRAM 操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/arithmetic.html">量子算术与状态整理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/system_ops.html">寄存器/系统操作与调试</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/algorithms.html">算法库（顶层）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/block_encoding.html">块编码（BlockEncoding/）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/qda.html">离散绝热（DiscreteAdiabatic/）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/cuda.html">CUDA 后端</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cpp_api/bindings.html">Python 绑定层（C++ 侧）</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">交互教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/01_quickstart.html">PySparQ 快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/02_sparse_state_evolution.html">稀疏态演化示例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks/03_operator_examples.html">算子使用示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API 参考</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API 参考</a><input aria-label="Toggle navigation of API 参考" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/python.html">Python API 参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/dynamic_operator.html">动态算子 API 参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/rir.html">RIR 解释器 API 参考</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/autoapi_index.html">全部符号（自动生成）</a><input aria-label="Toggle navigation of 全部符号（自动生成）" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/index.html">PySparQ.pysparq</a><input aria-label="Toggle navigation of PySparQ.pysparq" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/index.html">PySparQ.pysparq.algorithms</a><input aria-label="Toggle navigation of PySparQ.pysparq.algorithms" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/block_encoding/index.html">PySparQ.pysparq.algorithms.block_encoding</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/cks_solver/index.html">PySparQ.pysparq.algorithms.cks_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/grover/index.html">PySparQ.pysparq.algorithms.grover</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/qda_solver/index.html">PySparQ.pysparq.algorithms.qda_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/qram_utils/index.html">PySparQ.pysparq.algorithms.qram_utils</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/shor/index.html">PySparQ.pysparq.algorithms.shor</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/algorithms/state_preparation/index.html">PySparQ.pysparq.algorithms.state_preparation</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/conformance/index.html">PySparQ.pysparq.conformance</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/dynamic_operator/index.html">PySparQ.pysparq.dynamic_operator</a><input aria-label="Toggle navigation of PySparQ.pysparq.dynamic_operator" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/dynamic_operator/compiler/index.html">PySparQ.pysparq.dynamic_operator.compiler</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/dynamic_operator/operator_wrapper/index.html">PySparQ.pysparq.dynamic_operator.operator_wrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/operators/index.html">PySparQ.pysparq.operators</a><input aria-label="Toggle navigation of PySparQ.pysparq.operators" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/operators/base/index.html">PySparQ.pysparq.operators.base</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/operators/condition_mixin/index.html">PySparQ.pysparq.operators.condition_mixin</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/rir/index.html">PySparQ.pysparq.rir</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/test/index.html">PySparQ.pysparq.test</a><input aria-label="Toggle navigation of PySparQ.pysparq.test" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../../autoapi/PySparQ/pysparq/test/conftest/index.html">PySparQ.pysparq.test.conftest</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>pysparq.dynamic_operator.compiler 源代码</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">Runtime C++ code compilation system</span>
+
+<span class="sd">Provides the ability to compile user-defined C++ operators at runtime, with support for:</span>
+<span class="sd">- Automatic code skeleton generation</span>
+<span class="sd">- Invoking g++ to build a shared library (.so)</span>
+<span class="sd">- Code hash based caching to avoid redundant compilation</span>
+<span class="sd">- Compilation error capture and formatting</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+
+<div class="viewcode-block" id="CompilationError">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.CompilationError">[文档]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompilationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compilation error exception."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">stderr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="n">returncode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">stderr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">returncode</span> <span class="o">=</span> <span class="n">returncode</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stderr</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">Compiler output:</span><span class="se">\n</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">msg</span></div>
+
+
+
+<div class="viewcode-block" id="CompilerConfig">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.CompilerConfig">[文档]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CompilerConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Compiler configuration."""</span>
+
+    <span class="c1"># Default code skeleton template</span>
+    <span class="n">DEFAULT_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""#include "basic_components.h"</span>
+<span class="s2">#include &lt;vector&gt;</span>
+<span class="s2">#include &lt;complex&gt;</span>
+
+<span class="s2">using namespace qram_simulator;</span>
+
+<span class="si">{USER_CPP_CODE}</span>
+
+<span class="s2">extern "C" BaseOperator* create_operator(</span><span class="si">{CTOR_PARAMS}</span><span class="s2">) {{</span>
+<span class="s2">    return new </span><span class="si">{CLASS_NAME}</span><span class="s2">(</span><span class="si">{CTOR_ARGS}</span><span class="s2">);</span>
+<span class="s2">}}</span>
+
+<span class="s2">extern "C" void destroy_operator(BaseOperator* op) {{</span>
+<span class="s2">    delete op;</span>
+<span class="s2">}}</span>
+
+<span class="s2">extern "C" const char* get_operator_name() {{</span>
+<span class="s2">    return "</span><span class="si">{CLASS_NAME}</span><span class="s2">";</span>
+<span class="s2">}}</span>
+<span class="s2">"""</span>
+
+    <span class="c1"># Python-enhanced template - includes helper functions that support ctypes calls</span>
+    <span class="c1"># Key point: the C++ SparseState* pointer is obtained via state._cpp_ptr()</span>
+    <span class="c1"># (exposed by pysparq._core.SparseState); ctypes passes it as c_void_p, ensuring</span>
+    <span class="c1"># the pointer value is transferred correctly and the ABI stays consistent.</span>
+    <span class="n">PYTHON_TEMPLATE</span> <span class="o">=</span> <span class="s2">"""#include "basic_components.h"</span>
+<span class="s2">#include &lt;vector&gt;</span>
+<span class="s2">#include &lt;complex&gt;</span>
+
+<span class="s2">using namespace qram_simulator;</span>
+
+<span class="si">{USER_CPP_CODE}</span>
+
+<span class="s2">extern "C" BaseOperator* create_operator(</span><span class="si">{CTOR_PARAMS}</span><span class="s2">) {{</span>
+<span class="s2">    return new </span><span class="si">{CLASS_NAME}</span><span class="s2">(</span><span class="si">{CTOR_ARGS}</span><span class="s2">);</span>
+<span class="s2">}}</span>
+
+<span class="s2">extern "C" void destroy_operator(BaseOperator* op) {{</span>
+<span class="s2">    delete op;</span>
+<span class="s2">}}</span>
+
+<span class="s2">extern "C" const char* get_operator_name() {{</span>
+<span class="s2">    return "</span><span class="si">{CLASS_NAME}</span><span class="s2">";</span>
+<span class="s2">}}</span>
+
+<span class="s2">// Python call helper - applies the operator to a SparseState</span>
+<span class="s2">// The Python side obtains the C++ SparseState* pointer via state._cpp_ptr(),</span>
+<span class="s2">// which ctypes passes as ctypes.c_void_p.</span>
+<span class="s2">extern "C" void apply_operator(BaseOperator* op, SparseState* state) {{</span>
+<span class="s2">    if (op &amp;&amp; state) {{</span>
+<span class="s2">        (*op)(*state);</span>
+<span class="s2">    }}</span>
+<span class="s2">}}</span>
+
+<span class="s2">// Python call helper - applies the dagger</span>
+<span class="s2">extern "C" void apply_operator_dag(BaseOperator* op, SparseState* state) {{</span>
+<span class="s2">    if (op &amp;&amp; state) {{</span>
+<span class="s2">        op-&gt;dag(*state);</span>
+<span class="s2">    }}</span>
+<span class="s2">}}</span>
+
+<span class="s2">// Returns the base class type</span>
+<span class="s2">extern "C" const char* get_base_class() {{</span>
+<span class="s2">    return "</span><span class="si">{BASE_CLASS}</span><span class="s2">";</span>
+<span class="s2">}}</span>
+<span class="s2">"""</span>
+
+<div class="viewcode-block" id="CompilerConfig.__init__">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.CompilerConfig.__init__">[文档]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cxx</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"g++"</span><span class="p">,</span>
+        <span class="n">std</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"c++17"</span><span class="p">,</span>
+        <span class="n">opt_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"O2"</span><span class="p">,</span>
+        <span class="n">include_paths</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">lib_paths</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">libraries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">extra_flags</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Initialize the compiler configuration</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cxx: C++ compiler command (default g++)</span>
+<span class="sd">            std: C++ standard version (default c++17)</span>
+<span class="sd">            opt_level: Optimization level (default O2)</span>
+<span class="sd">            include_paths: Extra header search paths</span>
+<span class="sd">            lib_paths: Extra library search paths</span>
+<span class="sd">            libraries: Libraries to link against</span>
+<span class="sd">            extra_flags: Extra compiler flags</span>
+<span class="sd">            template: Custom code template</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cxx</span> <span class="o">=</span> <span class="n">cxx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt_level</span> <span class="o">=</span> <span class="n">opt_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">include_paths</span> <span class="o">=</span> <span class="n">include_paths</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lib_paths</span> <span class="o">=</span> <span class="n">lib_paths</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">libraries</span> <span class="o">=</span> <span class="n">libraries</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extra_flags</span> <span class="o">=</span> <span class="n">extra_flags</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="n">template</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULT_TEMPLATE</span></div>
+
+
+<div class="viewcode-block" id="CompilerConfig.get_compile_flags">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.CompilerConfig.get_compile_flags">[文档]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_compile_flags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Generate the list of compiler flags."""</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">"-std=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">opt_level</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"-fPIC"</span><span class="p">,</span>  <span class="c1"># Position-independent code (required for shared libraries)</span>
+            <span class="s2">"-shared"</span><span class="p">,</span>  <span class="c1"># Produce a shared library</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Add header search paths</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"-I</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Add library search paths</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lib_paths</span><span class="p">:</span>
+            <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"-L</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Add libraries to link</span>
+        <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">libraries</span><span class="p">:</span>
+            <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"-l</span><span class="si">{</span><span class="n">lib</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Add extra flags</span>
+        <span class="n">flags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extra_flags</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">flags</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="compute_code_hash">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.compute_code_hash">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_code_hash</span><span class="p">(</span><span class="n">cpp_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">CompilerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Compute the code hash used for caching</span>
+
+<span class="sd">    The hash covers: code content, class name, compiler version, and configuration</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cpp_code: User C++ code</span>
+<span class="sd">        class_name: Operator class name</span>
+<span class="sd">        config: Compiler configuration</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A 16-character hexadecimal hash string</span>
+<span class="sd">    """</span>
+    <span class="c1"># Obtain compiler version info (it affects the ABI)</span>
+    <span class="n">compiler_version</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">cxx</span><span class="p">,</span> <span class="s2">"--version"</span><span class="p">],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">compiler_version</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()[:</span><span class="mi">100</span><span class="p">]</span>  <span class="c1"># Keep the first 100 characters</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># Combine the hash content</span>
+    <span class="n">hash_content</span> <span class="o">=</span> <span class="s2">"|"</span><span class="o">.</span><span class="n">join</span><span class="p">([</span>
+        <span class="n">cpp_code</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">std</span><span class="p">,</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">opt_level</span><span class="p">,</span>
+        <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">include_paths</span><span class="p">)),</span>
+        <span class="n">compiler_version</span><span class="p">,</span>
+    <span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">hash_content</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">16</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="find_project_root">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.find_project_root">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_project_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Locate the project root directory or the installed package directory</span>
+
+<span class="sd">    For an installed package, the directory layout is:</span>
+<span class="sd">    - site-packages/pysparq/ (Python package)</span>
+<span class="sd">    - site-packages/include/ (headers, including basic_components.h)</span>
+
+<span class="sd">    For a source checkout (the SparQSim repository):</span>
+<span class="sd">    - The project root contains extern/qram-simulator/ (C++ core submodule) and PySparQ/</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The project root path or the installed package directory; None if not found</span>
+<span class="sd">    """</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+
+    <span class="c1"># Check whether we are inside an installed package (site-packages/pysparq/dynamic_operator)</span>
+    <span class="c1"># In that case, the headers live in site-packages/include/</span>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">[</span><span class="n">current</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">current</span><span class="o">.</span><span class="n">parents</span><span class="p">):</span>
+        <span class="c1"># Installed package case: check whether include/basic_components.h exists</span>
+        <span class="c1"># This ensures it is the full header directory, not PySparQ/include (binding headers only)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"include"</span> <span class="o">/</span> <span class="s2">"basic_components.h"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"pysparq"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">parent</span>
+        <span class="c1"># Source checkout case: qram-simulator submodule + PySparQ/</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"extern"</span> <span class="o">/</span> <span class="s2">"qram-simulator"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"PySparQ"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">parent</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="generate_cpp_source">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.generate_cpp_source">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_cpp_source</span><span class="p">(</span>
+    <span class="n">cpp_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">ctor_params</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">ctor_args</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CompilerConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Generate the complete C++ source file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cpp_code: User-provided C++ code (containing the class definition)</span>
+<span class="sd">        class_name: Operator class name</span>
+<span class="sd">        ctor_params: Constructor parameter declarations (e.g. "int n, double theta")</span>
+<span class="sd">        ctor_args: Constructor call arguments (e.g. "n, theta")</span>
+<span class="sd">        config: Compiler configuration (provides the template)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The complete C++ source code string</span>
+<span class="sd">    """</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">CompilerConfig</span><span class="p">()</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">template</span>
+
+    <span class="c1"># Substitute template variables</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">USER_CPP_CODE</span><span class="o">=</span><span class="n">cpp_code</span><span class="p">,</span>
+        <span class="n">CLASS_NAME</span><span class="o">=</span><span class="n">class_name</span><span class="p">,</span>
+        <span class="n">CTOR_PARAMS</span><span class="o">=</span><span class="n">ctor_params</span><span class="p">,</span>
+        <span class="n">CTOR_ARGS</span><span class="o">=</span><span class="n">ctor_args</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">source</span></div>
+
+
+
+<div class="viewcode-block" id="compile_cpp_code">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.compile_cpp_code">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compile_cpp_code</span><span class="p">(</span>
+    <span class="n">cpp_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">ctor_params</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">ctor_args</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">CompilerConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">project_root</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Compile C++ code into a shared library</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cpp_code: User-provided C++ code (containing the class definition)</span>
+<span class="sd">        class_name: Operator class name</span>
+<span class="sd">        cache_dir: Cache directory (defaults to the system temporary directory)</span>
+<span class="sd">        ctor_params: Constructor parameter declarations</span>
+<span class="sd">        ctor_args: Constructor call arguments</span>
+<span class="sd">        config: Compiler configuration</span>
+<span class="sd">        project_root: Project root directory (auto-detected)</span>
+<span class="sd">        verbose: Whether to print verbose logs</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path of the compiled shared library (.so file)</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        CompilationError: Compilation failed</span>
+<span class="sd">        FileNotFoundError: Compiler not found</span>
+<span class="sd">    """</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">CompilerConfig</span><span class="p">()</span>
+
+    <span class="c1"># Auto-detect the project root directory</span>
+    <span class="k">if</span> <span class="n">project_root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">detected_root</span> <span class="o">=</span> <span class="n">find_project_root</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">detected_root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">"Failed to auto-detect the project root directory; please specify the project_root parameter manually"</span>
+            <span class="p">)</span>
+        <span class="n">project_root</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">detected_root</span><span class="p">)</span>
+
+    <span class="n">project_root_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
+
+    <span class="c1"># Check whether this is an installed package (headers under the include/ directory)</span>
+    <span class="n">installed_include</span> <span class="o">=</span> <span class="n">project_root_path</span> <span class="o">/</span> <span class="s2">"include"</span>
+    <span class="k">if</span> <span class="n">installed_include</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="c1"># Installed package case: the headers are already under the unified include/ directory</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">installed_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">installed_include</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Source checkout case: SparQ framework headers live at this repository's root,</span>
+        <span class="c1"># while the QRAM core (QRAM/Common/ThirdParty) lives under extern/qram-simulator/</span>
+        <span class="n">core_root</span> <span class="o">=</span> <span class="n">project_root_path</span> <span class="o">/</span> <span class="s2">"extern"</span> <span class="o">/</span> <span class="s2">"qram-simulator"</span>
+
+        <span class="n">sparq_include</span> <span class="o">=</span> <span class="n">project_root_path</span> <span class="o">/</span> <span class="s2">"SparQ"</span> <span class="o">/</span> <span class="s2">"include"</span>
+        <span class="k">if</span> <span class="n">sparq_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">sparq_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sparq_include</span><span class="p">))</span>
+
+        <span class="n">algo_include</span> <span class="o">=</span> <span class="n">project_root_path</span> <span class="o">/</span> <span class="s2">"SparQ_Algorithm"</span> <span class="o">/</span> <span class="s2">"include"</span>
+        <span class="k">if</span> <span class="n">algo_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">algo_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">algo_include</span><span class="p">))</span>
+
+        <span class="n">qram_include</span> <span class="o">=</span> <span class="n">core_root</span> <span class="o">/</span> <span class="s2">"QRAM"</span> <span class="o">/</span> <span class="s2">"include"</span>
+        <span class="k">if</span> <span class="n">qram_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">qram_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">qram_include</span><span class="p">))</span>
+
+        <span class="n">common_include</span> <span class="o">=</span> <span class="n">core_root</span> <span class="o">/</span> <span class="s2">"Common"</span> <span class="o">/</span> <span class="s2">"include"</span>
+        <span class="k">if</span> <span class="n">common_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">common_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">common_include</span><span class="p">))</span>
+
+        <span class="c1"># Add the Eigen header path</span>
+        <span class="n">eigen_include</span> <span class="o">=</span> <span class="n">core_root</span> <span class="o">/</span> <span class="s2">"ThirdParty"</span> <span class="o">/</span> <span class="s2">"eigen-3.4.0"</span>
+        <span class="k">if</span> <span class="n">eigen_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">eigen_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">eigen_include</span><span class="p">))</span>
+
+        <span class="c1"># Add the fmt header path</span>
+        <span class="n">fmt_include</span> <span class="o">=</span> <span class="n">core_root</span> <span class="o">/</span> <span class="s2">"ThirdParty"</span> <span class="o">/</span> <span class="s2">"fmt"</span> <span class="o">/</span> <span class="s2">"include"</span>
+        <span class="k">if</span> <span class="n">fmt_include</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt_include</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="p">:</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">include_paths</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">fmt_include</span><span class="p">))</span>
+
+    <span class="c1"># Compute the code hash</span>
+    <span class="n">code_hash</span> <span class="o">=</span> <span class="n">compute_code_hash</span><span class="p">(</span><span class="n">cpp_code</span><span class="p">,</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+
+    <span class="c1"># Determine the cache directory</span>
+    <span class="k">if</span> <span class="n">cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">"pysparq_dynamic_ops"</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Generate the library file name</span>
+    <span class="n">lib_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">code_hash</span><span class="si">}</span><span class="s2">.so"</span>
+    <span class="n">lib_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">lib_filename</span><span class="p">)</span>
+
+    <span class="c1"># Check the cache</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">lib_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[compiler] Using cache: </span><span class="si">{</span><span class="n">lib_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lib_path</span>
+
+    <span class="c1"># Generate the complete source code</span>
+    <span class="n">full_source</span> <span class="o">=</span> <span class="n">generate_cpp_source</span><span class="p">(</span><span class="n">cpp_code</span><span class="p">,</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">ctor_params</span><span class="p">,</span> <span class="n">ctor_args</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+
+    <span class="c1"># Create a temporary source file</span>
+    <span class="n">source_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">code_hash</span><span class="si">}</span><span class="s2">.cpp"</span>
+    <span class="n">source_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">source_filename</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">full_source</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[compiler] Source file: </span><span class="si">{</span><span class="n">source_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[compiler] Target library: </span><span class="si">{</span><span class="n">lib_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Check for the compiler</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">cxx</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"C++ compiler not found: </span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">cxx</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Build the compile command</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">cfg</span><span class="o">.</span><span class="n">cxx</span><span class="p">]</span> <span class="o">+</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get_compile_flags</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"-o"</span><span class="p">,</span> <span class="n">lib_path</span><span class="p">,</span> <span class="n">source_path</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[compiler] Compile command: </span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Run the compilation</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>  <span class="c1"># 2-minute timeout</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CompilationError</span><span class="p">(</span><span class="s2">"Compilation timed out (exceeded 2 minutes)"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CompilationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Compiler execution failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Check the compilation result</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Format the error message</span>
+        <span class="n">formatted_error</span> <span class="o">=</span> <span class="n">format_compile_error</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">source_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CompilationError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Compilation failed (return code: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">formatted_error</span><span class="p">,</span>
+            <span class="n">returncode</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Compilation succeeded; optionally delete the source file (kept for debugging)</span>
+    <span class="c1"># os.remove(source_path)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[compiler] Compilation succeeded: </span><span class="si">{</span><span class="n">lib_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lib_path</span></div>
+
+
+
+<div class="viewcode-block" id="format_compile_error">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.format_compile_error">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_compile_error</span><span class="p">(</span><span class="n">stderr</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">source_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Format compiler error output</span>
+
+<span class="sd">    - Simplifies file paths</span>
+<span class="sd">    - Highlights error lines</span>
+<span class="sd">    - Extracts the key error information</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        stderr: Compiler standard error output</span>
+<span class="sd">        source_path: Source file path</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The formatted error message</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stderr</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"Unknown compilation error"</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">stderr</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">formatted_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Error pattern matching</span>
+    <span class="n">error_patterns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">r</span><span class="s2">"(.*?):(\d+):(\d+):\s*(error|warning):\s*(.*)"</span><span class="p">,</span>  <span class="c1"># GCC/Clang format</span>
+        <span class="sa">r</span><span class="s2">"(.*?):\s*(error|warning)\s*\w*:\s*(.*)"</span><span class="p">,</span>  <span class="c1"># Another format</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Simplify paths</span>
+        <span class="k">if</span> <span class="n">source_path</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">source_path</span><span class="p">,</span> <span class="s2">"&lt;source&gt;"</span><span class="p">)</span>
+
+        <span class="n">formatted_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="c1"># Extract an error summary</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">formatted_lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"error:"</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">"warning:"</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="c1"># Build the output</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Errors (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>  <span class="c1"># Show only the first 5 errors</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  ... </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">5</span><span class="si">}</span><span class="s2"> more error(s)"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">warnings</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Warnings (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">warn</span> <span class="ow">in</span> <span class="n">warnings</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>  <span class="c1"># Show only the first 3 warnings</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">warn</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">errors</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">warnings</span><span class="p">:</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"Compiler output:"</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">formatted_lines</span><span class="p">[:</span><span class="mi">20</span><span class="p">])</span>  <span class="c1"># At most 20 lines</span>
+
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="clear_cache">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.clear_cache">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_cache</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Clear the compilation cache</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cache_dir: Cache directory (defaults to the system temporary directory)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The number of deleted files</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">"pysparq_dynamic_ops"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Failed to remove cached file </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+    <span class="k">return</span> <span class="n">count</span></div>
+
+
+
+<div class="viewcode-block" id="get_cache_info">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.get_cache_info">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cache_info</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get cache information</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cache_dir: Cache directory</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary with cache statistics</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">"pysparq_dynamic_ops"</span><span class="p">)</span>
+
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"cache_dir"</span><span class="p">:</span> <span class="n">cache_dir</span><span class="p">,</span>
+        <span class="s2">"exists"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">),</span>
+        <span class="s2">"file_count"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"so_count"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"cpp_count"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"total_size_mb"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span><span class="p">[</span><span class="s2">"exists"</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">info</span>
+
+    <span class="n">total_size</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">):</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">"file_count"</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">total_size</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".so"</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="s2">"so_count"</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">".cpp"</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="s2">"cpp_count"</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">info</span><span class="p">[</span><span class="s2">"total_size_mb"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">total_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">info</span></div>
+
+
+
+<span class="c1"># ========== Convenience functions ==========</span>
+
+<div class="viewcode-block" id="quick_compile">
+<a class="viewcode-back" href="../../../api/dynamic_operator.html#pysparq.dynamic_operator.quick_compile">[文档]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">quick_compile</span><span class="p">(</span>
+    <span class="n">class_code</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">class_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Quickly compile C++ operator code</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        class_code: C++ code containing the class definition</span>
+<span class="sd">        class_name: Class name</span>
+<span class="sd">        verbose: Whether to print verbose logs</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The shared library file path</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">compile_cpp_code</span><span class="p">(</span>
+        <span class="n">cpp_code</span><span class="o">=</span><span class="n">class_code</span><span class="p">,</span>
+        <span class="n">class_name</span><span class="o">=</span><span class="n">class_name</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2026, IAI-USTC-Quantum
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=be15abc5"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=08f3124f"></script>
+    <script src="../../../_static/translations.js?v=540d3cec"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

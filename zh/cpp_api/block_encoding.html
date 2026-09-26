@@ -1,0 +1,1193 @@
+<!doctype html>
+<html class="no-js" lang="zh-CN" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="索引" href="../genindex.html"><link rel="search" title="搜索" href="../search.html"><link rel="next" title="离散绝热（DiscreteAdiabatic/）" href="qda.html"><link rel="prev" title="算法库（顶层）" href="algorithms.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>块编码（BlockEncoding/） - SparQ 文档</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  --color-brand-primary: #2563eb;
+  --color-brand-content: #1d4ed8;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">SparQ 文档</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">SparQ 文档</span>
+  
+</a>
+<div class="sidebar-langswitch">
+  <span class="sidebar-langswitch-label">Language:</span>
+  <strong>中文</strong>
+  <span class="sidebar-langswitch-sep">·</span>
+  <a href="../../en/cpp_api/block_encoding.html">English</a>
+</div><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="搜索" name="q" aria-label="搜索">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/installation.html">安装</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/quickstart.html">快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/architecture.html">SparQSim 架构</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/examples.html">示例</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guide/algorithms/index.html">算法指南</a><input aria-label="Toggle navigation of 算法指南" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guide/algorithms/porting.html">算法移植指南</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/dynamic_operators.html">动态算子扩展</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../guide/rir.html">RIR 解释执行</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guide/core_concepts/index.html">核心概念</a><input aria-label="Toggle navigation of 核心概念" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guide/core_concepts/system.html">System 类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/core_concepts/sparse_state.html">SparseState 类</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/core_concepts/register_management.html">寄存器管理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/core_concepts/register_types.html">寄存器类型</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/core_concepts/operators.html">算子</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../guide/development/index.html">量子算法开发指南</a><input aria-label="Toggle navigation of 量子算法开发指南" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../guide/development/workflow.html">开发工作流</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/development/templates.html">代码模板</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/development/verification.html">测试验证</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guide/development/standards.html">代码规范</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">算子参考</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../operators/index.html">算子参考</a><input aria-label="Toggle navigation of 算子参考" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../operators/arithmetic.html">算术算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/gates.html">基本量子门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/hadamard.html">Hadamard 操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/qft.html">量子傅里叶变换 (QFT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/condrot.html">条件旋转算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/phase_ops.html">相位与反射算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/rot_state_prep.html">旋转与态制备</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/qram_ops.html">QRAM 算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/system_ops.html">系统操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/partial_trace.html">部分追迹</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/measurement.html">线路中测量与随机种子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/sort_ops.html">排序算子</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/dark_magic.html">黑魔法操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../operators/debug.html">调试工具</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">C++ API 参考</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">C++ API 参考</a><input aria-label="Toggle navigation of C++ API 参考" checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">核心组件与量子门</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">测量与读出</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qram.html">QRAM 操作</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arithmetic.html">量子算术与状态整理</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_ops.html">寄存器/系统操作与调试</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithms.html">算法库（顶层）</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">块编码（BlockEncoding/）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qda.html">离散绝热（DiscreteAdiabatic/）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cuda.html">CUDA 后端</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings.html">Python 绑定层（C++ 侧）</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">交互教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/01_quickstart.html">PySparQ 快速入门</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/02_sparse_state_evolution.html">稀疏态演化示例</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/03_operator_examples.html">算子使用示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API 参考</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API 参考</a><input aria-label="Toggle navigation of API 参考" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/python.html">Python API 参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/dynamic_operator.html">动态算子 API 参考</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/rir.html">RIR 解释器 API 参考</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/autoapi_index.html">全部符号（自动生成）</a><input aria-label="Toggle navigation of 全部符号（自动生成）" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/PySparQ/pysparq/index.html">PySparQ.pysparq</a><input aria-label="Toggle navigation of PySparQ.pysparq" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/index.html">PySparQ.pysparq.algorithms</a><input aria-label="Toggle navigation of PySparQ.pysparq.algorithms" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/block_encoding/index.html">PySparQ.pysparq.algorithms.block_encoding</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/cks_solver/index.html">PySparQ.pysparq.algorithms.cks_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/grover/index.html">PySparQ.pysparq.algorithms.grover</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/qda_solver/index.html">PySparQ.pysparq.algorithms.qda_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/qram_utils/index.html">PySparQ.pysparq.algorithms.qram_utils</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/shor/index.html">PySparQ.pysparq.algorithms.shor</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/algorithms/state_preparation/index.html">PySparQ.pysparq.algorithms.state_preparation</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/PySparQ/pysparq/conformance/index.html">PySparQ.pysparq.conformance</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/PySparQ/pysparq/dynamic_operator/index.html">PySparQ.pysparq.dynamic_operator</a><input aria-label="Toggle navigation of PySparQ.pysparq.dynamic_operator" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/dynamic_operator/compiler/index.html">PySparQ.pysparq.dynamic_operator.compiler</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/dynamic_operator/operator_wrapper/index.html">PySparQ.pysparq.dynamic_operator.operator_wrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/PySparQ/pysparq/operators/index.html">PySparQ.pysparq.operators</a><input aria-label="Toggle navigation of PySparQ.pysparq.operators" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/operators/base/index.html">PySparQ.pysparq.operators.base</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/operators/condition_mixin/index.html">PySparQ.pysparq.operators.condition_mixin</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/PySparQ/pysparq/rir/index.html">PySparQ.pysparq.rir</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/PySparQ/pysparq/test/index.html">PySparQ.pysparq.test</a><input aria-label="Toggle navigation of PySparQ.pysparq.test" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/PySparQ/pysparq/test/conftest/index.html">PySparQ.pysparq.test.conftest</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/sphinx/source/zh/cpp_api/block_encoding.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IAI-USTC-Quantum/SparQSim/edit/main/docs/sphinx/source/zh/cpp_api/block_encoding.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="blockencoding">
+<h1>块编码（BlockEncoding/）<a class="headerlink" href="#blockencoding" title="链接到此标题。">¶</a></h1>
+<p>含可运行 Python 代码的概念讲解见示例指南中的 <a class="reference internal" href="../guide/examples.html"><span class="doc">示例 4</span></a>。</p>
+<section id="sparq-algorithm-include-blockencoding-block-encoding-tridiagonal-h">
+<h2>三对角矩阵块编码（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/block_encoding_tridiagonal.h</span></code>）<a class="headerlink" href="#sparq-algorithm-include-blockencoding-block-encoding-tridiagonal-h" title="链接到此标题。">¶</a></h2>
+<p>Quantum block encoding of tridiagonal matrices. </p>
+<p>Implements the block encoding of the symmetric tridiagonal matrix A = αI + βT (T is the shift matrix whose sub- and super-diagonals are all 1). Based on the LCU (linear combination of unitaries) decomposition A = αI + βU₊ + βU₋: after the ancilla register prepares the LCU amplitudes, the conditional shift gates (PlusOneAndOverflow) execute the +1/-1 shift branches, and the final unitary U satisfies (⟨0|_{anc}⊗I) U (|0|_{anc}⊗I) = (αI + βU₊ + βU₋)/‖A‖_F. This block encoding is a core submodule of the tridiagonal version (qda_tridiagonal.h) of the QDA discrete adiabatic solver </p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv414qram_simulator">
+<span class="target" id="namespaceqram__simulator"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">qram_simulator</span></span></span><br /></dt>
+<dd><p>QRAM sparse state simulator namespace. </p>
+<p>Contains all classes, functions, and data structures related to quantum computing simulation </p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encodingE">
+<span class="target" id="namespaceqram__simulator_1_1block__encoding"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">block_encoding</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encodingE" title="链接到此定义。">¶</a><br /></dt>
+<dd><dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonalE">
+<span class="target" id="namespaceqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">block_encoding_tridiagonal</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonalE" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal30get_block_encoding_tridiagonalE6size_tdd">
+<span class="target" id="block__encoding__tridiagonal_8h_1a5956ba41d36ece0e99828e80093aa432"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">DenseMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_block_encoding_tridiagonal</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">qubit_num</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">alpha</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">beta</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal30get_block_encoding_tridiagonalE6size_tdd" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Extract the encoded block matrix of the tridiagonal block encoding (numerical verification helper) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qubit_num</strong> -- Number of qubits n of the main register </p></li>
+<li><p><strong>alpha</strong> -- Diagonal-entry coefficient α </p></li>
+<li><p><strong>beta</strong> -- Off-diagonal-entry coefficient β </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Real matrix of the encoded block (⟨0|_{anc}⊗I) U (|0|_{anc}⊗I) with dimension 2^n × 2^n; its theoretical value is (αI + βT)/‖αI + βT‖_F </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal22get_tridiagonal_matrixEdd6size_t">
+<span class="target" id="block__encoding__tridiagonal_8h_1a80dddc0585e5c632331c11e30ead50d3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">DenseMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_tridiagonal_matrix</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">alpha</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">beta</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dim</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal22get_tridiagonal_matrixEdd6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Construct the classical tridiagonal matrix αI + βT. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> -- Diagonal-entry coefficient α </p></li>
+<li><p><strong>beta</strong> -- Off-diagonal-entry coefficient β </p></li>
+<li><p><strong>dim</strong> -- Matrix dimension </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>dim × dim tridiagonal matrix with α on the main diagonal and β on the off-diagonals </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal10Get_U_plusE11DenseMatrixI2TyE6size_t">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="block__encoding__tridiagonal_8h_1a815962b5f03a7f8e4d267b06716917d3"></span><span class="n"><span class="pre">DenseMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal10Get_U_plusE11DenseMatrixI2TyE6size_t" title="qram_simulator::block_encoding::block_encoding_tridiagonal::Get_U_plus::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Get_U_plus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal10Get_U_plusE11DenseMatrixI2TyE6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Construct the down-shift matrix U₊ (U₊[i, i-1] = 1, i.e., the sub-diagonal is 1) </p>
+<dl class="field-list simple">
+<dt class="field-odd">模板参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Ty</strong> -- Matrix element type </p>
+</dd>
+<dt class="field-even">参数<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>size</strong> -- Matrix dimension </p>
+</dd>
+<dt class="field-odd">返回<span class="colon">:</span></dt>
+<dd class="field-odd"><p>size × size down-shift matrix </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal11Get_U_minusE11DenseMatrixI2TyE6size_t">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="block__encoding__tridiagonal_8h_1aea05f3529e81f707980006f5c24edc1f"></span><span class="n"><span class="pre">DenseMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal11Get_U_minusE11DenseMatrixI2TyE6size_t" title="qram_simulator::block_encoding::block_encoding_tridiagonal::Get_U_minus::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Get_U_minus</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal11Get_U_minusE11DenseMatrixI2TyE6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Construct the up-shift matrix U₋ (U₋[i, i+1] = 1, i.e., the super-diagonal is 1) </p>
+<dl class="field-list simple">
+<dt class="field-odd">模板参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Ty</strong> -- Matrix element type </p>
+</dd>
+<dt class="field-even">参数<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>size</strong> -- Matrix dimension </p>
+</dd>
+<dt class="field-odd">返回<span class="colon">:</span></dt>
+<dd class="field-odd"><p>size × size up-shift matrix </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_TridiagonalE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Block_Encoding_Tridiagonal</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="algorithms.html#_CPPv414qram_simulator" title="qram_simulator"><span class="n"><span class="pre">qram_simulator</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator12BaseOperatorE" title="qram_simulator::BaseOperator"><span class="n"><span class="pre">BaseOperator</span></span></a><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_TridiagonalE" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;block_encoding_tridiagonal.h&gt;</em></div>
+<p>Block encoding operator for the tridiagonal matrix A = αI + βT. </p>
+<p>Decomposes A = αI + βU₊ + βU₋ as an LCU: on the 4-qubit ancilla register anc_UA it prepares the amplitude vector prep_state = {√|α|/s, √|β|/s, √|β|/s, √(1-(|α|+2|β|)/s)}, where s = ‖A‖_F = sqrt(N|α|² + 2(N-1)|β|²) is the Frobenius norm (N = 2^n is the main register dimension). The branches respectively perform the identity / +1 shift / -1 shift / annihilation operations, so that the unitary U satisfies the block encoding definition (⟨0|_{anc}⊗I) U (|0|_{anc}⊗I) = (αI + βU₊ + βU₋)/s, i.e., the encoding scale factor is s. When β &lt; 0 an additional conditional reflection is inserted to correct the sign of the shift branches. Supports conditional control (ClassControllable) </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal26Block_Encoding_TridiagonalENSt11string_viewENSt11string_viewEdd">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1aaf978c0f501e5d6dcf22022d08e381fd"></span><span class="n"><span class="pre">ClassControllable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Block_Encoding_Tridiagonal</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">main_reg_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">anc_UA_</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">alpha_</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">beta_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal26Block_Encoding_TridiagonalENSt11string_viewENSt11string_viewEdd" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Constructor (computes the LCU state preparation amplitudes) </p>
+<div class="admonition note">
+<p class="admonition-title">备注</p>
+<p>The concrete implementation of the amplitude computation is in block_encoding_tridiagonal.cpp </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_reg_</strong> -- Main register name </p></li>
+<li><p><strong>anc_UA_</strong> -- Block encoding ancilla register name (4 qubits) </p></li>
+<li><p><strong>alpha_</strong> -- Diagonal-entry coefficient α </p></li>
+<li><p><strong>beta_</strong> -- Off-diagonal-entry coefficient β </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4implEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1a45c11769b8b0074c1e96625289ea7d1f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4implEvR2Ty" title="qram_simulator::block_encoding::block_encoding_tridiagonal::Block_Encoding_Tridiagonal::impl::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4implEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Block encoding circuit implementation (forward) </p>
+<p>
+Flow: split the ancilla register → LCU state preparation → conditional ±1 shift (with an additional reflection to correct the sign when β &lt; 0) → annihilation branch → inverse state preparation and register merging </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8impl_dagEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1a72a5358a6590c0fdc5666f5cbdcedcb5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl_dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8impl_dagEvR2Ty" title="qram_simulator::block_encoding::block_encoding_tridiagonal::Block_Encoding_Tridiagonal::impl_dag::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8impl_dagEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Block encoding circuit implementation (dagger, reverse) </p>
+<p>
+Same circuit composition as impl, but with the execution order of the shift branches and the order of the reflections reversed </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal5alphaE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1ad17196f7fe8a9fec332895c225ba3d87"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">alpha</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal5alphaE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Diagonal-entry coefficient α </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4betaE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1a32840663f64720103fd23d3e640d1f20"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">beta</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4betaE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Off-diagonal-entry coefficient β </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8main_regE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1a2b80af74d86f989110903cfa3993d42d"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">main_reg</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8main_regE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Main register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal6anc_UAE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1aee61c2877f7a8353593827dba4f99529"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">anc_UA</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal6anc_UAE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Block encoding ancilla register name (4 qubits) </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal10prep_stateE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_block___encoding___tridiagonal_1ae0810983a74f938b110d965fd95e9c64"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">complex_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">prep_state</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal10prep_stateE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>LCU state preparation amplitude vector (square roots of the branch coefficients) </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlusOneAndOverflow</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="algorithms.html#_CPPv414qram_simulator" title="qram_simulator"><span class="n"><span class="pre">qram_simulator</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator12BaseOperatorE" title="qram_simulator::BaseOperator"><span class="n"><span class="pre">BaseOperator</span></span></a><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowE" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;block_encoding_tridiagonal.h&gt;</em></div>
+<p>Modular shift gate that increments by one and records overflow. </p>
+<p>Performs a +1 operation on the main register: when the main register reaches the maximum value 2^n - 1 it wraps around to 0 and flips the overflow bit. This gate corresponds to the action of the shift matrices U₊/U₋ and is the basic building block for constructing the conditional shift branches in the tridiagonal block encoding. Supports conditional control (ClassControllable) </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow18PlusOneAndOverflowENSt11string_viewENSt11string_viewE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1acc9bc8a8f563fcf67bf49636230824fa"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PlusOneAndOverflow</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">main_reg_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">overflow_</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow18PlusOneAndOverflowENSt11string_viewENSt11string_viewE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_reg_</strong> -- Main register name </p></li>
+<li><p><strong>overflow_</strong> -- Overflow-bit register name </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowclERNSt6vectorI6SystemEE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1a9f89f4ab279ba1543dbed1438a716cd1"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator6SystemE" title="qram_simulator::System"><span class="n"><span class="pre">System</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowclERNSt6vectorI6SystemEE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Apply the increment-by-one shift operation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagERNSt6vectorI6SystemEE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1a67019bc8b02bc12374bc1f9fa1026390"></span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator6SystemE" title="qram_simulator::System"><span class="n"><span class="pre">System</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagERNSt6vectorI6SystemEE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Apply the dagger operation (decrement-by-one shift) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1ad0d453258df35ed923fb28f3722cf03b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator6SystemE" title="qram_simulator::System"><span class="n"><span class="pre">System</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><br /></dt>
+<dd><p>Apply the conjugate transpose (dagger) operation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector </p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">Throws</span></span></span> -- a not-implemented exception by default </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagER11SparseState">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1aebf7b904639fed5c70a8b1ba1824618b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">virtual</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator11SparseStateE" title="qram_simulator::SparseState"><span class="n"><span class="pre">SparseState</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagER11SparseState" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Apply dagger to a <a class="reference internal" href="core.html#structqram__simulator_1_1_sparse_state"><span class="std std-ref">SparseState</span></a>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- Sparse state </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1a619ba66916faea9816a68a9dc40ad12a"></span><span class="sig-name descname"><span class="pre">ClassControllable</span> <span class="pre">std::string</span> <span class="pre">main_reg</span></span></dt>
+<dd><p>Name of the main register to be shifted. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow8overflowE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__tridiagonal_1_1_plus_one_and_overflow_1a0215ba0f01608ae73bef7b828bd064e4"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">overflow</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow8overflowE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Overflow-bit register name (flipped when wrap-around occurs) </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="qram-sparq-algorithm-include-blockencoding-block-encoding-via-qram-h">
+<h2>基于 QRAM 的块编码（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/block_encoding_via_QRAM.h</span></code>）<a class="headerlink" href="#qram-sparq-algorithm-include-blockencoding-block-encoding-via-qram-h" title="链接到此标题。">¶</a></h2>
+<p>QRAM-based block encoding of arbitrary matrices. </p>
+<p>Constructs the block encoding of a matrix A via the U_L / U_R quantum walk decomposition: U_L|col⟩|0⟩ = |col⟩|a_col⟩ prepares the normalized column vector indexed by the column index, U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩ prepares the column-norm distribution, and their combination U_A = SWAP(row, col) · U_R†(col) · U_L(row, col) satisfies ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij, with the data provided by the QRAM hierarchy tree nodes. Used together with make_qram.h (data quantization and tree construction) </p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp">
+<span class="target" id="id1"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">qram_simulator</span></span></span><br /></dt>
+<dd><p>QRAM sparse state simulator namespace. </p>
+<p>Contains all classes, functions, and data structures related to quantum computing simulation </p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp">
+<span class="target" id="id0"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">block_encoding</span></span></span><br /></dt>
+<dd><dl class="cpp type">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAME">
+<span class="target" id="namespaceqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">block_encoding_via_QRAM</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAME" title="链接到此定义。">¶</a><br /></dt>
+<dd><dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAME">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Block_Encoding_via_QRAM</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="algorithms.html#_CPPv414qram_simulator" title="qram_simulator"><span class="n"><span class="pre">qram_simulator</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator12BaseOperatorE" title="qram_simulator::BaseOperator"><span class="n"><span class="pre">BaseOperator</span></span></a><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAME" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;block_encoding_via_QRAM.h&gt;</em></div>
+<p>QRAM-based matrix block encoding operator U_A. </p>
+<p>Combines U_A = SWAP(row, col) · U_R†(col) · U_L(row, col), which satisfies the block encoding definition U_A|φ⟩_col|0⟩_row = A|φ⟩_col|0⟩_row + |ψ⊥⟩, i.e., ⟨i|_col⟨0|_row U_A |j⟩_col|0⟩_row = A_ij (the encoding scale is determined by the normalization factor stored at the QRAM tree root). Supports conditional control (ClassControllable) </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM23Block_Encoding_via_QRAMEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a1f62c8db44cff5fd9f775a64ca35b412"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ClassControllable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Block_Encoding_via_QRAM</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">qram_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">column_index_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">row_index_</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dsz</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rsz</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM23Block_Encoding_via_QRAMEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qram_</strong> -- QRAM circuit pointer </p></li>
+<li><p><strong>column_index_</strong> -- Column index register name </p></li>
+<li><p><strong>row_index_</strong> -- Row index register name </p></li>
+<li><p><strong>dsz</strong> -- Data register width </p></li>
+<li><p><strong>rsz</strong> -- Rational register width </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4implEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a33df7cd9f4b6621f907655e7f7d725e4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4implEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::Block_Encoding_via_QRAM::impl::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4implEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Block encoding circuit implementation (forward): <a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l"><span class="std std-ref">U_L</span></a> → U_R† → SWAP. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM8impl_dagEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a62b5040f07dc4f24836def019ae73ca9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl_dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM8impl_dagEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::Block_Encoding_via_QRAM::impl_dag::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM8impl_dagEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Block encoding circuit implementation (dagger): SWAP → <a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r"><span class="std std-ref">U_R</span></a> → U_L† </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM12column_indexE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a7aaa11c96de30aa3c516513f1f7e21c2"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">column_index</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM12column_indexE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Column index register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9row_indexE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a14d3b0ef2ee155159e2225feb54924cf"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">row_index</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9row_indexE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Row index register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9addr_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a5422d052720ebe012c161a9e49fb6bbe"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">addr_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9addr_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>One-sided address register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9data_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a9795669c5322b3b9e4838974d838c0dc"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">data_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9data_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Data register width (fixed-point quantization bit count) </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM13rational_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1a1c53f8088dc8a6fa233326be93a5fce8"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rational_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM13rational_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Rational (rotation angle) register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4qramE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_block___encoding__via___q_r_a_m_1adb9af462c413958e302bdedadf7b7378"></span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">qram</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4qramE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>QRAM circuit pointer (stores the tree structure of matrix A) </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_LE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">U_L</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="algorithms.html#_CPPv414qram_simulator" title="qram_simulator"><span class="n"><span class="pre">qram_simulator</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator12BaseOperatorE" title="qram_simulator::BaseOperator"><span class="n"><span class="pre">BaseOperator</span></span></a><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_LE" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;block_encoding_via_QRAM.h&gt;</em></div>
+<p>Left-multiplication operator <a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l"><span class="std std-ref">U_L</span></a> (prepares the normalized column vector indexed by the column index) </p>
+<p>Implements U_L|col⟩|0⟩ = |col⟩|a_col⟩ (|a_col⟩ is the normalized quantum state corresponding to column col): iterate over the top addr_size bits of the row address register; each step concatenates the row/column indices into the parent/child addresses of the QRAM tree nodes (addr_child = 2·addr_parent + 1), loads the node values, computes the rotation angle and rotates conditionally while descending layer by layer; the last layer (the leaf layer) instead uses <a class="reference internal" href="arithmetic.html#structqram__simulator_1_1_get_rotate_angle___int___int"><span class="std std-ref">GetRotateAngle_Int_Int</span></a> with an atan2-type angle to handle signs. Supports conditional control (ClassControllable) </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L3U_LEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a56a917c24913836ad6f8a67eca0d5c5d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ClassControllable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">U_L</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">qram_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">row_index_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">column_index_</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dsz</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rsz</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L3U_LEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qram_</strong> -- QRAM circuit pointer </p></li>
+<li><p><strong>row_index_</strong> -- Row index register name </p></li>
+<li><p><strong>column_index_</strong> -- Column index register name </p></li>
+<li><p><strong>dsz</strong> -- Data register width </p></li>
+<li><p><strong>rsz</strong> -- Rational register width </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4implEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a085dfccf905b06183532d427098137d7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4implEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::U_L::impl::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4implEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l"><span class="std std-ref">U_L</span></a> circuit implementation (forward) </p>
+<p>
+Bit-by-bit iteration: split off the rotation bit → concatenate the parent/child addresses → QRAM load → conditional rotation → uncompute to restore the addresses; non-final layers use Div_Sqrt_Arccos, the final layer uses GetRotateAngle </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L8impl_dagEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a96a51792db064ba591c3f877ffa1da01"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl_dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L8impl_dagEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::U_L::impl_dag::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L8impl_dagEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l"><span class="std std-ref">U_L</span></a> circuit implementation (dagger, reverse) </p>
+<p>
+Executes the inverse conditional rotations and uncomputations in the address-bit order opposite to impl </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9row_indexE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a3a9974f3e20259012ca20ef3ed0095f5"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">row_index</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9row_indexE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Row index register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L12column_indexE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a3d8d32e1c7f59410c6e7e26df5b01aad"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">column_index</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L12column_indexE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Column index register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9addr_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a1b510ec22a6d255ecdac787a284666f1"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">addr_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9addr_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>One-sided address register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9data_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a5e7b2bc327e71fe8b6983e8e388ec1f4"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">data_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9data_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Data register width (fixed-point quantization bit count) </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L13rational_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a80a5ccd642cba4c016cd511a79f04fc7"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rational_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L13rational_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Rational (rotation angle) register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4qramE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___l_1a5ed51b8c17291cd03295c2d44cd28adc"></span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">qram</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4qramE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>QRAM circuit pointer (stores the tree structure of matrix A) </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_RE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">U_R</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">public</span></span><span class="w"> </span><a class="reference internal" href="algorithms.html#_CPPv414qram_simulator" title="qram_simulator"><span class="n"><span class="pre">qram_simulator</span></span></a><span class="p"><span class="pre">::</span></span><a class="reference internal" href="core.html#_CPPv4N14qram_simulator12BaseOperatorE" title="qram_simulator::BaseOperator"><span class="n"><span class="pre">BaseOperator</span></span></a><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_RE" title="链接到此定义。">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;block_encoding_via_QRAM.h&gt;</em></div>
+<p>Right-multiplication operator <a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r"><span class="std std-ref">U_R</span></a> (column-norm state preparation) </p>
+<p>Implements U_R|0⟩ = |A⟩ = Σ_i ‖a_i‖|i⟩ (a_i is the i-th column of A): iterate over the column address register bit by bit from the most significant to the least significant bit, use the parent/child node values of the QRAM loading tree, compute the rotation angle arccos(√(child/parent)) with <a class="reference internal" href="arithmetic.html#structqram__simulator_1_1_div___sqrt___arccos___u_int___u_int"><span class="std std-ref">Div_Sqrt_Arccos_UInt_UInt</span></a> and perform a conditional rotation (CondRot_Fixed_Bool), preparing the normalized column-norm superposition state from the tree root downward; after each step the ancilla registers are cleaned up by uncomputing step by step. Supports conditional control (ClassControllable) </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R3U_REPN11qram_qutrit11QRAMCircuitENSt11string_viewE6size_t6size_t">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1ab5049425b0d6d779b9103550fb5ca935"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">ClassControllable</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">U_R</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">qram_</span></span>, <a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">column_index_</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dsz</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">rsz</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R3U_REPN11qram_qutrit11QRAMCircuitENSt11string_viewE6size_t6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Constructor. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qram_</strong> -- QRAM circuit pointer </p></li>
+<li><p><strong>column_index_</strong> -- Column index register name </p></li>
+<li><p><strong>dsz</strong> -- Data register width </p></li>
+<li><p><strong>rsz</strong> -- Rational register width </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4implEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a2324fae13f78611ae45d592b980e07f5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4implEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::U_R::impl::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4implEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r"><span class="std std-ref">U_R</span></a> circuit implementation (forward) </p>
+<p>
+One iteration per address bit: split off the rotation bit → concatenate the parent/child addresses → QRAM-load the node values → compute the rotation angle and rotate conditionally → uncompute to restore the address and data registers </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R8impl_dagEvR2Ty">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Ty</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a949ecd0cee74a5a9a47e199163398890"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">impl_dag</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R8impl_dagEvR2Ty" title="qram_simulator::block_encoding::block_encoding_via_QRAM::U_R::impl_dag::Ty"><span class="n"><span class="pre">Ty</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">state</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R8impl_dagEvR2Ty" title="链接到此定义。">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r"><span class="std std-ref">U_R</span></a> circuit implementation (dagger, reverse) </p>
+<p>
+Executes the inverse conditional rotations and uncomputations in the address-bit order opposite to impl </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> -- <a class="reference internal" href="core.html#structqram__simulator_1_1_system"><span class="std std-ref">System</span></a> state vector</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R12column_indexE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1af776b906ae07f2053a07e90186495e1d"></span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">column_index</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R12column_indexE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Column index register name. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9addr_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a5be0790908ff9769559351c770180715"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">addr_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9addr_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Column address register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9data_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a0c2c19f7c26fc92daf61c5564da7b8ed"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">data_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9data_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Data register width (fixed-point quantization bit count) </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R13rational_sizeE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a798924df250881b60dc0eed799df99d7"></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rational_size</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R13rational_sizeE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Rational (rotation angle) register width. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4qramE">
+<span class="target" id="structqram__simulator_1_1block__encoding_1_1block__encoding__via___q_r_a_m_1_1_u___r_1a8dceeb17f25b0a314bde65b84d552a96"></span><span class="n"><span class="pre">qram_qutrit</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">QRAMCircuit</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">qram</span></span></span><a class="headerlink" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4qramE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>QRAM circuit pointer (stores the column-norm tree) </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="qram-sparq-algorithm-include-blockencoding-make-qram-h">
+<h2>QRAM 构造工具（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/make_qram.h</span></code>）<a class="headerlink" href="#qram-sparq-algorithm-include-blockencoding-make-qram-h" title="链接到此标题。">¶</a></h2>
+<p>QRAM data preparation utilities (classical side) </p>
+<p>Provides the conversion from floating-point matrices/vectors to QRAM fixed-point two's-complement data (the scaleAndConvertVector family) as well as the construction of the QRAM hierarchy tree (make_vector_tree): parents of the leaf layer store the sum of squares of their two children's two's-complement values, and the remaining internal nodes store the direct sum of their children. The generated tree is used by QRAMCircuit_qutrit for state preparation and block encoding conditional rotations (Div_Sqrt_Arccos / CondRot_Fixed_Bool, see block_encoding_via_QRAM.h) </p>
+<dl class="cpp type">
+<dt class="sig sig-object cpp">
+<span class="target" id="id2"></span><span class="k"><span class="pre">namespace</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">qram_simulator</span></span></span><br /></dt>
+<dd><p>QRAM sparse state simulator namespace. </p>
+<p>Contains all classes, functions, and data structures related to quantum computing simulation </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator18get_column_flattenERKNSt6vectorIdEE">
+<span class="target" id="namespaceqram__simulator_1ac53701ecbbce05f86d4e289f81b210a5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">get_column_flatten</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">row_vec</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator18get_column_flattenERKNSt6vectorIdEE" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Convert a row-major flattened matrix to column-major flattened form (i.e. transpose the matrix) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>row_vec</strong> -- Data of an n×n square matrix flattened in row-major order </p>
+</dd>
+<dt class="field-even">抛出<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">Throws</span></span></span> -- an exception if the input length is not a perfect square </p>
+</dd>
+<dt class="field-odd">返回<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The same data flattened in column-major order </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator21scaleAndConvertVectorERKNSt6vectorIdEEi6size_tb">
+<span class="target" id="namespaceqram__simulator_1a76b26ee0e6d7b80be0cbe8e3a81017ac"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scaleAndConvertVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">input_vec</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">exponent</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">from_matrix</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">true</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERKNSt6vectorIdEEi6size_tb" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Scale and quantize to fixed-point two's complement (std::vector version) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_vec</strong> -- Input floating-point data (a flattened matrix or a plain vector) </p></li>
+<li><p><strong>exponent</strong> -- Scaling exponent (each element is first multiplied by 2^exponent) </p></li>
+<li><p><strong>data_size</strong> -- Target fixed-point bit width </p></li>
+<li><p><strong>from_matrix</strong> -- When true the input is treated as a row-major flattened matrix and transposed to column-major first; when false it is treated as a plain vector and quantized directly </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Unsigned integer vector with the quantized values encoded as data_size-bit two's complement </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseVectorIdEi6size_t">
+<span class="target" id="namespaceqram__simulator_1ada804ae50653eaf5679cce001aee12b4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scaleAndConvertVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">DenseVector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">input_vec</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">exponent</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseVectorIdEi6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Scale and quantize to fixed-point two's complement (DenseVector version, no transpose) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_vec</strong> -- Input floating-point vector </p></li>
+<li><p><strong>exponent</strong> -- Scaling exponent (each element is first multiplied by 2^exponent) </p></li>
+<li><p><strong>data_size</strong> -- Target fixed-point bit width </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Unsigned integer vector with the quantized values encoded as data_size-bit two's complement </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseMatrixIdEi6size_t">
+<span class="target" id="namespaceqram__simulator_1ae44b76251c1e565f8f0294c5e9fedaeb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">scaleAndConvertVector</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">DenseMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">input_vec</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">exponent</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseMatrixIdEi6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Scale and quantize to fixed-point two's complement (DenseMatrix version, transposed to column-major first) </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_vec</strong> -- Input floating-point square matrix </p></li>
+<li><p><strong>exponent</strong> -- Scaling exponent (each element is first multiplied by 2^exponent) </p></li>
+<li><p><strong>data_size</strong> -- Target fixed-point bit width </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Unsigned integer vector of two's-complement-encoded quantized values after column-major flattening </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N14qram_simulator16make_vector_treeERKNSt6vectorI8uint64_tEE6size_t">
+<span class="target" id="namespaceqram__simulator_1a2594c591660e71032808847175caaab1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">make_vector_tree</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="bindings.html#_CPPv4St" title="std"><span class="n"><span class="pre">std</span></span></a><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint64_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dist</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">data_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N14qram_simulator16make_vector_treeERKNSt6vectorI8uint64_tEE6size_t" title="链接到此定义。">¶</a><br /></dt>
+<dd><p>Build the QRAM hierarchy tree bottom-up from the leaf data. </p>
+<dl class="field-list simple">
+<dt class="field-odd">参数<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dist</strong> -- Leaf-layer data (two's-complement integers output by scaleAndConvertVector) </p></li>
+<li><p><strong>data_size</strong> -- Fixed-point bit width (the leaf layer uses get_complement to restore the true values) </p></li>
+</ul>
+</dd>
+<dt class="field-even">返回<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tree node array flattened in level (breadth-first) order: [top internal nodes, ..., leaves, 0], where the parents of the leaf layer store the sum of squares of their two children's two's-complement true values (squared norms), the remaining internal nodes store the sum of their children, and a trailing 0 is appended as a placeholder slot </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="qda.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">离散绝热（DiscreteAdiabatic/）</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="algorithms.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">算法库（顶层）</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2026, IAI-USTC-Quantum
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">块编码（BlockEncoding/）</a><ul>
+<li><a class="reference internal" href="#sparq-algorithm-include-blockencoding-block-encoding-tridiagonal-h">三对角矩阵块编码（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/block_encoding_tridiagonal.h</span></code>）</a><ul>
+<li><a class="reference internal" href="#_CPPv414qram_simulator"><code class="docutils literal notranslate"><span class="pre">qram_simulator</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encodingE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonalE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_tridiagonal</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal30get_block_encoding_tridiagonalE6size_tdd"><code class="docutils literal notranslate"><span class="pre">get_block_encoding_tridiagonal()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal22get_tridiagonal_matrixEdd6size_t"><code class="docutils literal notranslate"><span class="pre">get_tridiagonal_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal10Get_U_plusE11DenseMatrixI2TyE6size_t"><code class="docutils literal notranslate"><span class="pre">Get_U_plus()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0EN14qram_simulator14block_encoding26block_encoding_tridiagonal11Get_U_minusE11DenseMatrixI2TyE6size_t"><code class="docutils literal notranslate"><span class="pre">Get_U_minus()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_TridiagonalE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_tridiagonal::Block_Encoding_Tridiagonal</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal26Block_Encoding_TridiagonalENSt11string_viewENSt11string_viewEdd"><code class="docutils literal notranslate"><span class="pre">Block_Encoding_Tridiagonal()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4implEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8impl_dagEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl_dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal5alphaE"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal4betaE"><code class="docutils literal notranslate"><span class="pre">beta</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal8main_regE"><code class="docutils literal notranslate"><span class="pre">main_reg</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal6anc_UAE"><code class="docutils literal notranslate"><span class="pre">anc_UA</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal26Block_Encoding_Tridiagonal10prep_stateE"><code class="docutils literal notranslate"><span class="pre">prep_state</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_tridiagonal::PlusOneAndOverflow</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow18PlusOneAndOverflowENSt11string_viewENSt11string_viewE"><code class="docutils literal notranslate"><span class="pre">PlusOneAndOverflow()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflowclERNSt6vectorI6SystemEE"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagERNSt6vectorI6SystemEE"><code class="docutils literal notranslate"><span class="pre">dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow3dagER11SparseState"><code class="docutils literal notranslate"><span class="pre">dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding26block_encoding_tridiagonal18PlusOneAndOverflow8overflowE"><code class="docutils literal notranslate"><span class="pre">overflow</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qram-sparq-algorithm-include-blockencoding-block-encoding-via-qram-h">基于 QRAM 的块编码（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/block_encoding_via_QRAM.h</span></code>）</a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAME"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_via_QRAM</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAME"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_via_QRAM::Block_Encoding_via_QRAM</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM23Block_Encoding_via_QRAMEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t"><code class="docutils literal notranslate"><span class="pre">Block_Encoding_via_QRAM()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4implEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM8impl_dagEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl_dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM12column_indexE"><code class="docutils literal notranslate"><span class="pre">column_index</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9row_indexE"><code class="docutils literal notranslate"><span class="pre">row_index</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9addr_sizeE"><code class="docutils literal notranslate"><span class="pre">addr_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM9data_sizeE"><code class="docutils literal notranslate"><span class="pre">data_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM13rational_sizeE"><code class="docutils literal notranslate"><span class="pre">rational_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM23Block_Encoding_via_QRAM4qramE"><code class="docutils literal notranslate"><span class="pre">qram</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_LE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_via_QRAM::U_L</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L3U_LEPN11qram_qutrit11QRAMCircuitENSt11string_viewENSt11string_viewE6size_t6size_t"><code class="docutils literal notranslate"><span class="pre">U_L()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4implEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L8impl_dagEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl_dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9row_indexE"><code class="docutils literal notranslate"><span class="pre">row_index</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L12column_indexE"><code class="docutils literal notranslate"><span class="pre">column_index</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9addr_sizeE"><code class="docutils literal notranslate"><span class="pre">addr_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L9data_sizeE"><code class="docutils literal notranslate"><span class="pre">data_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L13rational_sizeE"><code class="docutils literal notranslate"><span class="pre">rational_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_L4qramE"><code class="docutils literal notranslate"><span class="pre">qram</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_RE"><code class="docutils literal notranslate"><span class="pre">qram_simulator::block_encoding::block_encoding_via_QRAM::U_R</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R3U_REPN11qram_qutrit11QRAMCircuitENSt11string_viewE6size_t6size_t"><code class="docutils literal notranslate"><span class="pre">U_R()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4implEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I0ENK14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R8impl_dagEvR2Ty"><code class="docutils literal notranslate"><span class="pre">impl_dag()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R12column_indexE"><code class="docutils literal notranslate"><span class="pre">column_index</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9addr_sizeE"><code class="docutils literal notranslate"><span class="pre">addr_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R9data_sizeE"><code class="docutils literal notranslate"><span class="pre">data_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R13rational_sizeE"><code class="docutils literal notranslate"><span class="pre">rational_size</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator14block_encoding23block_encoding_via_QRAM3U_R4qramE"><code class="docutils literal notranslate"><span class="pre">qram</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qram-sparq-algorithm-include-blockencoding-make-qram-h">QRAM 构造工具（<code class="docutils literal notranslate"><span class="pre">SparQ_Algorithm/include/BlockEncoding/make_qram.h</span></code>）</a><ul>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator18get_column_flattenERKNSt6vectorIdEE"><code class="docutils literal notranslate"><span class="pre">get_column_flatten()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERKNSt6vectorIdEEi6size_tb"><code class="docutils literal notranslate"><span class="pre">scaleAndConvertVector()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseVectorIdEi6size_t"><code class="docutils literal notranslate"><span class="pre">scaleAndConvertVector()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator21scaleAndConvertVectorERK11DenseMatrixIdEi6size_t"><code class="docutils literal notranslate"><span class="pre">scaleAndConvertVector()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N14qram_simulator16make_vector_treeERKNSt6vectorI8uint64_tEE6size_t"><code class="docutils literal notranslate"><span class="pre">make_vector_tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=be15abc5"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=08f3124f"></script>
+    <script src="../_static/translations.js?v=540d3cec"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

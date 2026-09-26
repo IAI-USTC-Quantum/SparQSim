@@ -1,0 +1,128 @@
+PySparQ.pysparq.rir
+===================
+
+.. py:module:: PySparQ.pysparq.rir
+
+.. autoapi-nested-parse::
+
+   Execute QECC.Lang RIR JSON documents directly on PySparQ sparse states.
+
+   RIR (the *QECC.Lang* intermediate representation produced by the
+   ``pyqecclang`` package) is a typed, register-level IR: programs declare named
+   registers with kinds (``bits`` / ``uint`` / ``sint`` / ``rational``) and
+   widths, QRAM resources, and a module graph whose bodies mix gate-level
+   primitives with structured control nodes (``Call`` / ``Repeat`` /
+   ``Control`` / ``Adjoint``).  This module turns PySparQ into a native RIR
+   backend: it loads the versioned JSON encoding (schema versions ``0.1``,
+   ``0.2`` and ``0.3``) and interprets it on :class:`pysparq.SparseState`,
+   *expanding modules at interpretation time* — calls are inlined through
+   register renaming, ``Repeat`` bodies are replayed, ``Adjoint`` walks the
+   body backwards with inverted operations, and ``Control`` accumulates
+   multi-bit conditions — while mapping register-level arithmetic onto native
+   PySparQ operators (``Add_ConstUInt_InPlace``, ``GlobalPhase``,
+   ``QRAMLoad``) whenever the RIR operand aligns with a whole register.
+
+   The interpreter is deliberately independent of ``pyqecclang`` itself: it
+   consumes only the JSON document, so the two implementations can be
+   cross-validated against each other and against the OriginIR-ext /
+   UnifiedQuantum path.
+
+   .. rubric:: Example
+
+   >>> import pysparq
+   >>> result = pysparq.run_rir(program_json, memory={"values": [1, 2, 3, 0]})
+   >>> result.amplitudes[(0, 1)]
+   (0.7071067811865476+0j)
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.rir.RIRError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.rir.RIRResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.rir.load_rir
+   PySparQ.pysparq.rir.run_rir
+   PySparQ.pysparq.rir.run_rir_file
+
+
+Module Contents
+---------------
+
+.. py:exception:: RIRError
+
+   Bases: :py:obj:`ValueError`
+
+
+   Raised for malformed RIR documents or execution-limit violations.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:class:: RIRResult
+
+   Outcome of an RIR execution.
+
+   ``registers`` lists the entry-module registers as ``(name, width)``
+   pairs in declaration order; ``amplitudes`` maps each tuple of register
+   integer values (same order) to its complex amplitude.
+
+
+   .. py:method:: statevector(max_qubits: int = 20) -> list[complex]
+
+      Dense little-endian statevector over the entry registers.
+
+
+
+   .. py:attribute:: amplitudes
+      :type:  dict[tuple[int, ...], complex]
+
+
+   .. py:attribute:: registers
+      :type:  tuple[tuple[str, int], ...]
+
+
+.. py:function:: load_rir(source: str | pathlib.Path | Mapping[str, Any]) -> dict[str, Any]
+
+   Load and minimally validate an RIR JSON document.
+
+   ``source`` may be a mapping that already holds the decoded document, a
+   filesystem path, or a JSON string.  Returns the decoded ``dict``.
+
+
+.. py:function:: run_rir(document: str | pathlib.Path | Mapping[str, Any], memory: Mapping[str, Any] | None = None, *, max_steps: int = 1000000, max_states: int = 65536) -> RIRResult
+
+   Execute an RIR document on a fresh :class:`pysparq.SparseState`.
+
+   :param document: RIR JSON as a decoded mapping, JSON string, or file path.
+   :param memory: QRAM contents keyed by resource name; each value is a word
+                  sequence or a sparse ``{address: word}`` mapping.
+   :param max_steps: expansion budget over the module graph (calls, repeats and
+                     controlled regions); exceeded budgets raise :class:`RIRError`.
+   :param max_states: sparse-state budget (number of basis states); exceeded
+                      budgets raise :class:`RIRError`.
+
+   :returns: :class:`RIRResult` with per-register integer amplitudes.
+
+
+.. py:function:: run_rir_file(path: str | pathlib.Path, memory: Mapping[str, Any] | None = None, *, max_steps: int = 1000000, max_states: int = 65536) -> RIRResult
+
+   Convenience wrapper: load an RIR JSON file and execute it.
+
+

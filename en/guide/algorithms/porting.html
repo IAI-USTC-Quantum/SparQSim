@@ -1,0 +1,1408 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Dynamic Operator Extension" href="../dynamic_operators.html"><link rel="prev" title="Algorithm Guide" href="index.html">
+
+    <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>Algorithm Porting Guide - SparQ Documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  --color-brand-primary: #2563eb;
+  --color-brand-content: #1d4ed8;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #3b82f6;
+  --color-brand-content: #60a5fa;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">SparQ Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <span class="sidebar-brand-text">SparQ Documentation</span>
+  
+</a>
+<div class="sidebar-langswitch">
+  <span class="sidebar-langswitch-label">Language:</span>
+  <a href="../../../zh/guide/algorithms/porting.html">中文</a>
+  <span class="sidebar-langswitch-sep">·</span>
+  <strong>English</strong>
+</div><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">SparQSim Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Algorithm Guide</a><input aria-label="Toggle navigation of Algorithm Guide" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Algorithm Porting Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../dynamic_operators.html">Dynamic Operator Extension</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rir.html">RIR Interpretive Execution</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../core_concepts/index.html">Core Concepts</a><input aria-label="Toggle navigation of Core Concepts" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core_concepts/system.html">The System Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core_concepts/sparse_state.html">The SparseState Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core_concepts/register_management.html">Register Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core_concepts/register_types.html">Register Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core_concepts/operators.html">Operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/index.html">Quantum Algorithm Development Guide</a><input aria-label="Toggle navigation of Quantum Algorithm Development Guide" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../development/workflow.html">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/templates.html">Code Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/verification.html">Testing and Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/standards.html">Coding Standards</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Operator Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../operators/index.html">Operator Reference</a><input aria-label="Toggle navigation of Operator Reference" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/arithmetic.html">Arithmetic Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/gates.html">Basic Quantum Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/hadamard.html">Hadamard Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/qft.html">Quantum Fourier Transform (QFT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/condrot.html">Conditional Rotation Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/phase_ops.html">Phase and Reflection Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/rot_state_prep.html">Rotation and State Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/qram_ops.html">QRAM Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/system_ops.html">System Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/partial_trace.html">Partial Trace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/measurement.html">Mid-Circuit Measurement and Seeding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/sort_ops.html">Sorting Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/dark_magic.html">Dark Magic Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../operators/debug.html">Debugging Tools</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">C++ API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../cpp_api/index.html">C++ API Reference</a><input aria-label="Toggle navigation of C++ API Reference" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/core.html">Core Components and Quantum Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/measurement.html">Measurement and Readout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/qram.html">QRAM Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/arithmetic.html">Quantum Arithmetic and State Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/system_ops.html">Register/System Operations and Debugging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/algorithms.html">Algorithm Library (Top Level)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/block_encoding.html">Block Encoding (BlockEncoding/)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/qda.html">Discrete Adiabatic (DiscreteAdiabatic/)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/cuda.html">CUDA Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../cpp_api/bindings.html">Python Binding Layer (C++ Side)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Interactive Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/01_quickstart.html">PySparQ Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/02_sparse_state_evolution.html">Sparse State Evolution Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/03_operator_examples.html">Operator Usage Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/python.html">Python API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/dynamic_operator.html">Dynamic Operator API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/rir.html">RIR Interpreter API Reference</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/autoapi_index.html">All Symbols (auto-generated)</a><input aria-label="Toggle navigation of All Symbols (auto-generated)" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/index.html">PySparQ.pysparq</a><input aria-label="Toggle navigation of PySparQ.pysparq" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/index.html">PySparQ.pysparq.algorithms</a><input aria-label="Toggle navigation of PySparQ.pysparq.algorithms" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/block_encoding/index.html">PySparQ.pysparq.algorithms.block_encoding</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/cks_solver/index.html">PySparQ.pysparq.algorithms.cks_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/grover/index.html">PySparQ.pysparq.algorithms.grover</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/qda_solver/index.html">PySparQ.pysparq.algorithms.qda_solver</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/qram_utils/index.html">PySparQ.pysparq.algorithms.qram_utils</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/shor/index.html">PySparQ.pysparq.algorithms.shor</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/algorithms/state_preparation/index.html">PySparQ.pysparq.algorithms.state_preparation</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/conformance/index.html">PySparQ.pysparq.conformance</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/dynamic_operator/index.html">PySparQ.pysparq.dynamic_operator</a><input aria-label="Toggle navigation of PySparQ.pysparq.dynamic_operator" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/dynamic_operator/compiler/index.html">PySparQ.pysparq.dynamic_operator.compiler</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/dynamic_operator/operator_wrapper/index.html">PySparQ.pysparq.dynamic_operator.operator_wrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/operators/index.html">PySparQ.pysparq.operators</a><input aria-label="Toggle navigation of PySparQ.pysparq.operators" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/operators/base/index.html">PySparQ.pysparq.operators.base</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/operators/condition_mixin/index.html">PySparQ.pysparq.operators.condition_mixin</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/rir/index.html">PySparQ.pysparq.rir</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/test/index.html">PySparQ.pysparq.test</a><input aria-label="Toggle navigation of PySparQ.pysparq.test" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../autoapi/PySparQ/pysparq/test/conftest/index.html">PySparQ.pysparq.test.conftest</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/sphinx/source/en/guide/algorithms/porting.md?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/IAI-USTC-Quantum/SparQSim/edit/main/docs/sphinx/source/en/guide/algorithms/porting.md" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="algorithm-porting-guide">
+<h1>Algorithm Porting Guide<a class="headerlink" href="#algorithm-porting-guide" title="Link to this heading">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page mirrors the repository-level guide
+<a class="reference external" href="https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/algorithm-implementation.md">docs/algorithm-implementation.md</a>.
+That file is the authoritative version; edit it and refresh this copy when the docs site is rebuilt.</p>
+</div>
+<section id="quantum-algorithm-implementations-based-on-pysparq">
+<h2>Quantum Algorithm Implementations Based on PySparQ<a class="headerlink" href="#quantum-algorithm-implementations-based-on-pysparq" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://iai-ustc-quantum.github.io/SparQSim/zh/guide/algorithms/porting.html">简体中文</a></p>
+<p>This section documents in detail how PySparQ translates SparQ’s quantum algorithm experiment code (C++) into Python implementations one by one, covering the precise correspondence between the code and the quantum algorithm steps, register length management strategies, and the implementation workflow of each submodule.</p>
+<section id="coverage-overview-c-experiments-vs-pysparq-implementations">
+<h3>1. Coverage Overview: C++ Experiments vs PySparQ Implementations<a class="headerlink" href="#coverage-overview-c-experiments-vs-pysparq-implementations" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>C++ Experiment Code</p></th>
+<th class="head"><p>PySparQ Implementation File</p></th>
+<th class="head"><p>Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Grover</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/Grover/GroverTest.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PySparQ/pysparq/algorithms/grover.py</span></code></p></td>
+<td><p>✅ Complete replication</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Shor</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/Shor/ShorTest.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PySparQ/pysparq/algorithms/shor.py</span></code></p></td>
+<td><p>✅ Complete replication</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>QDA</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/QDA/QDATest/QDATest.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PySparQ/pysparq/algorithms/qda_solver.py</span></code></p></td>
+<td><p>✅ Primitive-level translation; readout post-processing to be completed</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>CKS</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/CKS/HamiltonianSimulationTest.cpp</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PySparQ/pysparq/algorithms/cks_solver.py</span></code></p></td>
+<td><p>✅ Primitive-level translation; LCU readout post-processing to be completed</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>QFT</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/QFT/QFTTest.cpp</span></code></p></td>
+<td><p>❌ No standalone module</p></td>
+<td><p>❌ Not yet implemented</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>GHZ</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/GHZ/GHZTest.cpp</span></code></p></td>
+<td><p>❌ None</p></td>
+<td><p>❌ Not yet implemented</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>QCNN</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Experiments/QCNN/QCNNTest.cpp</span></code> (disabled with <code class="docutils literal notranslate"><span class="pre">#if</span> <span class="pre">false</span></code>)</p></td>
+<td><p>❌ None</p></td>
+<td><p>❌ Not yet implemented</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Key findings:</strong></p>
+<ul class="simple">
+<li><p>Grover and Shor achieve a complete one-to-one correspondence and are currently the two most complete implementations in the PySparQ algorithm library</p></li>
+<li><p>The Python implementations of QDA and CKS do not call the C++ solvers directly; instead they compose PySparQ low-level primitives to replicate the register-level flow of the C++ code. What is currently unfinished is the measurement, post-selection, and readout of the linear-system solution vector</p></li>
+<li><p>The C++ implementations of QFT and GHZ are relatively simple, making them priority targets for completion next</p></li>
+<li><p>QCNN has been disabled on the C++ side; it must first be restored on the C++ side before being translated to Python</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="common-patterns-of-register-level-programming-in-quantum-algorithms">
+<h3>2. Common Patterns of Register Level Programming in Quantum Algorithms<a class="headerlink" href="#common-patterns-of-register-level-programming-in-quantum-algorithms" title="Link to this heading">¶</a></h3>
+<p>Before diving into each algorithm, we first summarize the common register management patterns used when implementing quantum algorithms in PySparQ.</p>
+<section id="division-of-register-roles">
+<h4>2.1 Division of Register Roles<a class="headerlink" href="#division-of-register-roles" title="Link to this heading">¶</a></h4>
+<p>Every quantum algorithm needs to define the following kinds of registers; understanding their roles is the key to understanding the implementation details:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Register Type</p></th>
+<th class="head"><p>Naming Pattern</p></th>
+<th class="head"><p>Length (bits)</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Main data register</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;main&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;addr&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">log₂(N)</span></code> (N is the problem size)</p></td>
+<td><p>Stores the algorithm’s main input, such as search-space addresses</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Data register</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;data&quot;</span></code></p></td>
+<td><p>Depends on the data range, usually 64</p></td>
+<td><p>Temporarily holds the data read from the QRAM</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Search-value register</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;target&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;search&quot;</span></code></p></td>
+<td><p>Same as data</p></td>
+<td><p>Holds the target value to search for / match</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Auxiliary ancilla register</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;anc_1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;anc_2&quot;</span></code>, etc.</p></td>
+<td><p>1, or the same as the main register</p></td>
+<td><p>Control flow, flag bits, conditional reflection</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Precision register</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;work_reg&quot;</span></code></p></td>
+<td><p>2×n (n is the main register width)</p></td>
+<td><p>Phase estimation, iteration counting</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="principles-for-choosing-register-lengths">
+<h4>2.2 Principles for Choosing Register Lengths<a class="headerlink" href="#principles-for-choosing-register-lengths" title="Link to this heading">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Main register width = ceil(log2(problem size N))
+Data register width = 64 (default value, large enough to hold the integers obtained after quantizing floating-point values)
+Precision register width = 2 × ceil(log2(N))  ← mainly used for phase estimation in Shor's algorithm
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">grover.py</span></code> (lines 256–283):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n_bits</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">n</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">1</span>   <span class="c1"># address register width</span>
+<span class="n">data_reg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"data"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># data register fixed at 64 bits</span>
+</pre></div>
+</div>
+</section>
+<section id="common-quantum-operation-pattern">
+<h4>2.3 Common Quantum Operation Pattern<a class="headerlink" href="#common-quantum-operation-pattern" title="Link to this heading">¶</a></h4>
+<p>Almost all algorithms follow this operation pattern:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ① Clear the system</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+<span class="c1"># ② Create the quantum state</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">()</span>
+
+<span class="c1"># ③ Add registers (chained call, returns the register ID)</span>
+<span class="n">addr_reg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"addr"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">n_bits</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+<span class="c1"># ④ Initialize (superposition / specified value)</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Int_Full</span><span class="p">(</span><span class="s2">"addr"</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>    <span class="c1"># full superposition</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">Init_Unsafe</span><span class="p">(</span><span class="s2">"target"</span><span class="p">,</span> <span class="n">target</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># specified value</span>
+
+<span class="c1"># ⑤ Algorithm main body (Oracle / Walk / quantum gate sequence)</span>
+<span class="n">grover_op</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># or walk_op(state)</span>
+
+<span class="c1"># ⑥ Measurement (partial trace)</span>
+<span class="n">measured_results</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">PartialTrace</span><span class="p">([</span><span class="o">...</span><span class="n">Registers</span><span class="o">...</span><span class="p">])(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="grover-quantum-search-algorithm">
+<h3>3. Grover Quantum Search Algorithm<a class="headerlink" href="#grover-quantum-search-algorithm" title="Link to this heading">¶</a></h3>
+<section id="algorithm-overview-and-mathematical-principles">
+<h4>3.1 Algorithm Overview and Mathematical Principles<a class="headerlink" href="#algorithm-overview-and-mathematical-principles" title="Link to this heading">¶</a></h4>
+<p>The Grover algorithm searches for M marked items among N unordered entries with complexity O(√(N/M)), a quadratic speedup over the classical O(N).</p>
+<p>Core iteration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>G = D · O
+</pre></div>
+</div>
+<p>where the Oracle O marks the target states (applying a negative phase), and the diffusion operator D amplifies the amplitudes.</p>
+</section>
+<section id="exact-correspondence-c-implementation-python">
+<h4>3.2 Exact Correspondence: C++ Implementation → Python<a class="headerlink" href="#exact-correspondence-c-implementation-python" title="Link to this heading">¶</a></h4>
+<p>The correspondence between the core logic of the C++ test (<code class="docutils literal notranslate"><span class="pre">GroverTest.cpp</span></code>, lines 272–355) and <code class="docutils literal notranslate"><span class="pre">grover.py</span></code>:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>C++ Code (GroverTest.cpp)</p></th>
+<th class="head"><p>PySparQ Implementation (grover.py)</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">qram_qutrit::QRAMCircuit</span> <span class="pre">qram(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.QRAMCircuit_qutrit(n_bits,</span> <span class="pre">data_size,</span> <span class="pre">memory)</span></code></p></td>
+<td><p>Quantum random access memory setup</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">System::add_register(&quot;addr&quot;,</span> <span class="pre">UnsignedInteger,</span> <span class="pre">addr_size)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.AddRegister(&quot;addr&quot;,</span> <span class="pre">ps.UnsignedInteger,</span> <span class="pre">n_bits)(state)</span></code></p></td>
+<td><p>Address register addition</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Init_Unsafe(&quot;target&quot;,</span> <span class="pre">search_target)(state)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.Init_Unsafe(&quot;search&quot;,</span> <span class="pre">target)(state)</span></code></p></td>
+<td><p>Search target initialization</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Hadamard_Int_Full(qram_addr_reg)(state)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.Hadamard_Int_Full(&quot;addr&quot;)(state)</span></code></p></td>
+<td><p>Create an equal-amplitude superposition state</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GroverOperator(&amp;qram,</span> <span class="pre">...)(state)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GroverOperator(qram,</span> <span class="pre">&quot;addr&quot;,</span> <span class="pre">&quot;data&quot;,</span> <span class="pre">&quot;search&quot;)(state)</span></code></p></td>
+<td><p>Full Grover iteration</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PartialTrace</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.PartialTrace([...])(state)</span></code></p></td>
+<td><p>Partial trace to obtain the measurement results</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="oracle-implementation-details-line-level-correspondence">
+<h4>3.3 Oracle Implementation Details (Line-Level Correspondence)<a class="headerlink" href="#oracle-implementation-details-line-level-correspondence" title="Link to this heading">¶</a></h4>
+<p>The C++ GroverTest.cpp contains no explicit Oracle comments, but <code class="docutils literal notranslate"><span class="pre">grover.h</span></code> (SparQ_Algorithm) defines the <code class="docutils literal notranslate"><span class="pre">GroverOracle</span></code> structure; the corresponding Python implementation is as follows:</p>
+<p><strong>Lines 82–113 (Oracle workflow):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># Step 1: QRAMLoad → |addr⟩|0⟩ → |addr⟩|memory[addr]⟩</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">QRAMLoad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qram</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: Create the comparison flag registers (less / equal)</span>
+    <span class="n">compare_less</span>  <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"compare_less"</span><span class="p">,</span>  <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">compare_equal</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"compare_equal"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 3: Compare data with target, producing the less/equal flags</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Compare_UInt_UInt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_reg</span><span class="p">,</span> <span class="n">compare_less</span><span class="p">,</span> <span class="n">compare_equal</span>
+    <span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 4: Apply a negative phase on match (marking)</span>
+    <span class="n">phase_flip</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">ZeroConditionalPhaseFlip</span><span class="p">([</span><span class="n">compare_equal</span><span class="p">])</span>
+    <span class="n">phase_flip</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 5: Reverse comparison (inverse operation, cleaning the auxiliary registers)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Compare_UInt_UInt</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_reg</span><span class="p">,</span> <span class="n">compare_less</span><span class="p">,</span> <span class="n">compare_equal</span>
+    <span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 6: Delete the temporary registers</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">RemoveRegister</span><span class="p">(</span><span class="n">compare_equal</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">RemoveRegister</span><span class="p">(</span><span class="n">compare_less</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+
+    <span class="c1"># Step 7: QRAMLoad self-inverse operation (QRAMLoad² = I)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">QRAMLoad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">qram</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">addr_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key design decisions:</strong></p>
+<ul class="simple">
+<li><p><strong>Three-step phase marking</strong>: QRAMLoad → Compare → PhaseFlip → Uncompute → QRAMLoad implements a phase oracle free of ancilla pollution</p></li>
+<li><p><strong>Compare_UInt_UInt</strong>: PySparQ directly compares the values of two registers and produces Boolean flag bits, with no need to compile into a quantum gate sequence — this is the core advantage of Register Level Programming</p></li>
+<li><p><strong>Temporary register management</strong>: every Oracle call temporarily creates <code class="docutils literal notranslate"><span class="pre">compare_less/equal</span></code> and immediately RemoveRegisters them after use, avoiding state-space blow-up</p></li>
+</ul>
+</section>
+<section id="diffusion-operator-implementation-details-lines-116171">
+<h4>3.4 Diffusion Operator Implementation Details (Lines 116–171)<a class="headerlink" href="#diffusion-operator-implementation-details-lines-116171" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Int_Full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addr_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># H</span>
+    <span class="n">phase_flip</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">ZeroConditionalPhaseFlip</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">addr_reg</span><span class="p">])</span>  <span class="c1"># P_0</span>
+    <span class="n">phase_flip</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>                     <span class="c1"># apply phase on |0⟩</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Int_Full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addr_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># H</span>
+</pre></div>
+</div>
+<p>Mathematically: <code class="docutils literal notranslate"><span class="pre">D</span> <span class="pre">=</span> <span class="pre">H</span> <span class="pre">·</span> <span class="pre">P_0</span> <span class="pre">·</span> <span class="pre">H</span> <span class="pre">=</span> <span class="pre">2|s⟩⟨s|</span> <span class="pre">-</span> <span class="pre">I</span></code> (a reflection about the uniform superposition state)</p>
+</section>
+<section id="complete-groveriterator-flow-lines-173222">
+<h4>3.5 Complete GroverIterator Flow (Lines 173–222)<a class="headerlink" href="#complete-groveriterator-flow-lines-173222" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># Each iteration: Oracle → Diffusion</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">oracle</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>       <span class="c1"># marking</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">diffusion</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>    <span class="c1"># amplitude amplification</span>
+</pre></div>
+</div>
+<p>Corresponds to the loop in the C++ test (lines 319–324):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n_repeats</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">qram_data_reg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AddRegister</span><span class="p">(</span><span class="s">"data"</span><span class="p">,</span><span class="w"> </span><span class="n">UnsignedInteger</span><span class="p">,</span><span class="w"> </span><span class="n">data_size</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span>
+<span class="w">    </span><span class="n">GroverOperator</span><span class="p">(</span><span class="o">&amp;</span><span class="n">qram</span><span class="p">,</span><span class="w"> </span><span class="n">qram_addr_reg</span><span class="p">,</span><span class="w"> </span><span class="n">qram_data_reg</span><span class="p">,</span><span class="w"> </span><span class="n">search_data_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span>
+<span class="w">    </span><span class="p">(</span><span class="n">RemoveRegister</span><span class="p">(</span><span class="n">qram_data_reg</span><span class="p">))(</span><span class="n">state</span><span class="p">);</span><span class="w">   </span><span class="c1">// clean up the temporary data register after each iteration</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="quantum-counting-grovercount-implementation-lines-314384">
+<h4>3.6 Quantum Counting: GroverCount Implementation (Lines 314–384)<a class="headerlink" href="#quantum-counting-grovercount-implementation-lines-314384" title="Link to this heading">¶</a></h4>
+<p>Corresponds to the C++ <code class="docutils literal notranslate"><span class="pre">grover_count_success_test</span></code> (lines 449–503):</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>C++ Code</p></th>
+<th class="head"><p>Python Implementation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">System::add_register(&quot;count&quot;,</span> <span class="pre">UnsignedInteger,</span> <span class="pre">count_precision)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.AddRegister(&quot;count&quot;,</span> <span class="pre">ps.UnsignedInteger,</span> <span class="pre">precision_bits)(state)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Hadamard_Int_Full(addr/count)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.Hadamard_Int_Full(&quot;count/addr&quot;)(state)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GroverCount(&amp;qram,</span> <span class="pre">count_reg,</span> <span class="pre">...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GroverOperator(...).conditioned_by_bit(&quot;count&quot;,</span> <span class="pre">i)(state)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Inverse QFT <code class="docutils literal notranslate"><span class="pre">InverseQFT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.InverseQFT(&quot;count&quot;)(state)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="shor-quantum-factoring-algorithm">
+<h3>4. Shor Quantum Factoring Algorithm<a class="headerlink" href="#shor-quantum-factoring-algorithm" title="Link to this heading">¶</a></h3>
+<section id="algorithm-overview">
+<h4>4.1 Algorithm Overview<a class="headerlink" href="#algorithm-overview" title="Link to this heading">¶</a></h4>
+<p>Shor’s algorithm uses quantum phase estimation to find the period r of modular exponentiation, thereby reducing the factoring of large numbers to computing a gcd; it has important applications in areas such as RSA encryption. Its complexity is O((log N)³), an exponential speedup over classical sub-exponential factoring.</p>
+<p>Core flow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>1. Choose a random number a (coprime with N)
+2. Quantum phase estimation: find the smallest r such that a^r ≡ 1 (mod N)
+3. Compute gcd(a^(r/2)±1, N) to obtain the factors
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h4>4.2 Exact Correspondence: C++ Implementation → Python<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h4>
+<p>C++ <code class="docutils literal notranslate"><span class="pre">ShorTest.cpp</span></code> (lines 7–26):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">semi_classical_shor</span><span class="p">(</span><span class="n">N</span><span class="p">);</span><span class="w">  </span><span class="c1">// core call, iterated 100 times</span>
+</pre></div>
+</div>
+<p>Corresponds to the <code class="docutils literal notranslate"><span class="pre">SemiClassicalShor</span></code> class in Python <code class="docutils literal notranslate"><span class="pre">shor.py</span></code> (lines 241–331):</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>C++ Step</p></th>
+<th class="head"><p>Python Implementation (shor.py)</p></th>
+<th class="head"><p>Code Location</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Semi-classical iterative measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SemiClassicalShor.run()</span></code></p></td>
+<td><p>Lines 282–330</p></td>
+</tr>
+<tr class="row-odd"><td><p>Create the working qubit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.AddRegisterWithHadamard(&quot;work_reg&quot;,</span> <span class="pre">ps.UnsignedInteger,</span> <span class="pre">1)</span></code></p></td>
+<td><p>Lines 300–302</p></td>
+</tr>
+<tr class="row-even"><td><p>Controlled modular exponentiation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ModMul(&quot;anc_reg&quot;,</span> <span class="pre">a,</span> <span class="pre">size-1-x,</span> <span class="pre">N).conditioned_by_all_ones(&quot;work_reg&quot;)</span></code></p></td>
+<td><p>Lines 306–307</p></td>
+</tr>
+<tr class="row-odd"><td><p>Phase correction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.Phase_Bool(&quot;work_reg&quot;,</span> <span class="pre">phase)</span></code></p></td>
+<td><p>Lines 311–313</p></td>
+</tr>
+<tr class="row-even"><td><p>Hadamard + measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ps.Hadamard_Bool(&quot;work_reg&quot;)</span></code> + <code class="docutils literal notranslate"><span class="pre">ps.PartialTrace</span></code></p></td>
+<td><p>Lines 316–320</p></td>
+</tr>
+<tr class="row-odd"><td><p>Inverse QFT (implicit in the iterative measurement)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shor_postprocess(meas,</span> <span class="pre">size,</span> <span class="pre">a,</span> <span class="pre">N)</span></code></p></td>
+<td><p>Line 329</p></td>
+</tr>
+<tr class="row-even"><td><p>Classical post-processing</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">shor_postprocess()</span></code></p></td>
+<td><p>Lines 166–196</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="modular-exponentiation-implementation-lines-3965-and-198239">
+<h4>4.3 Modular Exponentiation Implementation (Lines 39–65 and 198–239)<a class="headerlink" href="#modular-exponentiation-implementation-lines-3965-and-198239" title="Link to this heading">¶</a></h4>
+<p>The C++ Shor implementation uses a custom quantum arithmetic module. The corresponding Python implementation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Modular exponentiation function (pure math, lines 39–65)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">general_expmod</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Classical square-and-multiply algorithm: a^x mod N"""</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># odd</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">general_expmod</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span> <span class="o">%</span> <span class="n">N</span>
+    <span class="k">else</span><span class="p">:</span>       <span class="c1"># even</span>
+        <span class="n">half</span> <span class="o">=</span> <span class="n">general_expmod</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">x</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">half</span> <span class="o">*</span> <span class="n">half</span><span class="p">)</span> <span class="o">%</span> <span class="n">N</span>
+
+<span class="c1"># Controlled modular multiplication operator (lines 198–239)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModMul</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">modmul_func</span><span class="p">(</span><span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">val</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">opnum</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">CustomArithmetic</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">reg</span><span class="p">],</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="n">modmul_func</span><span class="p">)</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">conditioned_by_all_ones</span><span class="p">(</span><span class="n">cond_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key design:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CustomArithmetic</span></code> is the ultimate embodiment of Register Level Programming — you directly write a Python function describing an integer-to-integer mapping, and SparQ automatically compiles it into a quantum arithmetic circuit</p></li>
+<li><p>No need to manually construct controlled-NOT and single-qubit gate combinations</p></li>
+</ul>
+</section>
+<section id="quantum-circuit-flow-of-semi-classical-shor-lines-282330">
+<h4>4.4 Quantum Circuit Flow of Semi-Classical Shor (Lines 282–330)<a class="headerlink" href="#quantum-circuit-flow-of-semi-classical-shor-lines-282330" title="Link to this heading">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>for x in range(size):           # size = 2 * n_bits(N)
+    ① work_reg = |0⟩ + |1⟩           (via Hadamard)
+    ② Controlled modular multiplication a^(2^(size-1-x)) mod N (conditioned_by_all_ones on work_reg)
+    ③ Phase correction from prior results
+    ④ Hadamard on work_reg
+    ⑤ Measure work_reg → result_bit
+    ⑥ Remove work_reg
+    ↓
+    Merge bits → meas_result (integer)
+    ↓
+    shor_postprocess → period r → factors p, q
+</pre></div>
+</div>
+</section>
+<section id="classical-post-processing-lines-166196">
+<h4>4.5 Classical Post-Processing (Lines 166–196)<a class="headerlink" href="#classical-post-processing-lines-166196" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">shor_postprocess</span><span class="p">(</span><span class="n">meas</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="c1"># ① Find the best fraction approximation of y/Q</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">find_best_fraction</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    
+    <span class="c1"># ② Validate r (even, ≠ -1 mod N)</span>
+    <span class="n">check_period</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    
+    <span class="c1"># ③ Extract the factors</span>
+    <span class="n">a_exp_r_half</span> <span class="o">=</span> <span class="n">general_expmod</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">r</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">gcd</span><span class="p">(</span><span class="n">a_exp_r_half</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">gcd</span><span class="p">(</span><span class="n">a_exp_r_half</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="qda-quantum-discrete-adiabatic-linear-system-solver">
+<h3>5. QDA Quantum Discrete Adiabatic Linear System Solver<a class="headerlink" href="#qda-quantum-discrete-adiabatic-linear-system-solver" title="Link to this heading">¶</a></h3>
+<section id="id2">
+<h4>5.1 Algorithm Overview<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<p>QDA (Quantum Discrete Adiabatic) uses the discrete adiabatic theorem to solve the linear system Ax = b, achieving the optimal scale O(κ log(κ/ε)) (κ is the condition number).</p>
+<p>The PySparQ version follows the register-level structure of the C++ <code class="docutils literal notranslate"><span class="pre">Walk_s_Tridiagonal</span></code> and <code class="docutils literal notranslate"><span class="pre">Walk_s_via_QRAM</span></code>: matrix block encoding, <code class="docutils literal notranslate"><span class="pre">StatePrepViaQRAM</span></code>, <code class="docutils literal notranslate"><span class="pre">Hadamard_Int_Full</span></code>, reflections, controlled rotations, and global phases are all composed on the Python side by calling low-level primitives. It does not wrap the entire QDA solver as a C++ binding to bypass the Python implementation. Currently <code class="docutils literal notranslate"><span class="pre">qda_solve()</span></code> executes the quantum walk sequence; since the measurement and post-selection readout are not yet wired up, it explicitly raises a <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code> when the run completes, avoiding the use of classical <code class="docutils literal notranslate"><span class="pre">np.linalg.solve</span></code> to mask errors in the algorithm path.</p>
+<p>Core idea:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>H(s) = (1-f(s))·H₀ + f(s)·H₁   (interpolated Hamiltonian)
+W_s = R · H_s                   (quantum walk operator)
+By discretizing s and executing the sequence of W_s, the system evolves from |b⟩ to |x⟩
+</pre></div>
+</div>
+</section>
+<section id="implementation-of-the-interpolation-function-f-s-qda-solver-py-lines-4172">
+<h4>5.2 Implementation of the Interpolation Function f(s) (qda_solver.py Lines 41–72)<a class="headerlink" href="#implementation-of-the-interpolation-function-f-s-qda-solver-py-lines-4172" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_fs</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">kappa</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    From the PRX Quantum paper Eq.(69):</span>
+<span class="sd">    f(s) = κ/(κ-1) * (1 - (1 + s(κ^(p-1) - 1))^(1/(1-p)))</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">kappa</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="n">kappa_p_minus_1</span> <span class="o">=</span> <span class="n">kappa</span> <span class="o">**</span> <span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="n">kappa_p_minus_1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">exponent</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">kappa</span> <span class="o">/</span> <span class="p">(</span><span class="n">kappa</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">inner</span> <span class="o">**</span> <span class="n">exponent</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">result</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Corresponds to the call in C++ QDATest.cpp lines 410–413:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">WalkSequence_via_QRAM_Debug</span><span class="p">(</span><span class="o">&amp;</span><span class="n">qram_A</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">qram_b</span><span class="p">,</span><span class="w"> </span><span class="n">mat</span><span class="p">,</span><span class="w"> </span><span class="n">b</span><span class="p">,</span><span class="w"> </span><span class="p">...,</span>
+<span class="w">    </span><span class="n">steps</span><span class="p">,</span><span class="w"> </span><span class="n">kappa</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">,</span><span class="w"> </span><span class="n">data_size</span><span class="p">,</span><span class="w"> </span><span class="n">rational_size</span><span class="p">,</span><span class="w"> </span><span class="p">...)(</span><span class="n">state</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="implementation-of-the-block-encoding-of-h-s-qda-solver-py-lines-196314">
+<h4>5.3 Implementation of the Block Encoding of H(s) (qda_solver.py Lines 196–314)<a class="headerlink" href="#implementation-of-the-block-encoding-of-h-s-qda-solver-py-lines-196314" title="Link to this heading">¶</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">BlockEncodingHs</span></code> class implements the block encoding of the interpolated Hamiltonian, corresponding to the C++ <code class="docutils literal notranslate"><span class="pre">Walk_s_via_QRAM</span></code> operation. Core operation sequence (lines 248–308):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_3</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>         <span class="c1"># H</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enc_b</span><span class="o">.</span><span class="n">dag</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>                        <span class="c1"># inverse of the state preparation</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">X_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>          <span class="c1"># X</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Reflection_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_reg</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>      <span class="c1"># reflection operator (about |0⟩)</span>
+          <span class="o">.</span><span class="n">conditioned_by_all_ones</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anc_3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anc_4</span><span class="p">])(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">X_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enc_b</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>                            <span class="c1"># state preparation</span>
+    
+    <span class="c1"># Rotation sequence: R_s(f(s))</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">X_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_4</span><span class="p">,</span> <span class="mi">0</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Rot_Bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">R_s</span><span class="p">)</span><span class="o">.</span><span class="n">conditioned_by_all_ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_4</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="o">...</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">enc_A</span><span class="o">.</span><span class="n">conditioned_by_all_ones</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">anc_1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">anc_2</span><span class="p">])(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># block encoding of A</span>
+</pre></div>
+</div>
+</section>
+<section id="complete-qram-data-preparation-flow-corresponding-to-qdatest-cpp-lines-356391">
+<h4>5.4 Complete QRAM Data Preparation Flow (Corresponding to QDATest.cpp Lines 356–391)<a class="headerlink" href="#complete-qram-data-preparation-flow-corresponding-to-qdatest-cpp-lines-356391" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Step 1: Quantize the floating-point matrix/vector into integers</span>
+<span class="n">conv_A</span> <span class="o">=</span> <span class="n">scaleAndConvertVector</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="n">exponent</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">conv_b</span> <span class="o">=</span> <span class="n">scaleAndConvertVector</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">exponent</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">data_size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="c1"># Step 2: Build the QRAM tree structure</span>
+<span class="n">data_tree_A</span> <span class="o">=</span> <span class="n">make_vector_tree</span><span class="p">(</span><span class="n">conv_A</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+<span class="n">data_tree_b</span> <span class="o">=</span> <span class="n">make_vector_tree</span><span class="p">(</span><span class="n">conv_b</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+
+<span class="c1"># Step 3: Set up the QRAM circuit</span>
+<span class="n">addr_size</span> <span class="o">=</span> <span class="n">log_column_size</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>   <span class="c1"># 1 bit more than data (used for normalization)</span>
+<span class="n">qram_A</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">QRAMCircuit_qutrit</span><span class="p">(</span><span class="n">addr_size</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+<span class="n">qram_A</span><span class="o">.</span><span class="n">set_memory</span><span class="p">(</span><span class="n">data_tree_A</span><span class="p">)</span>
+<span class="n">qram_b</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">QRAMCircuit_qutrit</span><span class="p">(</span><span class="n">log_column_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">data_size</span><span class="p">)</span>
+<span class="n">qram_b</span><span class="o">.</span><span class="n">set_memory</span><span class="p">(</span><span class="n">data_tree_b</span><span class="p">)</span>
+
+<span class="c1"># Step 4: Add registers</span>
+<span class="n">main_reg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"main_reg"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">log_column_size</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">anc_UA</span>   <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"anc_UA"</span><span class="p">,</span>   <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">log_column_size</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">anc_4</span>    <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"anc_4"</span><span class="p">,</span>    <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">anc_3</span>    <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"anc_3"</span><span class="p">,</span>    <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">anc_2</span>    <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"anc_2"</span><span class="p">,</span>    <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">anc_1</span>    <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"anc_1"</span><span class="p">,</span>    <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="construction-of-the-rotation-matrix-qda-solver-py-lines-7495">
+<h4>5.5 Construction of the Rotation Matrix (qda_solver.py Lines 74–95)<a class="headerlink" href="#construction-of-the-rotation-matrix-qda-solver-py-lines-7495" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_rotation_matrix</span><span class="p">(</span><span class="n">fs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Rotation matrix R_s:</span>
+<span class="sd">    R_s = 1/√((1-f_s)² + f_s²) * [[1-f_s, f_s], [f_s, f_s-1]]</span>
+<span class="sd">    """</span>
+    <span class="n">sqrt_N</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">fs</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">fs</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="nb">complex</span><span class="p">(</span><span class="n">sqrt_N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">fs</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="nb">complex</span><span class="p">(</span><span class="n">sqrt_N</span> <span class="o">*</span> <span class="n">fs</span><span class="p">,</span>       <span class="mi">0</span><span class="p">),</span>
+        <span class="nb">complex</span><span class="p">(</span><span class="n">sqrt_N</span> <span class="o">*</span> <span class="n">fs</span><span class="p">,</span>       <span class="mi">0</span><span class="p">),</span>
+        <span class="nb">complex</span><span class="p">(</span><span class="n">sqrt_N</span> <span class="o">*</span> <span class="p">(</span><span class="n">fs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="dolph-chebyshev-filtering-qda-solver-py-lines-102189">
+<h4>5.6 Dolph-Chebyshev Filtering (qda_solver.py Lines 102–189)<a class="headerlink" href="#dolph-chebyshev-filtering-qda-solver-py-lines-102189" title="Link to this heading">¶</a></h4>
+<p>Used to improve the accuracy of the QDA solution:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">dolph_chebyshev</span><span class="p">(</span><span class="n">epsilon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">l</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">phi</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="n">beta</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">cosh</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">acosh</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">epsilon</span><span class="p">)</span> <span class="o">/</span> <span class="n">l</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">epsilon</span> <span class="o">*</span> <span class="n">chebyshev_T</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Corresponds to the filtering steps in C++ QDATest.cpp lines 550–566:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">l_</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">floor</span><span class="p">(</span><span class="n">kappa</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">epsilon_</span><span class="p">)));</span>
+<span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">weights</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ComputeFourierCoeffs</span><span class="p">(</span><span class="n">epsilon_</span><span class="p">,</span><span class="w"> </span><span class="n">l_</span><span class="p">);</span>
+<span class="c1">// Build the weight QRAM → apply the LCU</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="cks-quantum-linear-system-solver-childs-kothari-somma">
+<h3>6. CKS Quantum Linear System Solver (Childs-Kothari-Somma)<a class="headerlink" href="#cks-quantum-linear-system-solver-childs-kothari-somma" title="Link to this heading">¶</a></h3>
+<section id="id3">
+<h4>6.1 Algorithm Overview<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
+<p>The CKS algorithm uses Chebyshev polynomial approximation and quantum walks to achieve O(κ log(κ/ε)) complexity for sparse matrices, with better constant factors than HHL-type algorithms.</p>
+<p>The PySparQ version likewise replicates only the quantum walk path of the C++ <code class="docutils literal notranslate"><span class="pre">HamiltonianSimulationTest.cpp</span></code> through low-level primitives. The Python <code class="docutils literal notranslate"><span class="pre">SparseMatrix</span></code> uses the same compact QRAM layout as the C++ one; steps such as <code class="docutils literal notranslate"><span class="pre">TOperator</span></code>, <code class="docutils literal notranslate"><span class="pre">QuantumBinarySearch_Fast</span></code>, <code class="docutils literal notranslate"><span class="pre">GetRowAddr</span></code>, <code class="docutils literal notranslate"><span class="pre">GetDataAddr</span></code>, <code class="docutils literal notranslate"><span class="pre">GetQWRotateAngle_Int_Int_Int</span></code>, <code class="docutils literal notranslate"><span class="pre">CondRot_Fixed_Bool</span></code>, <code class="docutils literal notranslate"><span class="pre">QRAMLoad</span></code>, and register swaps are composed in the C++ order. It does not bind the complete C++ CKS solver, nor does it expose the old generalized CondRot API that lets users pass in Python functions.</p>
+<p>Core flow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>1. Chebyshev polynomial coefficients c_j = erfc((j+0.5)/√b) * 2
+2. Construct the quantum walk operator W = T† · P_0 · T · Swap
+3. LCU: Σ_j c_j W^(2j+1) approximates 1/A
+</pre></div>
+</div>
+</section>
+<section id="implementation-of-the-chebyshev-coefficients-cks-solver-py-lines-41127">
+<h4>6.2 Implementation of the Chebyshev Coefficients (cks_solver.py Lines 41–127)<a class="headerlink" href="#implementation-of-the-chebyshev-coefficients-cks-solver-py-lines-41127" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ChebyshevPolynomialCoefficient</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="c1"># b = κ² log(κ/ε), computed by LCU_Container at initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">coef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Chebyshev coefficient of step j"""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="c1"># Large b: use the asymptotic approximation (erfc)</span>
+            <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">erfc</span><span class="p">((</span><span class="n">j</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Small b: exact computation</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">ret</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span> <span class="o">*</span> <span class="mi">4</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Odd steps are negative (apply a minus sign)"""</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">j</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Number of walk steps at step j = 2j + 1"""</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Corresponds to C++ HamiltonianSimulationTest.cpp lines 139–149:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">test_chebyshev_polynomial_coef</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">ChebyshevPolynomialCoefficient</span><span class="w"> </span><span class="nf">chebyshev_obj</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">size_t</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">64</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">j</span><span class="p">)</span>
+<span class="w">        </span><span class="n">fmt</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="s">"j={}, coef={}</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span>
+<span class="w">            </span><span class="n">chebyshev_obj</span><span class="p">.</span><span class="n">coef</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">chebyshev_obj</span><span class="p">.</span><span class="n">sign</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">1</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="sparse-matrix-representation-cks-solver-py-lines-225340">
+<h4>6.3 Sparse Matrix Representation (cks_solver.py Lines 225–340)<a class="headerlink" href="#sparse-matrix-representation-cks-solver-py-lines-225340" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SparseMatrixData</span><span class="p">:</span>
+    <span class="n">n_row</span><span class="p">:</span> <span class="nb">int</span>           <span class="c1"># number of rows</span>
+    <span class="n">nnz_col</span><span class="p">:</span> <span class="nb">int</span>         <span class="c1"># maximum number of non-zero elements per column</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>      <span class="c1"># flattened matrix data (quantized integers)</span>
+    <span class="n">data_size</span><span class="p">:</span> <span class="nb">int</span>       <span class="c1"># quantization bit width (usually 32)</span>
+    <span class="n">positive_only</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># whether the matrix is all-positive (determines the rotation matrix form)</span>
+    <span class="n">sparsity_offset</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># QRAM sparse addressing offset</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SparseMatrix</span><span class="p">:</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dense</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">data_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+                   <span class="n">positive_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"SparseMatrix"</span><span class="p">:</span>
+        <span class="c1"># ① Detect positivity</span>
+        <span class="c1"># ② Normalize + quantize</span>
+        <span class="n">Amax</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">scaled</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">/</span> <span class="n">max_val</span> <span class="o">*</span> <span class="n">Amax</span>
+        <span class="c1"># ③ Convert to two's complement (negative numbers)</span>
+        <span class="c1"># ④ Compute nnz_col</span>
+</pre></div>
+</div>
+<p>Corresponds to the C++ <code class="docutils literal notranslate"><span class="pre">SparseMatrix</span></code> class (<code class="docutils literal notranslate"><span class="pre">hamiltonian_simulation.h</span></code>) and <code class="docutils literal notranslate"><span class="pre">generate_simplest_sparse_matrix_unsigned_2()</span></code>.</p>
+</section>
+<section id="quantum-walk-implementation-cks-solver-py-lines-637710">
+<h4>6.4 Quantum Walk Implementation (cks_solver.py Lines 637–710)<a class="headerlink" href="#quantum-walk-implementation-cks-solver-py-lines-637710" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">QuantumWalk</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    W = T† · P_0 · T · Swap</span>
+
+<span class="sd">    T: state preparation operator (|j⟩|0⟩ → Σ_k √(A_jk/‖A_j‖)|j⟩|k⟩)</span>
+<span class="sd">    P_0: phase reflection (about the |0⟩ state)</span>
+<span class="sd">    Swap: row-column swap</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Tdagger</span>
+        <span class="n">t_op</span><span class="o">.</span><span class="n">dag</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        
+        <span class="c1"># Phase reflection</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">ZeroConditionalPhaseFlip</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">b1_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_comp_reg</span><span class="p">]</span>
+        <span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        
+        <span class="c1"># T</span>
+        <span class="n">t_op</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        
+        <span class="c1"># Swap rows and columns</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">Swap_General_General</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">Swap_General_General</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b1_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">Swap_General_General</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j_comp_reg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_comp_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Corresponds to C++ HamiltonianSimulationTest.cpp lines 116–118:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">99</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="n">QuantumWalk</span><span class="p">(</span><span class="n">qram</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">b1</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">b2</span><span class="p">,</span><span class="w"> </span><span class="n">j_comp</span><span class="p">,</span><span class="w"> </span><span class="n">k_comp</span><span class="p">,</span><span class="w"> </span><span class="p">...)(</span><span class="n">system_states</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>When aligning the CKS fidelity test with the C++ <code class="docutils literal notranslate"><span class="pre">automatic_Chebyshev_test</span></code>, one must follow the C++ logic and compare only the target register after post-selection, and use the dense matrix representation actually encoded by <code class="docutils literal notranslate"><span class="pre">SparseMatrix</span></code> (including the <code class="docutils literal notranslate"><span class="pre">nnz_col</span></code> normalization); the raw input matrix <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">/</span> <span class="pre">||A||</span></code> cannot be used directly as the target state.</p>
+</section>
+<section id="lcu-container-cks-solver-py-lines-843930">
+<h4>6.5 LCU Container (cks_solver.py Lines 843–930)<a class="headerlink" href="#lcu-container-cks-solver-py-lines-843930" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LCUContainer</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">qram</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># b = κ² log(κ/ε) — determines the number of Chebyshev expansion terms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kappa</span> <span class="o">*</span> <span class="n">kappa</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">kappa</span><span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">eps</span><span class="p">)))</span>
+        <span class="c1"># j0 = √(b log(4b/ε)) — truncation point</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">j0</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">eps</span><span class="p">))))</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">iterate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">j</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">j0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step_state</span><span class="p">)</span>
+            <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chebyshev</span><span class="o">.</span><span class="n">coef</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chebyshev</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">+=</span> <span class="n">coef</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">step_state</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="n">sign</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Corresponds to C++ <code class="docutils literal notranslate"><span class="pre">LCU_Container_NoiseFree</span></code> (HamiltonianSimulationTest.cpp lines 275–326):</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">obj</span><span class="p">.</span><span class="n">ExternalInput</span><span class="o">&lt;</span><span class="n">Hadamard_Int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">addr_size</span><span class="p">);</span><span class="w">  </span><span class="c1">// Hadamard initialization</span>
+<span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="p">.</span><span class="n">Step</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">state</span><span class="p">,</span><span class="w"> </span><span class="n">success_rate</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">obj</span><span class="p">.</span><span class="n">PartialTrace_Nondestructive</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">fidelity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_fidelity</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">target_result</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// Record the success rate and fidelity at each step</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="ghz-state-generation-to-be-implemented">
+<h3>7. GHZ State Generation (To Be Implemented)<a class="headerlink" href="#ghz-state-generation-to-be-implemented" title="Link to this heading">¶</a></h3>
+<section id="c-implementation-analysis">
+<h4>7.1 C++ Implementation Analysis<a class="headerlink" href="#c-implementation-analysis" title="Link to this heading">¶</a></h4>
+<p>The GHZ state generation logic in C++ <code class="docutils literal notranslate"><span class="pre">GHZTest.cpp</span></code> (lines 26–72) is extremely concise:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Register layout: ctrl (1 bit) + main registers (chunked, each chunk ≤ 64 bits)</span>
+<span class="c1">// Let nqubit = 65, then: quotient = 1, remainder = 0</span>
+<span class="c1">// Actual layout: ctrl(1) + main(64)</span>
+
+<span class="n">FlipBools</span><span class="p">(</span><span class="s">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span><span class="w">       </span><span class="c1">// ctrl → |1⟩</span>
+<span class="n">Hadamard_Bool</span><span class="p">(</span><span class="s">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span><span class="w">   </span><span class="c1">// H → (|0⟩+|1⟩)/√2</span>
+
+<span class="c1">// Apply a controlled X to each main qubit (flip when ctrl=1)</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">remainder</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="n">X_Bool</span><span class="p">(</span><span class="s">"main"</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="mi">-1</span><span class="p">).</span><span class="n">conditioned_by_all_ones</span><span class="p">(</span><span class="s">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">reg</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">reg_names</span><span class="p">)</span>
+<span class="w">    </span><span class="n">FlipBools</span><span class="p">(</span><span class="n">System</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">reg</span><span class="p">)).</span><span class="n">conditioned_by_all_ones</span><span class="p">(</span><span class="s">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><strong>Generated state: <code class="docutils literal notranslate"><span class="pre">(|0...0⟩</span> <span class="pre">+</span> <span class="pre">|1...1⟩)/√2</span></code></strong> (a GHZ state of nqubit qubits)</p>
+</section>
+<section id="python-translation-plan">
+<h4>7.2 Python Translation Plan<a class="headerlink" href="#python-translation-plan" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ghz_state</span><span class="p">(</span><span class="n">nqubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Generate a GHZ state: (|0...0⟩ + |1...1⟩)/√2"""</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">()</span>
+    
+    <span class="c1"># Handle the &gt; 64-bit case (register chunking)</span>
+    <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">nqubit</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+    
+    <span class="n">ctrl</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"ctrl"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    <span class="c1"># Add the main registers (at most 64 bits per chunk)</span>
+    <span class="n">main_regs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">quotient</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="sa">f</span><span class="s2">"main</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">remainder</span> <span class="ow">or</span> <span class="mi">64</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">main_regs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">remainder</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">main_reg</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"main"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">remainder</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">main_regs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">main_reg</span><span class="p">)</span>
+    
+    <span class="c1"># GHZ circuit</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">X_Bool</span><span class="p">(</span><span class="s2">"ctrl"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>       <span class="c1"># |0⟩ → |1⟩</span>
+    <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Bool</span><span class="p">(</span><span class="s2">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>        <span class="c1"># (|0⟩+|1⟩)/√2</span>
+    
+    <span class="k">for</span> <span class="n">reg</span> <span class="ow">in</span> <span class="n">main_regs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">size_of</span><span class="p">(</span><span class="n">reg</span><span class="p">)):</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">X_Bool</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span><span class="o">.</span><span class="n">conditioned_by_nonzeros</span><span class="p">(</span><span class="s2">"ctrl"</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">state</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="summary-of-implementation-principles">
+<h3>8. Summary of Implementation Principles<a class="headerlink" href="#summary-of-implementation-principles" title="Link to this heading">¶</a></h3>
+<section id="seven-principles-for-translating-quantum-algorithms">
+<h4>8.1 Seven Principles for Translating Quantum Algorithms<a class="headerlink" href="#seven-principles-for-translating-quantum-algorithms" title="Link to this heading">¶</a></h4>
+<p><strong>Principle 1: Registers first, state follows</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Wrong: the state is created before the registers</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">()</span>
+<span class="n">addr</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"addr"</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>  <span class="c1"># ← wrong order</span>
+
+<span class="c1"># Correct: define the register system first, then create the state</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">add_register</span><span class="p">(</span><span class="s2">"addr"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">UnsignedInteger</span><span class="p">,</span> <span class="n">n_bits</span><span class="p">)</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">()</span>  <span class="c1"># or ps.SparseState() automatically inherits the registered registers</span>
+</pre></div>
+</div>
+<p><strong>Principle 2: Delete temporary registers as soon as they are used</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># GroverOracle creates compare_less/equal each time and deletes them before the Oracle returns</span>
+<span class="n">compare_less</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">AddRegister</span><span class="p">(</span><span class="s2">"compare_less"</span><span class="p">,</span> <span class="n">ps</span><span class="o">.</span><span class="n">Boolean</span><span class="p">,</span> <span class="mi">1</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+<span class="c1"># ... use compare_less ...</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">RemoveRegister</span><span class="p">(</span><span class="n">compare_less</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># prevent exponential state-space blow-up</span>
+</pre></div>
+</div>
+<p><strong>Principle 3: Chained conditional operations</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># All conditional operations return self, supporting chaining</span>
+<span class="n">op</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">ZeroConditionalPhaseFlip</span><span class="p">([</span><span class="n">cond_reg</span><span class="p">])</span>
+<span class="n">op</span><span class="o">.</span><span class="n">conditioned_by_nonzeros</span><span class="p">(</span><span class="n">other_reg</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>  <span class="c1"># add conditions multiple times</span>
+
+<span class="c1"># Corresponds in C++ to:</span>
+<span class="c1"># X_Bool("ctrl", 0).conditioned_by_all_ones("ctrl")(state);</span>
+</pre></div>
+</div>
+<p><strong>Principle 4: Use <code class="docutils literal notranslate"><span class="pre">.dag()</span></code> for the inverse of self-adjoint operators</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># QRAMLoad, Hadamard, Swap — self-adjoint (U = U†)</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">QRAMLoad</span><span class="p">(</span><span class="n">qram</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">data</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># forward</span>
+<span class="n">ps</span><span class="o">.</span><span class="n">QRAMLoad</span><span class="p">(</span><span class="n">qram</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">data</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># inverse operation (the same operation)</span>
+
+<span class="c1"># General operators</span>
+<span class="n">t_op</span><span class="o">.</span><span class="n">dag</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># inverse operation</span>
+</pre></div>
+</div>
+<p><strong>Principle 5: Floating-point quantization is the key to the quantum-classical interface</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># QDA/QDA: floating-point matrix → fixed-point integers</span>
+<span class="c1"># Quantization factor: 2^exponent, exponent is usually 15 (to guarantee precision)</span>
+<span class="n">Amax</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">scaled</span> <span class="o">=</span> <span class="n">matrix</span> <span class="o">/</span> <span class="n">max_val</span> <span class="o">*</span> <span class="n">Amax</span>  <span class="c1"># normalize to [-Amax, Amax]</span>
+<span class="n">int_data</span> <span class="o">=</span> <span class="n">scaled</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>      <span class="c1"># quantize</span>
+</pre></div>
+</div>
+<p><strong>Principle 6: Top-down — algorithm first, implementation second</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Correct order:
+① Understand the algorithm's mathematical formulas (Grover iteration / Shor phase estimation / Chebyshev expansion)
+② Define the register roles (main register, auxiliary registers, precision register)
+③ Write out the algorithm's main flow (Python functions or classes)
+④ Fill in the PySparQ operations corresponding to each step
+
+Wrong order:
+① Translate the C++ code line by line directly
+② Ignore the register length design, causing overflow
+</pre></div>
+</div>
+<p><strong>Principle 7: Probability normalization of the measurement results</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The prob returned by PartialTrace is unnormalized and needs to be processed</span>
+<span class="n">prob_inv0</span> <span class="o">=</span> <span class="n">PartialTraceSelect</span><span class="p">({</span> <span class="n">anc_UA</span><span class="p">,</span> <span class="n">anc_2</span><span class="p">,</span> <span class="n">anc_3</span> <span class="p">},</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">})(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">prob0</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">prob_inv0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>   <span class="c1"># normalize to obtain the success probability</span>
+
+<span class="c1"># Corresponds to C++ QDATest.cpp lines 415–416:</span>
+<span class="c1"># double prob_inv0 = PartialTraceSelect({anc_UA, anc_2, anc_3}, {0, 0, 0})(state);</span>
+<span class="c1"># double prob0 = (1.0 / prob_inv0) * (1.0 / prob_inv0);</span>
+</pre></div>
+</div>
+</section>
+<section id="overview-of-common-register-configurations">
+<h4>8.2 Overview of Common Register Configurations<a class="headerlink" href="#overview-of-common-register-configurations" title="Link to this heading">¶</a></h4>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Algorithm</p></th>
+<th class="head"><p>Main Register Width</p></th>
+<th class="head"><p>Data Register Width</p></th>
+<th class="head"><p>Number of Ancillas</p></th>
+<th class="head"><p>Special Registers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Grover</p></td>
+<td><p>ceil(log2(N))</p></td>
+<td><p>64</p></td>
+<td><p>2 (compare flags)</p></td>
+<td><p>search(target)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Shor</p></td>
+<td><p>2×n_bits(N)</p></td>
+<td><p>—</p></td>
+<td><p>1 (work qubit)</p></td>
+<td><p>ancilla (modular exponentiation result)</p></td>
+</tr>
+<tr class="row-even"><td><p>QDA</p></td>
+<td><p>ceil(log2(n))</p></td>
+<td><p>50</p></td>
+<td><p>4 (anc_1~anc_4)</p></td>
+<td><p>anc_UA (block encoding)</p></td>
+</tr>
+<tr class="row-odd"><td><p>CKS</p></td>
+<td><p>ceil(log2(n_row))</p></td>
+<td><p>32</p></td>
+<td><p>4 (b1,b2,j_comp,k_comp)</p></td>
+<td><p>sparse_offset</p></td>
+</tr>
+<tr class="row-even"><td><p>GHZ</p></td>
+<td><p>ceil(log2(n))</p></td>
+<td><p>—</p></td>
+<td><p>0</p></td>
+<td><p>ctrl (1 bit)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="implementation-roadmap-for-the-missing-algorithms">
+<h3>9. Implementation Roadmap for the Missing Algorithms<a class="headerlink" href="#implementation-roadmap-for-the-missing-algorithms" title="Link to this heading">¶</a></h3>
+<section id="qft-priority-implementation">
+<h4>9.1 QFT (Priority Implementation)<a class="headerlink" href="#qft-priority-implementation" title="Link to this heading">¶</a></h4>
+<p>C++ has complete <code class="docutils literal notranslate"><span class="pre">QFT_Full()</span></code> and <code class="docutils literal notranslate"><span class="pre">QFT()</span></code> implementations (<code class="docutils literal notranslate"><span class="pre">SparQ/include/qft.h</span></code>); the translation is simple:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">qft</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Corresponds to the C++ QFT("main")(state)"""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">size_of</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Bool</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">i</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">CPhase_Bool</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))(</span><span class="n">state</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">inverse_qft</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">ps</span><span class="o">.</span><span class="n">SparseState</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Inverse QFT: iterate the controlled phases in reverse"""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">System</span><span class="o">.</span><span class="n">size_of</span><span class="p">(</span><span class="n">reg</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">)):</span>
+            <span class="n">ps</span><span class="o">.</span><span class="n">CPhase_Bool</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">i</span><span class="p">)))(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">ps</span><span class="o">.</span><span class="n">Hadamard_Bool</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span> <span class="n">i</span><span class="p">)(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ghz-second-priority">
+<h4>9.2 GHZ (Second Priority)<a class="headerlink" href="#ghz-second-priority" title="Link to this heading">¶</a></h4>
+<p>See the translation plan in Section 7.2 — the implementation workload is small and the logic is clear.</p>
+</section>
+<section id="qcnn-c-restoration-required-first">
+<h4>9.3 QCNN (C++ Restoration Required First)<a class="headerlink" href="#qcnn-c-restoration-required-first" title="Link to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">Experiments/QCNN/QCNNTest.cpp</span></code> is currently disabled with <code class="docutils literal notranslate"><span class="pre">#if</span> <span class="pre">false</span></code>; one must first:</p>
+<ol class="arabic simple">
+<li><p>Fix the C++ QCNN implementation</p></li>
+<li><p>Translate it in <code class="docutils literal notranslate"><span class="pre">PySparQ/pysparq/algorithms/qcnn.py</span></code></p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="lessons-for-future-developers">
+<h3>10. Lessons for Future Developers<a class="headerlink" href="#lessons-for-future-developers" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Going from C++ to Python is not a line-by-line translation</strong>: understand the mathematical essence of the algorithm (Grover = amplitude amplification, Shor = phase estimation, CKS = Chebyshev approximation) and rewrite it with a Python mindset. Interfaces such as PySparQ’s <code class="docutils literal notranslate"><span class="pre">CustomArithmetic</span></code> are more concise than the C++ versions — you can directly pass in Python lambdas.</p></li>
+<li><p><strong>Register chunking is the key to very large qubit systems</strong>: beyond 64 bits, registers must be split into multiple <code class="docutils literal notranslate"><span class="pre">UnsignedInteger</span></code> chunks (each ≤ 64 bits), as in the C++ GHZTest. The Python layer achieves this through naming conventions (<code class="docutils literal notranslate"><span class="pre">&quot;main1&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;main2&quot;</span></code>) and <code class="docutils literal notranslate"><span class="pre">FlipBools(System::get(reg))</span></code>.</p></li>
+<li><p><strong>The core of sparse-state optimization is zero-amplitude pruning</strong>: PySparQ’s <code class="docutils literal notranslate"><span class="pre">SparseState</span></code> stores only the non-zero amplitudes, and the <code class="docutils literal notranslate"><span class="pre">ClearZero()</span></code> operation is called after each walk/Chebyshev iteration step to prevent an explosion in the number of states. This is the key to why Grover (O(√N) state growth) and CKS (O(κ) state growth) can handle large problems.</p></li>
+<li><p><strong>Tests before implementation</strong>: following the patterns in <code class="docutils literal notranslate"><span class="pre">test_doc_examples.py</span></code>, use pytest to verify the correctness of each submodule before assembling the complete algorithm. Unit tests should cover: the Oracle (correctness of the amplitude flip), diffusion (reflection about the superposition state), and the quantum walk (Chebyshev approximation accuracy).</p></li>
+<li><p><strong>Composability of noise models</strong>: the <code class="docutils literal notranslate"><span class="pre">set_noise_models()</span></code> call in the C++ tests is equivalent in PySparQ to:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">qram</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">QRAMCircuit_qutrit</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">qram</span><span class="o">.</span><span class="n">set_noise_model</span><span class="p">(</span><span class="s2">"depolarizing"</span><span class="p">,</span> <span class="mf">1e-4</span><span class="p">)</span>  <span class="c1"># corresponds to the C++ qram-&gt;set_noise_models(...)</span>
+</pre></div>
+</div>
+<p>This is very important for evaluating the behavior of algorithms on real hardware.</p>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../dynamic_operators.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Dynamic Operator Extension</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Algorithm Guide</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2026, IAI-USTC-Quantum
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Algorithm Porting Guide</a><ul>
+<li><a class="reference internal" href="#quantum-algorithm-implementations-based-on-pysparq">Quantum Algorithm Implementations Based on PySparQ</a><ul>
+<li><a class="reference internal" href="#coverage-overview-c-experiments-vs-pysparq-implementations">1. Coverage Overview: C++ Experiments vs PySparQ Implementations</a></li>
+<li><a class="reference internal" href="#common-patterns-of-register-level-programming-in-quantum-algorithms">2. Common Patterns of Register Level Programming in Quantum Algorithms</a><ul>
+<li><a class="reference internal" href="#division-of-register-roles">2.1 Division of Register Roles</a></li>
+<li><a class="reference internal" href="#principles-for-choosing-register-lengths">2.2 Principles for Choosing Register Lengths</a></li>
+<li><a class="reference internal" href="#common-quantum-operation-pattern">2.3 Common Quantum Operation Pattern</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#grover-quantum-search-algorithm">3. Grover Quantum Search Algorithm</a><ul>
+<li><a class="reference internal" href="#algorithm-overview-and-mathematical-principles">3.1 Algorithm Overview and Mathematical Principles</a></li>
+<li><a class="reference internal" href="#exact-correspondence-c-implementation-python">3.2 Exact Correspondence: C++ Implementation → Python</a></li>
+<li><a class="reference internal" href="#oracle-implementation-details-line-level-correspondence">3.3 Oracle Implementation Details (Line-Level Correspondence)</a></li>
+<li><a class="reference internal" href="#diffusion-operator-implementation-details-lines-116171">3.4 Diffusion Operator Implementation Details (Lines 116–171)</a></li>
+<li><a class="reference internal" href="#complete-groveriterator-flow-lines-173222">3.5 Complete GroverIterator Flow (Lines 173–222)</a></li>
+<li><a class="reference internal" href="#quantum-counting-grovercount-implementation-lines-314384">3.6 Quantum Counting: GroverCount Implementation (Lines 314–384)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shor-quantum-factoring-algorithm">4. Shor Quantum Factoring Algorithm</a><ul>
+<li><a class="reference internal" href="#algorithm-overview">4.1 Algorithm Overview</a></li>
+<li><a class="reference internal" href="#id1">4.2 Exact Correspondence: C++ Implementation → Python</a></li>
+<li><a class="reference internal" href="#modular-exponentiation-implementation-lines-3965-and-198239">4.3 Modular Exponentiation Implementation (Lines 39–65 and 198–239)</a></li>
+<li><a class="reference internal" href="#quantum-circuit-flow-of-semi-classical-shor-lines-282330">4.4 Quantum Circuit Flow of Semi-Classical Shor (Lines 282–330)</a></li>
+<li><a class="reference internal" href="#classical-post-processing-lines-166196">4.5 Classical Post-Processing (Lines 166–196)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qda-quantum-discrete-adiabatic-linear-system-solver">5. QDA Quantum Discrete Adiabatic Linear System Solver</a><ul>
+<li><a class="reference internal" href="#id2">5.1 Algorithm Overview</a></li>
+<li><a class="reference internal" href="#implementation-of-the-interpolation-function-f-s-qda-solver-py-lines-4172">5.2 Implementation of the Interpolation Function f(s) (qda_solver.py Lines 41–72)</a></li>
+<li><a class="reference internal" href="#implementation-of-the-block-encoding-of-h-s-qda-solver-py-lines-196314">5.3 Implementation of the Block Encoding of H(s) (qda_solver.py Lines 196–314)</a></li>
+<li><a class="reference internal" href="#complete-qram-data-preparation-flow-corresponding-to-qdatest-cpp-lines-356391">5.4 Complete QRAM Data Preparation Flow (Corresponding to QDATest.cpp Lines 356–391)</a></li>
+<li><a class="reference internal" href="#construction-of-the-rotation-matrix-qda-solver-py-lines-7495">5.5 Construction of the Rotation Matrix (qda_solver.py Lines 74–95)</a></li>
+<li><a class="reference internal" href="#dolph-chebyshev-filtering-qda-solver-py-lines-102189">5.6 Dolph-Chebyshev Filtering (qda_solver.py Lines 102–189)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cks-quantum-linear-system-solver-childs-kothari-somma">6. CKS Quantum Linear System Solver (Childs-Kothari-Somma)</a><ul>
+<li><a class="reference internal" href="#id3">6.1 Algorithm Overview</a></li>
+<li><a class="reference internal" href="#implementation-of-the-chebyshev-coefficients-cks-solver-py-lines-41127">6.2 Implementation of the Chebyshev Coefficients (cks_solver.py Lines 41–127)</a></li>
+<li><a class="reference internal" href="#sparse-matrix-representation-cks-solver-py-lines-225340">6.3 Sparse Matrix Representation (cks_solver.py Lines 225–340)</a></li>
+<li><a class="reference internal" href="#quantum-walk-implementation-cks-solver-py-lines-637710">6.4 Quantum Walk Implementation (cks_solver.py Lines 637–710)</a></li>
+<li><a class="reference internal" href="#lcu-container-cks-solver-py-lines-843930">6.5 LCU Container (cks_solver.py Lines 843–930)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ghz-state-generation-to-be-implemented">7. GHZ State Generation (To Be Implemented)</a><ul>
+<li><a class="reference internal" href="#c-implementation-analysis">7.1 C++ Implementation Analysis</a></li>
+<li><a class="reference internal" href="#python-translation-plan">7.2 Python Translation Plan</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#summary-of-implementation-principles">8. Summary of Implementation Principles</a><ul>
+<li><a class="reference internal" href="#seven-principles-for-translating-quantum-algorithms">8.1 Seven Principles for Translating Quantum Algorithms</a></li>
+<li><a class="reference internal" href="#overview-of-common-register-configurations">8.2 Overview of Common Register Configurations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-roadmap-for-the-missing-algorithms">9. Implementation Roadmap for the Missing Algorithms</a><ul>
+<li><a class="reference internal" href="#qft-priority-implementation">9.1 QFT (Priority Implementation)</a></li>
+<li><a class="reference internal" href="#ghz-second-priority">9.2 GHZ (Second Priority)</a></li>
+<li><a class="reference internal" href="#qcnn-c-restoration-required-first">9.3 QCNN (C++ Restoration Required First)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#lessons-for-future-developers">10. Lessons for Future Developers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=9365dee5"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=08f3124f"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>
