@@ -1,6 +1,8 @@
 离散绝热（DiscreteAdiabatic/）
 ===============================
 
+QDA 通过块编码求解量子线性方程组；算子级超参数见 :doc:`算子 </guide/core_concepts/operators>`。
+
 QDA 基础组件（``SparQ_Algorithm/include/DiscreteAdiabatic/qda_fundamental.h``）
 -------------------------------------------------------------------------------
 

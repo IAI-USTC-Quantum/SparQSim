@@ -1,6 +1,8 @@
 算法库（顶层）
 ==============
 
+这些头文件把 :doc:`核心算子 </operators/index>` 组合成完整算法（Grover、Shor、哈密顿量模拟）。Python 对应物位于 ``pysparq.algorithms``，并在 :doc:`示例 </guide/examples>` 中演练。
+
 .. note::
 
    ``SparQ_Algorithm/include/qcnn.h``（量子卷积网络）当前在源码中被

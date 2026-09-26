@@ -1,7 +1,7 @@
 算术算子
 ========
 
-算术算子实现量子整数运算，包括加法、乘法、移位、比较等操作。
+算术算子实现量子整数运算，包括加法、乘法、移位、比较等操作。可用寄存器类型见 :doc:`寄存器类型 </guide/core_concepts/register_types>`，端到端用法见 :doc:`示例 </guide/examples>`。
 
 .. contents:: 目录
    :local:

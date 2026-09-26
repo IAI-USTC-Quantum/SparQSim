@@ -1,7 +1,7 @@
 Partial Trace
 =============
 
-The partial trace operation performs a measurement or a selective collapse on the specified register(s). It is the key means of extracting classical information in quantum algorithms.
+The partial trace operation performs a measurement or a selective collapse on the specified register(s). It is the key means of extracting classical information in quantum algorithms; the register-management context is described in :doc:`register management </guide/core_concepts/register_management>`.
 
 .. contents:: Contents
    :local:

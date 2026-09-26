@@ -22,12 +22,13 @@ PySparQ is the **natural interpreter** for RIR. This is no coincidence:
   "integer-word addition" and "QRAM loading", rather than physical qubits
   and gate sequences;
 - PySparQ's programming model happens to be precisely **register-level
-  programming** (Register Level Programming): named typed registers,
+  programming** (Register Level Programming, see
+  :doc:`core concepts </guide/core_concepts/index>`): named typed registers,
   native register arithmetic operators, and native QRAM queries.
 
 Executing RIR therefore requires no extra "lowering" stage:
 ``pysparq.run_rir`` interprets the JSON document directly on a
-``SparseState``, expands the module graph at interpretation time, and maps
+:class:`SparseState <pysparq.SparseState>`, expands the module graph at interpretation time, and maps
 register-level operations onto native PySparQ operators whenever the
 operands align with whole registers. The interpreter consumes only the
 JSON document and does not depend on the ``pyqecclang`` package itself, so
@@ -44,23 +45,23 @@ RIR concepts correspond one-to-one to native PySparQ capabilities:
    * - RIR concept
      - Native PySparQ counterpart
    * - ``bits`` / ``uint`` / ``sint`` / ``rational`` of ``RegType``
-     - ``StateStorageType.General`` / ``UnsignedInteger`` /
-       ``SignedInteger`` / ``Rational``
+     - :doc:`StateStorageType.General / UnsignedInteger / SignedInteger / Rational </guide/core_concepts/register_types>`
    * - ``add_const`` on an entire register
-     - ``Add_ConstUInt_InPlace`` (a single native register arithmetic,
+     - :class:`Add_ConstUInt_InPlace <pysparq.Add_ConstUInt_InPlace>` (a single native register arithmetic,
        not a gate-chain decomposition)
    * - uncontrolled ``gphase``
-     - ``GlobalPhase``
+     - :class:`GlobalPhase <pysparq.GlobalPhase>`
    * - controlled ``gphase``
-     - ``Phase_Bool`` plus the remaining control bits
+     - :class:`Phase_Bool <pysparq.Phase_Bool>` plus the remaining control bits
    * - gate broadcast over a view ( ``h`` / ``x`` / ``rx`` / ...)
-     - ``Rot_Bool`` applied bit by bit
+     - :class:`Rot_Bool <pysparq.Rot_Bool>` applied bit by bit
    * - ``xor`` / ``swap`` over views
-     - chains of controlled ``X_Bool``
+     - chains of controlled :class:`X_Bool <pysparq.X_Bool>`
    * - QRAM resource + ``Load``
-     - ``QRAMCircuit_qutrit`` materialization + ``QRAMLoad`` query
+     - :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>` materialization + :class:`QRAMLoad <pysparq.QRAMLoad>` query
+       (see :doc:`QRAM operators </operators/qram_ops>`)
    * - ``Control`` (a multi-bit coherent condition)
-     - multi-bit conditioning via ``conditioned_by_bit`` (bits valued 0
+     - multi-bit conditioning via :ref:`conditioned_by_bit <conditional-operations>` (bits valued 0
        are temporarily flipped with X)
    * - ``Call``
      - inlined at interpretation time: argument views are bound to the
@@ -72,7 +73,7 @@ RIR concepts correspond one-to-one to native PySparQ capabilities:
      - reverse traversal + per-operation inversion (angles negated,
        modular subtraction, self-inverse gates)
    * - ``Module.locals`` private workspace
-     - ``AddRegister`` / ``RemoveRegister`` + uncomputation check on exit
+     - :doc:`AddRegister / RemoveRegister </guide/core_concepts/register_management>` + uncomputation check on exit
 
 Automatic Processing Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -104,21 +105,21 @@ A few key points:
 - **Native operators are preferred over decomposition.** For example, when
   the operand of ``add_const`` fully covers a register (start 0 and width
   equal to the declared width), the interpreter calls
-  ``Add_ConstUInt_InPlace`` directly instead of decomposing it into a
+  :class:`Add_ConstUInt_InPlace <pysparq.Add_ConstUInt_InPlace>` directly instead of decomposing it into a
   multi-gate chain; the uncontrolled global phase goes through
-  ``GlobalPhase``, and QRAM loading goes through the native ``QRAMLoad``.
+  :class:`GlobalPhase <pysparq.GlobalPhase>`, and QRAM loading goes through the native :class:`QRAMLoad <pysparq.QRAMLoad>`.
 - **View semantics are guaranteed by the fallback path.** When an operand
   is a register slice, the interpreter falls back to bit-by-bit
   decomposition, and modular addition wraps around within the **view
   width**, consistent with the RIR specification.
 - **Everything is cleaned up automatically after execution.** ``run_rir``
-  guarantees ``System.clear()`` on exit; if the global register table is
+  guarantees :meth:`System.clear() <pysparq.System.clear>` on exit; if the global register table is
   not empty before the call, an error is raised immediately.
 
 Basic Usage
 -----------
 
-The entry API is provided by ``pysparq.rir`` and is also exported in the
+The entry API is provided by :mod:`pysparq.rir` and is also exported in the
 top-level namespace:
 
 .. code-block:: python
@@ -309,9 +310,9 @@ The entry module declares a QRAM resource (address width 2, data width 3)
 and performs the load after a Hadamard broadcast over the address
 register. The memory contents are not part of the program JSON; they are
 bound at execution time. The interpreter does it all automatically: the
-QRAM resource is materialized as a ``QRAMCircuit_qutrit``, and ``Load``
+QRAM resource is materialized as a :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>`, and ``Load``
 copies into a temporary register through reversible XOR, then performs the
-native ``QRAMLoad`` query and fully uncomputes it:
+native :class:`QRAMLoad <pysparq.QRAMLoad>` query and fully uncomputes it:
 
 .. code-block:: python
 
@@ -386,7 +387,7 @@ On the ``pyqecclang`` side there are two independent execution paths:
 - ``run_pysparq_rir``: serializes the program to JSON and hands it over
   to ``pysparq.run_rir``.
 
-The interpreter in this repository (``PySparQ/pysparq/rir.py``)
+The interpreter in this repository (:mod:`pysparq.rir`)
 deliberately consumes only JSON documents and does not import
 ``pyqecclang``, so the two paths together with the OriginIR-ext export
 can serve as three-way cross-checking baselines for one another.

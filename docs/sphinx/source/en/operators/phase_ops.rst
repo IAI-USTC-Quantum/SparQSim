@@ -1,7 +1,7 @@
 Phase and Reflection Operators
 ==============================
 
-Phase and reflection operators implement conditional phase flips, global phases, Grover reflections and similar operations, and are widely used in quantum search and amplitude amplification algorithms.
+Phase and reflection operators implement conditional phase flips, global phases, Grover reflections and similar operations, and are widely used in quantum search and amplitude amplification algorithms. A complete Grover search implementation is available in the :doc:`algorithm library </cpp_api/algorithms>`.
 
 .. contents:: Contents
    :local:

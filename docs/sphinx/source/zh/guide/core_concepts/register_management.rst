@@ -12,7 +12,7 @@
 
 系统中的寄存器托管了 ``n`` 个 ``uint64_t`` 的存储。每个寄存器拥有名称、类型和比特宽度，其值以 ``uint64_t`` 存储。这种设计允许我们将量子态编码为类似 :math:`|a\rangle|b\rangle|c\rangle` 的多寄存器形式，而无需关心底层量子比特的编码方式。
 
-例如，QRAM 访问 :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` 只需要一个地址寄存器 ``i`` 和一个数据寄存器 ``d``，``QRAMLoad`` 算子直接在寄存器级别完成映射，完全不需要管理量子比特。
+例如，QRAM 访问 :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` 只需要一个地址寄存器 ``i`` 和一个数据寄存器 ``d``，:class:`QRAMLoad <pysparq.QRAMLoad>` 算子直接在寄存器级别完成映射，完全不需要管理量子比特。
 
 .. math::
 
@@ -51,7 +51,7 @@
 删除寄存器：RemoveRegister
 --------------------------
 
-删除寄存器等价于对该寄存器做 PartialTrace（偏迹），即消除该寄存器对量子态的贡献。在模拟中，这相当于测量该寄存器后丢弃测量结果的效果。
+删除寄存器等价于对该寄存器做 :doc:`部分迹（PartialTrace） </operators/partial_trace>`，即消除该寄存器对量子态的贡献。在模拟中，这相当于测量该寄存器后丢弃测量结果的效果。
 
 .. code-block:: python
 
@@ -60,7 +60,7 @@
 
 .. important::
 
-   ``RemoveRegister`` 在执行前会检查该寄存器是否与剩余寄存器存在纠缠（通过 ``TestRemovable``）。如果存在纠缠，删除操作会抛出异常，因为此时对单个寄存器的 PartialTrace 不能简单地等价于丢弃。
+   ``RemoveRegister`` 在执行前会检查该寄存器是否与剩余寄存器存在纠缠（通过 :doc:`TestRemovable </operators/debug>`）。如果存在纠缠，删除操作会抛出异常，因为此时对单个寄存器的 PartialTrace 不能简单地等价于丢弃。
 
 拆分寄存器：SplitRegister
 --------------------------
@@ -104,7 +104,7 @@
 PartialTrace：测量
 ------------------
 
-在 PySparQ 中，``PartialTrace`` 被等价视为测量操作。这在模拟层面是合理的——对某些寄存器进行偏迹等同于对它们进行测量并丢弃结果。
+在 PySparQ 中，:class:`PartialTrace <pysparq.PartialTrace>` 被等价视为测量操作。这在模拟层面是合理的——对某些寄存器进行偏迹等同于对它们进行测量并丢弃结果。
 
 ``PartialTrace`` 提供三种模式：
 
@@ -114,13 +114,13 @@ PartialTrace：测量
    * - 类
      - 行为
      - 返回值
-   * - ``PartialTrace``
+   * - :class:`PartialTrace <pysparq.PartialTrace>`
      - 随机测量：按概率分布随机选择测量结果，然后坍缩态
      - ``(measured_values, probability)``
-   * - ``PartialTraceSelect``
+   * - :class:`PartialTraceSelect <pysparq.PartialTraceSelect>`
      - 选择性坍缩：保留指定寄存器值为指定值的基态，归一化其余基态
      - 归一化概率
-   * - ``PartialTraceSelectRange``
+   * - :class:`PartialTraceSelectRange <pysparq.PartialTraceSelectRange>`
      - 范围坍缩：保留指定寄存器值在给定范围内的基态
      - 归一化概率
 
@@ -134,8 +134,8 @@ PartialTrace：测量
    ps.System.add_register("b", ps.UnsignedInteger, 2)
    state = ps.SparseState()
 
-   ps.Hadamard_Int("a")(state)
-   ps.Hadamard_Int("b")(state)
+   ps.Hadamard_Int("a", 2)(state)
+   ps.Hadamard_Int("b", 2)(state)
 
    # 随机测量寄存器 "a"
    measured_values, prob = ps.PartialTrace("a")(state)
@@ -154,7 +154,7 @@ PartialTrace：测量
 寄存器栈操作：Push / Pop
 -------------------------
 
-``Push`` 和 ``Pop`` 提供临时寄存器的栈管理，适用于算法中需要临时变量的场景：
+:class:`Push <pysparq.Push>` 和 :class:`Pop <pysparq.Pop>`（见 :doc:`系统操作 </operators/system_ops>`）提供临时寄存器的栈管理，适用于算法中需要临时变量的场景：
 
 .. code-block:: python
 
@@ -202,4 +202,4 @@ API 参考
 - :doc:`Push / Pop / ClearZero 等系统操作 </operators/system_ops>`
 - :doc:`PartialTrace 测量算子 </operators/partial_trace>`
 
-或查阅 :ref:`算子参考` 章节获取所有算子的完整列表。
+或查阅 :ref:`算子参考 <operator-reference>` 章节获取所有算子的完整列表。

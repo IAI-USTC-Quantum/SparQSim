@@ -1,6 +1,8 @@
 核心组件与量子门
 =================
 
+这些头文件支撑 :doc:`基本量子门 </operators/gates>`、:doc:`Hadamard </operators/hadamard>`、:doc:`QFT </operators/qft>`、:doc:`条件旋转 </operators/condrot>` 与 :doc:`旋转与态制备 </operators/rot_state_prep>` 算子族。
+
 基础组件（``SparQ/include/basic_components.h``）
 -----------------------------------------------
 

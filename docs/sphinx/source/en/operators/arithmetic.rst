@@ -1,7 +1,7 @@
 Arithmetic Operators
 ====================
 
-Arithmetic operators implement quantum integer arithmetic, including addition, multiplication, shifting, comparison, and other operations.
+Arithmetic operators implement quantum integer arithmetic, including addition, multiplication, shifting, comparison, and other operations. See :doc:`register types </guide/core_concepts/register_types>` for the accepted register types and :doc:`Examples </guide/examples>` for end-to-end usage.
 
 .. contents:: Contents
    :local:

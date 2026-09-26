@@ -1,10 +1,9 @@
 量子算法开发指南
-
 ================
 
 
 
-本指南介绍如何在 SparQ/QRAM-Simulator 中开发新的量子算法。
+本指南介绍如何在 SparQ/QRAM-Simulator 中开发新的量子算法。运行时框架的整体架构参见 :doc:`架构总览 <../architecture>`。
 
 
 
@@ -15,12 +14,11 @@
 
 
 核心范式
-
 --------
 
 
 
-SparQ 采用 **Register Level Programming**（寄存器级编程）范式，区别于传统的门级电路组合：
+SparQ 采用 **Register Level Programming**（寄存器级编程）范式（参见 :doc:`核心概念 <../core_concepts/index>` 与 :doc:`快速入门 </guide/quickstart>`），区别于传统的门级电路组合：
 
 
 
@@ -45,18 +43,17 @@ SparQ 采用 **Register Level Programming**（寄存器级编程）范式，区�
 
 
 开发工作流
-
 ---------
 
 
 
 1. **环境准备** - 构建项目，安装依赖
 
-2. **理解核心组件** - 熟悉代码结构
+2. **理解核心组件** - 熟悉 :doc:`代码结构 <../architecture>`
 
 3. **实现算法** - 参考现有实验
 
-4. **测试验证** - 确保正确性
+4. **测试验证** - 确保正确性（参见 :doc:`测试验证 <verification>`）
 
 5. **提交代码** - PR 到 upstream
 

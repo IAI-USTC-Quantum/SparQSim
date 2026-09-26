@@ -1,6 +1,8 @@
 CUDA Backend
 ============
 
+Build-side instructions: :doc:`GPU Build </guide/development/workflow>` in the development workflow.
+
 .. note::
 
    The CUDA/GPU backend is controlled by the ``SPARQ_ENABLE_CUDA`` switch (OFF by default; only the CPU

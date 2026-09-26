@@ -6,6 +6,8 @@ PySparQ exposes all quantum operations as Python classes and functions through t
 Core Classes
 ------------
 
+Concept introductions: :doc:`The System Class </guide/core_concepts/system>` and :doc:`The SparseState Class </guide/core_concepts/sparse_state>`.
+
 .. autoclass:: pysparq._core.System
    :members:
    :show-inheritance:
@@ -17,20 +19,18 @@ Core Classes
 Quantum Arithmetic Operators
 ----------------------------
 
+Detailed usage: :doc:`Arithmetic Operators </operators/arithmetic>`.
+
 .. autofunction:: pysparq._core.Add_UInt_UInt
 
 .. autofunction:: pysparq._core.Add_UInt_ConstUInt
 
-.. autofunction:: pysparq._core.Add_ConstUInt
-
 .. autofunction:: pysparq._core.Mult_UInt_ConstUInt
-
-.. autofunction:: pysparq._core.Mod_Mult_UInt_ConstUInt
-
-.. autofunction:: pysparq._core.AddAssign_AnyInt_AnyInt
 
 Quantum Gates
 -------------
+
+Detailed usage: :doc:`Basic Quantum Gates </operators/gates>`, :doc:`Hadamard Operations </operators/hadamard>`, and :doc:`QFT </operators/qft>`.
 
 .. autofunction:: pysparq._core.Hadamard_Int
 
@@ -49,6 +49,8 @@ Quantum Gates
 QRAM Operations
 ---------------
 
+Detailed usage: :doc:`QRAM Operators </operators/qram_ops>`.
+
 .. autofunction:: pysparq._core.QRAMLoad
 
 .. autofunction:: pysparq._core.QRAMLoadFast
@@ -57,6 +59,8 @@ QRAM Operations
 
 State Management
 ----------------
+
+Detailed usage: :doc:`System Operations </operators/system_ops>`, :doc:`Partial Trace </operators/partial_trace>`, and :doc:`Dark Magic Operations </operators/dark_magic>` (``Normalize``).
 
 .. autofunction:: pysparq._core.AddRegister
 

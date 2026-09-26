@@ -11,6 +11,8 @@ Register Types
    Boolean          // single bit
    Rational         // rational number (used for angle computations)
 
+These names map to the storage types described in :doc:`register types <../core_concepts/register_types>`.
+
 C++ Development Template
 ------------------------
 
@@ -56,7 +58,7 @@ Python Development Template
    state = ps.SparseState()
 
    # 4. Apply operations
-   ps.Hadamard_Int("addr")(state)
+   ps.Hadamard_Int("addr", 4)(state)
    ps.QRAMLoad(qram, "addr", "data")(state)
 
    # 5. Read out the results
@@ -91,7 +93,7 @@ Grover Search Template
 Block Encoding Template
 -----------------------
 
-See ``SparQ_Algorithm/include/block_encoding.h`` for implementing block encodings of unitary matrices.
+See :doc:`block encoding (C++ reference) </cpp_api/block_encoding>` (``SparQ_Algorithm/include/block_encoding.h``) for implementing block encodings of unitary matrices; a Python walkthrough is available in :doc:`Examples </guide/examples>`.
 
 Hamiltonian Simulation
 ----------------------

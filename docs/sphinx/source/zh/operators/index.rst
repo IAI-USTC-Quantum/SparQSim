@@ -1,7 +1,9 @@
+.. _operator-reference:
+
 算子参考
 ========
 
-算子是 PySparQ 中量子操作的构建模块。所有操作都以算子对象的形式实现，它们接受 ``SparseState`` 并对其进行变换。
+算子是 PySparQ 中量子操作的构建模块。所有操作都以算子对象的形式实现，它们接受 :doc:`SparseState </guide/core_concepts/sparse_state>` 并对其进行变换。
 
 .. contents:: 目录
    :local:
@@ -10,7 +12,7 @@
 什么是算子？
 ------------
 
-**算子**是一个可调用对象，它对 ``SparseState`` 进行变换，实现量子操作同时保证幺正性。
+**算子**是一个可调用对象，它对 ``SparseState`` 进行变换，实现量子操作同时保证幺正性。设计原理见 :doc:`算子 </guide/core_concepts/operators>` 概念章节。
 
 基本用法
 ^^^^^^^^
@@ -61,10 +63,12 @@ PySparQ 通过两种机制保证幺正性：
      - 示例
    * - Out-of-place（外置）
      - XOR 写入：``result ^= f(inputs)``
-     - ``Add_UInt_UInt``, ``Mult_UInt_ConstUInt``
+     - :class:`Add_UInt_UInt <pysparq.Add_UInt_UInt>`, :class:`Mult_UInt_ConstUInt <pysparq.Mult_UInt_ConstUInt>`
    * - In-place（内置）
      - 显式 dagger 实现
-     - ``Add_UInt_UInt_InPlace``, ``ShiftLeft_InPlace``
+     - :class:`Add_UInt_UInt_InPlace <pysparq.Add_UInt_UInt_InPlace>`, :class:`ShiftLeft_InPlace <pysparq.ShiftLeft_InPlace>`
+
+.. _selfadjoint-vs-baseoperator:
 
 SelfAdjointOperator vs BaseOperator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,14 +80,14 @@ SelfAdjointOperator vs BaseOperator
      - 特点
      - ``dag()`` 行为
      - 典型算子
-   * - ``SelfAdjointOperator``
+   * - :class:`SelfAdjointOperator <pysparq.SelfAdjointOperator>`
      - :math:`U^\dagger = U`
-     - ``dag()`` 等同于 ``operator()``
-     - ``Add_UInt_UInt``, ``X_Bool``
-   * - ``BaseOperator``
+     - :meth:`dag() <pysparq.BaseOperator.dag>` 等同于 ``operator()``
+     - :class:`Add_UInt_UInt <pysparq.Add_UInt_UInt>`, :class:`X_Bool <pysparq.X_Bool>`
+   * - :class:`BaseOperator <pysparq.BaseOperator>`
      - 一般幺正算子
-     - 需要显式实现 ``dag()``
-     - ``Add_UInt_UInt_InPlace``, ``ShiftLeft_InPlace``
+     - 需要显式实现 :meth:`dag() <pysparq.BaseOperator.dag>`
+     - :class:`Add_UInt_UInt_InPlace <pysparq.Add_UInt_UInt_InPlace>`, :class:`ShiftLeft_InPlace <pysparq.ShiftLeft_InPlace>`
 
 .. code-block:: python
 
@@ -108,19 +112,19 @@ SelfAdjointOperator vs BaseOperator
    * - 类型
      - 说明
      - 有效范围
-   * - ``UnsignedInteger``
+   * - :doc:`UnsignedInteger </guide/core_concepts/register_types>`
      - 无符号整数
      - :math:`[0, 2^n-1]`
-   * - ``SignedInteger``
+   * - :doc:`SignedInteger </guide/core_concepts/register_types>`
      - 有符号整数（二补码）
      - :math:`[-2^{n-1}, 2^{n-1}-1]`
-   * - ``Boolean``
+   * - :doc:`Boolean </guide/core_concepts/register_types>`
      - 单量子比特
      - {0, 1}
-   * - ``Rational``
+   * - :doc:`Rational </guide/core_concepts/register_types>`
      - 定点小数
      - :math:`[0, 1)`
-   * - ``General``
+   * - :doc:`General </guide/core_concepts/register_types>`
      - 原始比特存储
      - 任意比特模式
 
@@ -142,6 +146,8 @@ SelfAdjointOperator vs BaseOperator
 - 寄存器大小匹配预期维度
 - 比特索引在寄存器范围内
 - 输出寄存器有足够容量
+
+.. _conditional-operations:
 
 条件操作
 --------
@@ -216,8 +222,6 @@ API 参考
 .. autoclass:: pysparq.SelfAdjointOperator
    :members:
    :undoc-members:
-
-.. _算子参考:
 
 算子分类详解
 -----------

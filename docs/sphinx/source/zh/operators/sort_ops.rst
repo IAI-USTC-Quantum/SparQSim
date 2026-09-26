@@ -1,7 +1,7 @@
 排序算子
 ========
 
-排序算子对 ``SparseState`` 中的基态按不同维度进行排序。排序本身不改变量子态（振幅不变），但会影响 ``StatePrint`` 等工具的显示顺序，并用于内部条件操作的正确匹配。
+排序算子对 :class:`SparseState <pysparq.SparseState>` 中的基态按不同维度进行排序。排序本身不改变量子态（振幅不变），但会影响 :doc:`StatePrint </operators/debug>` 等工具的显示顺序，并用于内部条件操作的正确匹配。
 
 .. contents:: 目录
    :local:

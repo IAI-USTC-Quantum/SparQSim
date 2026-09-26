@@ -1,7 +1,7 @@
 QRAM Operators
 ==============
 
-QRAM (Quantum Random Access Memory) operators implement quantum parallel data access.
+QRAM (Quantum Random Access Memory) operators implement quantum parallel data access. The C++-only qubit-circuit variant is documented under :doc:`QRAM operations (C++) </cpp_api/qram>`, and uniform address superpositions are typically prepared with :doc:`Hadamard_Int_Full </operators/hadamard>`.
 
 .. contents:: Contents
    :local:

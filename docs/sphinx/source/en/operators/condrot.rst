@@ -1,7 +1,7 @@
 Conditional Rotation Operators
 ==============================
 
-Conditional rotation operators rotate a target register based on the value of an input register.
+Conditional rotation operators rotate a target register based on the value of an input register. The rotation angle is typically encoded in a :doc:`Rational </guide/core_concepts/register_types>` register; the :doc:`Hadamard </operators/hadamard>` gate prepares control superpositions, and algorithms built on these rotations (Hamiltonian simulation) live in the :doc:`algorithm library </cpp_api/algorithms>`.
 
 .. contents:: Contents
    :local:

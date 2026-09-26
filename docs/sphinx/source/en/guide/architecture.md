@@ -1,18 +1,18 @@
 # SparQSim Architecture
 
-This document describes the overall architecture of the SparQSim repository (the home of the SparQ framework), the division of work between repositories, and the core modules.
+This document describes the overall architecture of the SparQSim repository (the home of the SparQ framework), the division of work between repositories, and the core modules. For a hands-on introduction, start with the {doc}`Quick Start </guide/quickstart>` instead.
 
 ## Overview
 
 ### Project Goals
 
-SparQ is a high-performance simulator framework for simulating **quantum random access memory (QRAM)** and **sparse-state quantum computing**. It aims to provide quantum-algorithm researchers and developers with:
+SparQ is a high-performance simulator framework for simulating **quantum random access memory ({doc}`QRAM </operators/qram_ops>`)** and **{doc}`sparse-state <../guide/core_concepts/sparse_state>` quantum computing**. It aims to provide quantum-algorithm researchers and developers with:
 
 - Tools for efficiently simulating large-scale quantum systems (leveraging the sparse-state representation)
 - Accurate modeling of QRAM circuit behavior and noise effects
-- A register-level programming paradigm: perform arithmetic and logic directly on integer/Boolean registers, with no manual decomposition into gates
-- A complete algorithm library (Grover, Shor, state preparation, block encoding, Hamiltonian simulation, discrete adiabatic QDA, etc.)
-- A clean Python API (`pysparq`) for rapid prototyping
+- A {doc}`register-level programming </guide/core_concepts/index>` paradigm: perform arithmetic and logic directly on integer/Boolean registers, with no manual decomposition into gates
+- A complete {doc}`algorithm library </cpp_api/algorithms>` (Grover, Shor, state preparation, {doc}`block encoding </cpp_api/block_encoding>`, Hamiltonian simulation, {doc}`discrete adiabatic QDA </cpp_api/qda>`, etc.)
+- A clean Python API (`pysparq`, see the {doc}`API reference </api/index>`) for rapid prototyping
 
 ### Repository Split
 
@@ -51,41 +51,41 @@ SparQSim/
 
 **Core classes** (all under the `qram_simulator` namespace, declared in `SparQ/include/basic_components.h`):
 
-- **`System`**: a single computational basis state holding the complex ``amplitude`` and the register value array ``registers``;
+- **{doc}`System </guide/core_concepts/system>`**: a single computational basis state holding the complex ``amplitude`` and the register value array ``registers``;
   it also maintains the global register table (names, types, widths) as static members, and is the hub of register-level programming
-- **`StateStorage`**: a quantum register storage cell
-- **`SparseState`**: a sparse quantum state holding ``std::vector<System>``; default construction creates the ``|0...0⟩`` initial state
-- **`BaseOperator`**: the unified operator interface (``operator()`` / ``dag()``, with CPU/GPU overloads), supporting composite and conditional operators
-- **`SelfAdjointOperator`**: base class of self-adjoint operators (``dag() == operator()``), e.g. Hadamard, Pauli-X
+- **{doc}`StateStorage </guide/core_concepts/register_types>`**: a quantum register storage cell
+- **{doc}`SparseState </guide/core_concepts/sparse_state>`**: a sparse quantum state holding ``std::vector<System>``; default construction creates the ``|0...0⟩`` initial state
+- **{doc}`BaseOperator </operators/index>`**: the unified operator interface (``operator()`` / ``dag()``, with CPU/GPU overloads), supporting composite and conditional operators
+- **{doc}`SelfAdjointOperator </operators/index>`**: base class of self-adjoint operators (``dag() == operator()``), e.g. Hadamard, Pauli-X
 
 **Main header modules**:
 
 | Header | Contents |
 |--------|------|
-| `basic_components.h` | core data structures such as System / SparseState / BaseOperator |
-| `basic_gates.h` | standard gates such as Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 |
-| `hadamard.h` | Hadamard on integer registers (superposition generation) |
-| `qft.h` | QFT / InverseQFT / QFT_Full |
-| `measurement.h` | mid-circuit measurement MeasureZ / Reset / Probability |
-| `partial_trace.h` | partial trace and readout |
-| `qram.h` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
-| `quantum_arithmetic.h` | about 50 quantum arithmetic operators for modular add/sub/mul/div, shifts, comparisons, etc. |
-| `system_operations.h` | AddRegister / RemoveRegister / Split / Combine / Push / Pop etc. |
-| `condrot.h` / `rot.h` | conditional rotation, general unitary rotation, and state preparation |
-| `debugger.h` | debug operators such as CheckNormalization / CheckNan / StatePrint |
+| {doc}`basic_components.h </cpp_api/core>` | core data structures such as System / SparseState / BaseOperator |
+| {doc}`basic_gates.h </cpp_api/core>` | standard gates such as Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 |
+| {doc}`hadamard.h </cpp_api/core>` | Hadamard on integer registers (superposition generation) |
+| {doc}`qft.h </cpp_api/core>` | QFT / InverseQFT / QFT_Full |
+| {doc}`measurement.h </cpp_api/measurement>` | mid-circuit measurement MeasureZ / Reset / Probability |
+| {doc}`partial_trace.h </cpp_api/measurement>` | partial trace and readout |
+| {doc}`qram.h </cpp_api/qram>` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
+| {doc}`quantum_arithmetic.h </cpp_api/arithmetic>` | about 50 quantum arithmetic operators for modular add/sub/mul/div, shifts, comparisons, etc. |
+| {doc}`system_operations.h </cpp_api/system_ops>` | AddRegister / RemoveRegister / Split / Combine / Push / Pop etc. |
+| {doc}`condrot.h </cpp_api/core>` / {doc}`rot.h </cpp_api/core>` | conditional rotation, general unitary rotation, and state preparation |
+| {doc}`debugger.h </cpp_api/system_ops>` | debug operators such as CheckNormalization / CheckNan / StatePrint |
 
 ### SparQ_Algorithm/ - High-Level Algorithm Library
 
 Composes core primitives into complete quantum algorithms; each algorithm corresponds to a C++ experiment in `Experiments/`
 and a Python implementation in `PySparQ/pysparq/algorithms/` (see
-[docs/algorithm-implementation.md](../algorithm-implementation.md) for the mapping):
+[docs/algorithm-implementation.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/algorithm-implementation.md) for the mapping):
 
-- **grover.h**: QRAM-oracle-driven Grover search (incl. amplitude amplification and quantum counting)
-- **shor.h**: Shor factoring (standard + semiclassical variants)
-- **state_preparation.h**: QRAM-based state preparation
-- **BlockEncoding/**: tridiagonal-matrix block encoding and QRAM-based block encoding
-- **DiscreteAdiabatic/**: discrete adiabatic (QDA) linear-system solver
-- **hamiltonian_simulation.h**: Hamiltonian simulation via quantum walk / LCU / sparse-matrix oracle / QSVT
+- **{doc}`grover.h </cpp_api/algorithms>`**: QRAM-oracle-driven Grover search (incl. amplitude amplification and quantum counting)
+- **{doc}`shor.h </cpp_api/algorithms>`**: Shor factoring (standard + semiclassical variants)
+- **{doc}`state_preparation.h </cpp_api/algorithms>`**: QRAM-based state preparation
+- **{doc}`BlockEncoding/ </cpp_api/block_encoding>`**: tridiagonal-matrix block encoding and QRAM-based block encoding
+- **{doc}`DiscreteAdiabatic/ </cpp_api/qda>`**: discrete adiabatic (QDA) linear-system solver
+- **{doc}`hamiltonian_simulation.h </cpp_api/algorithms>`**: Hamiltonian simulation via quantum walk / LCU / sparse-matrix oracle / QSVT
 - **qcnn.h**: quantum convolutional network (currently disabled as a whole by `#if false`)
 
 ### PySparQ/ - Python Bindings and Pure-Python Layer
@@ -93,10 +93,10 @@ and a Python implementation in `PySparQ/pysparq/algorithms/` (see
 Exposes the core C++ API through pybind11 (`PySparQ/core.cpp` → compiled into ``pysparq._core``),
 organized by the pure-Python package ``pysparq``:
 
-- ``pysparq/operators/``: operator base classes and the conditional-control mixin
-- ``pysparq/algorithms/``: pure-Python algorithm layer (Grover, Shor, QDA, CKS, state preparation, block encoding)
-- ``pysparq/rir.py``: the RIR interpreter (the QECC.Lang intermediate representation)
-- ``pysparq/dynamic_operator/``: runtime JIT-compiled C++ dynamic operators (with a standalone loader)
+- ``pysparq/operators/``: operator base classes and the conditional-control mixin ({ref}`conditional operations <conditional-operations>`)
+- ``pysparq/algorithms/``: pure-Python algorithm layer (Grover, Shor, QDA, CKS, state preparation, block encoding) — used in the {doc}`Examples </guide/examples>`
+- ``pysparq/rir.py``: the {doc}`RIR interpreter </guide/rir>` (the QECC.Lang intermediate representation)
+- ``pysparq/dynamic_operator/``: runtime JIT-compiled C++ {doc}`dynamic operators </guide/dynamic_operators>` (with a standalone loader)
 - ``pysparq/conformance.py``: conformance-checking utilities
 
 The thin ``qram_simulator`` binding does not live in this repository — it is packaged and released independently
@@ -104,7 +104,7 @@ by the QRAM-Simulator core repository (`pip install qram-simulator`).
 
 ### extern/qram-simulator/ - QRAM Base (submodule)
 
-The QRAM circuit core (the qutrit/qubit implementations of ``QRAMCircuit``, ``CuQRAMCircuit``) and
+The QRAM circuit core (the qutrit/qubit implementations of {doc}`QRAMCircuit </operators/qram_ops>`, ``CuQRAMCircuit``) and
 the Common infrastructure (math utilities, matrix wrappers, random-number engines, error handling).
 **This directory belongs to another repository; do not modify it directly inside this repository**;
 the upgrade path is `git submodule update --remote` followed by committing the new pin.
@@ -131,7 +131,7 @@ the upgrade path is `git submodule update --remote` followed by committing the n
 
 - Memory usage: O(k × r), where k is the number of non-zero basis states and r the number of registers
 - Compared with the O(2^n) of a dense representation, this enables much larger simulations
-- Register-level operations: AddRegister ≈ ⊗|0⟩, RemoveRegister ≈ PartialTrace
+- Register-level operations: AddRegister ≈ ⊗|0⟩, RemoveRegister ≈ {doc}`PartialTrace </operators/partial_trace>`
 
 ## Key Design Decisions
 
@@ -159,10 +159,10 @@ The core difference between the two lies in **how the address is encoded**, whic
 
 ### Adding a New Quantum Gate / Operator
 
-1. Create a header file in `SparQ/include/`, deriving from `BaseOperator` (general operators) or
-   `SelfAdjointOperator` (self-adjoint operators), and implement `operator()` and (if not self-adjoint) `dag()`
+1. Create a header file in `SparQ/include/`, deriving from {doc}`BaseOperator </operators/index>` (general operators) or
+   {doc}`SelfAdjointOperator </operators/index>` (self-adjoint operators), and implement `operator()` and (if not self-adjoint) `dag()`
 2. Implement it in a same-named .cpp under `SparQ/src/`; the `ClassControllable` macro can be used to gain conditional-control capability
-3. To expose it to Python, add the binding in `PySparQ/core.cpp` and keep the `_core.pyi` type hints in sync
+3. To expose it to Python, add the binding in `PySparQ/core.cpp` (see the {doc}`binding layer </cpp_api/bindings>`) and keep the `_core.pyi` type hints in sync
 
 ### Adding a New Algorithm
 
@@ -173,4 +173,4 @@ The core difference between the two lies in **how the address is encoded**, whic
 ### Build Options
 
 - `SPARQ_BUILD_TESTS` / `SPARQ_BUILD_EXPERIMENTS` / `SPARQ_BUILD_EXAMPLES`: CMake gates, OFF by default
-- CUDA/GPU backend: the code is kept in `SparQ/include/cuda/` and `SparQ/src/cuda/`; CMake currently masks the GPU build
+- CUDA/GPU backend: the code is kept in `SparQ/include/cuda/` and `SparQ/src/cuda/` (see the {doc}`CUDA backend </cpp_api/cuda>` reference); CMake currently masks the GPU build

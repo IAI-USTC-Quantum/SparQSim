@@ -1,7 +1,7 @@
 Examples
 ========
 
-This section demonstrates how to build quantum algorithms with PySparQ from scratch — from creating initial states and using existing operators to defining custom operators, and finally to assembling Block Encoding circuits.
+This section demonstrates how to build quantum algorithms with PySparQ from scratch — from creating initial states and using existing operators to defining custom operators, and finally to assembling :doc:`Block Encoding </cpp_api/block_encoding>` circuits.
 
 .. contents:: Contents
    :local:
@@ -10,7 +10,7 @@ This section demonstrates how to build quantum algorithms with PySparQ from scra
 Prerequisites
 -------------
 
-PySparQ is installed and the C++ core has been compiled (GPU support is optional).
+PySparQ is installed and the C++ core has been compiled (:doc:`GPU support </cpp_api/cuda>` is optional).
 
 .. code-block:: bash
 
@@ -20,7 +20,7 @@ PySparQ is installed and the C++ core has been compiled (GPU support is optional
 Example 1: Creating the Initial State
 -------------------------------------
 
-The starting point of a quantum circuit is the quantum state (``SparseState``). In PySparQ, qubits are organized in units of **registers** (Register) rather than as individual qubits.
+The starting point of a quantum circuit is the quantum state (:class:`SparseState <pysparq.SparseState>`). In PySparQ, qubits are organized in units of **registers** (Register — see :doc:`register management </guide/core_concepts/register_management>`) rather than as individual qubits.
 
 Create the system and initialize the registers:
 
@@ -42,7 +42,7 @@ Create the system and initialize the registers:
    # |(0)q : UInt4 |
    # 1.000000+0.000000i  q=|0>
 
-The initial state is :math:`|0000\rangle`. Create a superposition with the Hadamard transform:
+The initial state is :math:`|0000\rangle`. Create a superposition with the :doc:`Hadamard transform </operators/hadamard>`:
 
 .. code-block:: python
 
@@ -60,7 +60,7 @@ The initial state is :math:`|0000\rangle`. Create a superposition with the Hadam
    # 0.250000+0.000000i  q=|15>
    # A superposition of 16 equal-amplitude states (each 0.25)
 
-Set a particular basis state to a specific value:
+Set a particular basis state to a specific value with :class:`Init_Unsafe <pysparq.Init_Unsafe>` from the :doc:`dark magic operations </operators/dark_magic>`:
 
 .. code-block:: python
 
@@ -71,7 +71,7 @@ Set a particular basis state to a specific value:
    # |(0)q : UInt4 |
    # 0.250000+0.000000i  q=|5>   ← all 16 amplitudes become |5⟩
 
-Drive state evolution with an addition operator (the core of register-level programming):
+Drive state evolution with an :class:`addition operator <pysparq.Add_ConstUInt_InPlace>` (the core of :doc:`register-level programming </guide/core_concepts/index>`):
 
 .. code-block:: python
 
@@ -88,7 +88,7 @@ Drive state evolution with an addition operator (the core of register-level prog
 Example 2: Using Existing Operators
 -----------------------------------
 
-PySparQ provides a rich set of built-in operators covering arithmetic, QRAM, QFT, conditional rotation, and other categories. The following shows how to combine them.
+PySparQ provides a rich set of built-in operators covering :doc:`arithmetic </operators/arithmetic>`, :doc:`QRAM </operators/qram_ops>`, :doc:`QFT </operators/qft>`, :doc:`conditional rotation </operators/condrot>`, and other categories. The following shows how to combine them.
 
 Addition, Multiplication, Shifting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +133,7 @@ Arithmetic between two integer registers:
 QRAM Data Loading
 ~~~~~~~~~~~~~~~~~
 
-Load a classical array into a quantum state, with support for batch queries under an address superposition:
+Load a classical array into a quantum state, with support for batch queries under an address superposition (see :doc:`QRAM operators </operators/qram_ops>`):
 
 .. code-block:: python
 
@@ -175,7 +175,7 @@ Load a classical array into a quantum state, with support for batch queries unde
 QFT and Inverse QFT
 ~~~~~~~~~~~~~~~~~~~
 
-The quantum Fourier transform and its inverse:
+The :doc:`quantum Fourier transform </operators/qft>` and its inverse:
 
 .. code-block:: python
 
@@ -196,7 +196,7 @@ The quantum Fourier transform and its inverse:
 Example 3: Custom Operators on the Python Side
 ----------------------------------------------
 
-When the built-in operators do not meet your needs, you can directly **compose existing operators** on the Python side and wrap them in a new class:
+When the built-in operators do not meet your needs, you can directly **compose existing operators** (see :doc:`Operators </guide/core_concepts/operators>`) on the Python side and wrap them in a new class:
 
 .. code-block:: python
 
@@ -222,7 +222,7 @@ When the built-in operators do not meet your needs, you can directly **compose e
            self(state)
 
 
-For cases that require new primitives, ``pysparq.dynamic_operator.compile_operator`` supports compiling user-provided C++ code into a dynamically linked library and wrapping it directly as a Python class:
+For cases that require new primitives, :func:`pysparq.dynamic_operator.compile_operator` supports compiling user-provided C++ code into a dynamically linked library and wrapping it directly as a Python class:
 
 .. code-block:: python
 
@@ -277,7 +277,7 @@ where :math:`\alpha` is a normalization factor.
 Block Encoding of Tridiagonal Matrices
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``pysparq.algorithms.block_encoding.BlockEncodingTridiagonal`` encodes the symmetric tridiagonal matrix :math:`A = \alpha I + \beta T` (:math:`T` is the shift matrix) as a quantum circuit. Implementation logic:
+:doc:`pysparq.algorithms.block_encoding </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` :class:`BlockEncodingTridiagonal <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingTridiagonal>` encodes the symmetric tridiagonal matrix :math:`A = \alpha I + \beta T` (:math:`T` is the shift matrix) as a quantum circuit. Implementation logic:
 
 1. Prepare a 4-element superposition on an ancillary register
 2. Apply controlled add/subtract 1 to the main register (an overflow bit records the carry)
@@ -320,16 +320,15 @@ Full example:
 QRAM-Based Block Encoding
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For arbitrary sparse matrices (stored in QRAM), ``BlockEncodingViaQRAM`` combines :math:`U_L` (row-direction rotation), :math:`U_R^\dagger` (column-direction rotation), and a SWAP operation to realize complete Block Encoding:
+For arbitrary sparse matrices (stored in QRAM), :class:`BlockEncodingViaQRAM <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingViaQRAM>` combines :math:`U_L` (row-direction rotation), :math:`U_R^\dagger` (column-direction rotation), and a SWAP operation to realize complete Block Encoding:
 
 .. math::
 
    U_A = \text{SWAP}(\text{row}, \text{col}) \cdot U_R^\dagger(\text{col}) \cdot U_L(\text{row}, \text{col})
 
-Each operation loads parent/child node data via QRAM, computes the rotation angles, and applies conditional rotations. See the source code of the
-``pysparq.algorithms.block_encoding`` module for implementation details.
+Each operation loads parent/child node data via QRAM, computes the rotation angles, and applies conditional rotations. See the source code of the :doc:`pysparq.algorithms.block_encoding module </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` for implementation details.
 
-These two Block Encoding building blocks are the core of advanced algorithms such as QDA (quantum linear system solvers) and Hamiltonian simulation, forming the bridge from operators to complete quantum algorithms.
+These two Block Encoding building blocks are the core of advanced algorithms such as :doc:`QDA </cpp_api/qda>` (quantum linear system solvers) and :doc:`Hamiltonian simulation </cpp_api/algorithms>`, forming the bridge from operators to complete quantum algorithms.
 
 
 Example 5: Custom Operators on the C++ Side (Advanced)
@@ -337,7 +336,7 @@ Example 5: Custom Operators on the C++ Side (Advanced)
 
 If performance or expressive power on the Python side is insufficient, you can implement new operators directly in the C++ core; the steps are as follows:
 
-1. **Create a header file in** ``SparQ/include/`` that inherits from ``BaseOperator`` or ``SelfAdjointOperator`` and implements the ``apply()`` method:
+1. **Create a header file in** ``SparQ/include/`` that inherits from :doc:`BaseOperator </cpp_api/core>` or :doc:`SelfAdjointOperator </cpp_api/core>` and implements the ``apply()`` method:
 
    .. code-block:: cpp
 
@@ -366,8 +365,8 @@ If performance or expressive power on the Python side is insufficient, you can i
 
 2. **Implement the** ``apply()`` **method in** ``SparQ/src/`` (if a separate cpp file is needed)
 
-3. **Add pybind11 bindings in** ``PySparQ/src/pybind_wrapper.cpp``
+3. **Add pybind11 bindings in** ``PySparQ/src/pybind_wrapper.cpp`` (see the :doc:`binding layer </cpp_api/bindings>`)
 
 4. **Rebuild PySparQ** (``pip install .``)
 
-See :doc:`dynamic_operators` for the complete development workflow.
+See :doc:`dynamic_operators` for the complete development workflow, and the :doc:`code templates </guide/development/templates>` for ready-to-copy skeletons.

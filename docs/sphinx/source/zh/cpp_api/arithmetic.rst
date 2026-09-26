@@ -1,6 +1,8 @@
 量子算术与状态整理
 ==================
 
+Python 侧的用法见 :doc:`算术算子 </operators/arithmetic>` 与 :doc:`排序算子 </operators/sort_ops>`。
+
 量子算术（``SparQ/include/quantum_arithmetic.h``）
 --------------------------------------------------
 

@@ -1,6 +1,8 @@
 Block Encoding (BlockEncoding/)
 ===============================
 
+Concept walkthrough with runnable Python code: :doc:`Example 4 </guide/examples>` in the Examples guide.
+
 Tridiagonal Matrix Block Encoding (``SparQ_Algorithm/include/BlockEncoding/block_encoding_tridiagonal.h``)
 ----------------------------------------------------------------------------------------------------------
 

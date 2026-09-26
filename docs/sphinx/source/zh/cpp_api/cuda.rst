@@ -1,6 +1,8 @@
 CUDA 后端
 =========
 
+构建侧说明见开发工作流中的 :doc:`GPU 构建 </guide/development/workflow>`。
+
 .. note::
 
    CUDA/GPU 后端由 ``SPARQ_ENABLE_CUDA`` 开关控制（默认 OFF，仅编译 CPU 路径；

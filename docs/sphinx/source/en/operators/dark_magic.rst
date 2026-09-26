@@ -8,7 +8,7 @@ Dark Magic Operations
    <p>The operations in this section bypass the normal constraints of quantum mechanics and are <strong>not guaranteed to be unitary</strong>. Use them only for debugging, initialization, or when you clearly understand the consequences.</p>
    </div>
 
-Dark magic operations provide the ability to directly modify the internal representation of a quantum state without going through normal quantum gate transformations. These operations do not correspond to any physical quantum operations.
+Dark magic operations provide the ability to directly modify the internal representation of a quantum state without going through normal quantum gate transformations. These operations do not correspond to any physical quantum operations. For read-only inspection of the state, prefer the :doc:`debugging tools </operators/debug>`.
 
 .. contents:: Contents
    :local:

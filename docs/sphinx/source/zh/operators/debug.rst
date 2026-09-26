@@ -1,7 +1,7 @@
 调试工具
 ========
 
-调试工具提供量子态检查、归一化验证、NaN 检测和状态打印等功能。这些工具不改变量子态，用于开发和调试阶段。
+调试工具提供量子态检查、归一化验证、NaN 检测和状态打印等功能。这些工具不改变量子态，用于开发和调试阶段。这里记录的 :class:`TestRemovable <pysparq.TestRemovable>` 检查也保护 :doc:`RemoveRegister </guide/core_concepts/register_management>` 不会移除纠缠寄存器。
 
 .. contents:: 目录
    :local:
@@ -44,7 +44,7 @@ StatePrint（状态打印）
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: pysparq.StatePrint
-.. autofunction:: pysparq.print
+.. autofunction:: pysparq.pprint
 .. autofunction:: pysparq.to_string
 .. autoclass:: pysparq.StatePrinter
    :members:

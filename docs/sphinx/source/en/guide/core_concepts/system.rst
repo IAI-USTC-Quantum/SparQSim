@@ -21,11 +21,11 @@ where each :math:`|i\rangle` corresponds to one ``System`` instance.
 A ``System`` contains two core pieces of data:
 
 - **amplitude** (``complex``): the complex amplitude of this basis state
-- **registers** (``list[StateStorage]``): the values of all registers, indexed by register ID. Each register value is stored as a ``uint64_t``
+- **registers** (``list[StateStorage]``): the values of all registers, indexed by register ID. Each register value is stored as a ``uint64_t`` — the storage cell is described in :doc:`register types </guide/core_concepts/register_types>`
 
 .. important::
 
-   ``System`` is not an object used standalone. It is always managed by a ``SparseState``. ``SparseState`` guarantees that the register-value combinations of all its ``System`` objects are unique — if two ``System`` objects have identical register values, quantum interference has occurred, and their amplitudes should be added and merged into a single ``System``.
+   ``System`` is not an object used standalone. It is always managed by a :class:`SparseState <pysparq.SparseState>`. ``SparseState`` guarantees that the register-value combinations of all its ``System`` objects are unique — if two ``System`` objects have identical register values, quantum interference has occurred, and their amplitudes should be added and merged into a single ``System``.
 
 Static Variables: Global Register Tracking
 ------------------------------------------
@@ -38,7 +38,7 @@ The ``System`` class uses static (class-level) variables to track the metadata o
 
 .. warning::
 
-   **Important**: Before every new program run, you must call ``System.clear()`` to clean up the static state; otherwise, information from the previous run will remain!
+   **Important**: Before every new program run, you must call :meth:`System.clear() <pysparq.System.clear>` to clean up the static state; otherwise, information from the previous run will remain!
 
 Static Members
 ^^^^^^^^^^^^^^
@@ -86,7 +86,7 @@ Register Storage Principles
 
 The registers in the system provide storage for ``n`` ``uint64_t`` values. This allows us to encode quantum states in a multi-register form such as :math:`|a\rangle|b\rangle|c\rangle` without having to manage how individual qubits are encoded.
 
-For example, a QRAM access :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` can be encoded easily — only an address register and a data register are needed. The management level of the whole project rises from qubits to quantum registers, and almost all operations take quantum registers as their unit.
+For example, a QRAM access :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` can be encoded easily — only an address register and a data register are needed (see :doc:`QRAM operators </operators/qram_ops>`). The management level of the whole project rises from qubits to quantum registers, and almost all operations take quantum registers as their unit.
 
 Query Methods
 -------------
@@ -114,6 +114,8 @@ Getting Register Information
 
    # Get the name from the ID
    name = ps.System.name_of(reg_id)
+
+The returned :class:`StateStorageType <pysparq.StateStorageType>` enum and the value interpretation of each storage type are described in :doc:`register types </guide/core_concepts/register_types>`.
 
 Statistics
 ^^^^^^^^^^
@@ -191,7 +193,7 @@ Best Practices
 
 3. **Use meaningful register names**
 
-   Names are used for debugging and ``StatePrint`` output, so they should be descriptive.
+   Names are used for debugging and :doc:`StatePrint </operators/debug>` output, so they should be descriptive.
 
 API Reference
 -------------

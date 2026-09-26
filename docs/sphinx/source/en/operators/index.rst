@@ -3,7 +3,7 @@
 Operator Reference
 ==================
 
-Operators are the building blocks of quantum operations in PySparQ. All operations are implemented as operator objects that take a ``SparseState`` and transform it.
+Operators are the building blocks of quantum operations in PySparQ. All operations are implemented as operator objects that take a :doc:`SparseState </guide/core_concepts/sparse_state>` and transform it.
 
 .. contents:: Contents
    :local:
@@ -12,7 +12,7 @@ Operators are the building blocks of quantum operations in PySparQ. All operatio
 What Is an Operator?
 --------------------
 
-An **operator** is a callable object that transforms a ``SparseState``, implementing quantum operations while guaranteeing unitarity.
+An **operator** is a callable object that transforms a ``SparseState``, implementing quantum operations while guaranteeing unitarity. The :doc:`Operators </guide/core_concepts/operators>` chapter of the core concepts guide explains the underlying design.
 
 Basic Usage
 ^^^^^^^^^^^
@@ -63,10 +63,12 @@ PySparQ guarantees unitarity through two mechanisms:
      - Example
    * - Out-of-place
      - XOR write: ``result ^= f(inputs)``
-     - ``Add_UInt_UInt``, ``Mult_UInt_ConstUInt``
+     - :class:`Add_UInt_UInt <pysparq.Add_UInt_UInt>`, :class:`Mult_UInt_ConstUInt <pysparq.Mult_UInt_ConstUInt>`
    * - In-place
      - Explicit dagger implementation
-     - ``Add_UInt_UInt_InPlace``, ``ShiftLeft_InPlace``
+     - :class:`Add_UInt_UInt_InPlace <pysparq.Add_UInt_UInt_InPlace>`, :class:`ShiftLeft_InPlace <pysparq.ShiftLeft_InPlace>`
+
+.. _selfadjoint-vs-baseoperator:
 
 SelfAdjointOperator vs BaseOperator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -78,14 +80,14 @@ SelfAdjointOperator vs BaseOperator
      - Characteristics
      - ``dag()`` behavior
      - Typical operators
-   * - ``SelfAdjointOperator``
+   * - :class:`SelfAdjointOperator <pysparq.SelfAdjointOperator>`
      - :math:`U^\dagger = U`
-     - ``dag()`` is equivalent to ``operator()``
-     - ``Add_UInt_UInt``, ``X_Bool``
-   * - ``BaseOperator``
+     - :meth:`dag() <pysparq.BaseOperator.dag>` is equivalent to ``operator()``
+     - :class:`Add_UInt_UInt <pysparq.Add_UInt_UInt>`, :class:`X_Bool <pysparq.X_Bool>`
+   * - :class:`BaseOperator <pysparq.BaseOperator>`
      - General unitary operator
-     - Requires an explicit ``dag()`` implementation
-     - ``Add_UInt_UInt_InPlace``, ``ShiftLeft_InPlace``
+     - Requires an explicit :meth:`dag() <pysparq.BaseOperator.dag>` implementation
+     - :class:`Add_UInt_UInt_InPlace <pysparq.Add_UInt_UInt_InPlace>`, :class:`ShiftLeft_InPlace <pysparq.ShiftLeft_InPlace>`
 
 .. code-block:: python
 
@@ -110,19 +112,19 @@ Operators impose strict requirements on register types:
    * - Type
      - Description
      - Valid range
-   * - ``UnsignedInteger``
+   * - :doc:`UnsignedInteger </guide/core_concepts/register_types>`
      - Unsigned integer
      - :math:`[0, 2^n-1]`
-   * - ``SignedInteger``
+   * - :doc:`SignedInteger </guide/core_concepts/register_types>`
      - Signed integer (two's complement)
      - :math:`[-2^{n-1}, 2^{n-1}-1]`
-   * - ``Boolean``
+   * - :doc:`Boolean </guide/core_concepts/register_types>`
      - Single qubit
      - {0, 1}
-   * - ``Rational``
+   * - :doc:`Rational </guide/core_concepts/register_types>`
      - Fixed-point fraction
      - :math:`[0, 1)`
-   * - ``General``
+   * - :doc:`General </guide/core_concepts/register_types>`
      - Raw bit storage
      - Arbitrary bit patterns
 
@@ -144,6 +146,8 @@ Many operators verify:
 - Register sizes match the expected dimensions
 - Bit indices are within the register range
 - Output registers have sufficient capacity
+
+.. _conditional-operations:
 
 Conditional Operations
 ----------------------

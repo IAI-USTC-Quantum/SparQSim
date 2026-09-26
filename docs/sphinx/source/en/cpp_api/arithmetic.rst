@@ -1,6 +1,8 @@
 Quantum Arithmetic and State Organization
 =========================================
 
+Python-facing usage is described in :doc:`Arithmetic Operators </operators/arithmetic>` and :doc:`Sorting Operators </operators/sort_ops>`.
+
 Quantum Arithmetic (``SparQ/include/quantum_arithmetic.h``)
 -----------------------------------------------------------
 

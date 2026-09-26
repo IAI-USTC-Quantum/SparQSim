@@ -1,7 +1,7 @@
 Sorting Operators
 =================
 
-Sorting operators sort the basis states in a ``SparseState`` along different dimensions. Sorting itself does not change the quantum state (amplitudes are unchanged), but it affects the display order of tools such as ``StatePrint`` and is used for correct matching in internal conditional operations.
+Sorting operators sort the basis states in a :class:`SparseState <pysparq.SparseState>` along different dimensions. Sorting itself does not change the quantum state (amplitudes are unchanged), but it affects the display order of tools such as :doc:`StatePrint </operators/debug>` and is used for correct matching in internal conditional operations.
 
 .. contents:: Contents
    :local:

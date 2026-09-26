@@ -1,7 +1,7 @@
 The SparseState Class
 =====================
 
-The ``SparseState`` class is the core data structure of PySparQ; it represents a sparse quantum state. It internally manages a ``std::vector<System>`` and stores only basis states with non-zero amplitudes.
+The ``SparseState`` class is the core data structure of PySparQ; it represents a sparse quantum state. It internally manages a ``std::vector<System>`` (each element is a :doc:`System </guide/core_concepts/system>`) and stores only basis states with non-zero amplitudes.
 
 .. contents:: Contents
    :local:
@@ -21,7 +21,7 @@ Uniqueness Rule
 
 A core invariant of ``SparseState`` is: **the register-value combination of every ``System`` must be unique**.
 
-If an operation on the basis states of a ``SparseState`` produces two ``System`` objects with identical register values, this means quantum interference has occurred — in that case the amplitudes of the two ``System`` objects should be added and they should be merged into a single ``System``. This process is usually performed automatically by the ``sort-merge-unique`` mechanism inside operators.
+If an operation on the basis states of a ``SparseState`` produces two ``System`` objects with identical register values, this means quantum interference has occurred — in that case the amplitudes of the two ``System`` objects should be added and they should be merged into a single ``System``. This process is usually performed automatically by the ``sort-merge-unique`` mechanism inside :doc:`operators </guide/core_concepts/operators>`.
 
 .. code-block:: python
 
@@ -81,7 +81,7 @@ Accessing Basis States
 State Evolution Example
 -----------------------
 
-The following example shows how a ``SparseState`` evolves under operator actions:
+The following example shows how a ``SparseState`` evolves under :ref:`operator actions <operator-reference>`:
 
 .. code-block:: python
    :caption: Example: Hadamard creates a superposition
@@ -128,7 +128,7 @@ The following example shows how a ``SparseState`` evolves under operator actions
 State Printing Modes
 --------------------
 
-``ps.StatePrint(state, mode)`` and ``ps.pprint(state, mode)`` support several display modes:
+``ps.StatePrint(state, mode)`` and ``ps.pprint(state, mode)`` (see :doc:`debugging tools </operators/debug>`) support several display modes:
 
 .. list-table:: The StatePrintDisplay enum
    :header-rows: 1
@@ -168,6 +168,8 @@ State Printing Modes
 
 Clearing Near-Zero Amplitudes
 -----------------------------
+
+Use :class:`ClearZero <pysparq.ClearZero>` from :doc:`system operations </operators/system_ops>` and :class:`Normalize <pysparq.Normalize>` from :doc:`dark magic operations </operators/dark_magic>`:
 
 .. code-block:: python
 
@@ -216,10 +218,8 @@ API Reference
    :members:
    :undoc-members:
 
-.. autofunction:: pysparq.split_systems
-
-.. autofunction:: pysparq.combine_systems
-
 .. autofunction:: pysparq.merge_system
 
 .. autofunction:: pysparq.remove_system
+
+The ``split_systems`` and ``combine_systems`` helpers are documented under :doc:`system operations </operators/system_ops>`.

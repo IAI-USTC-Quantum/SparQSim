@@ -1,7 +1,7 @@
 Quantum Fourier Transform (QFT)
 ===============================
 
-The quantum Fourier transform is a core component of many quantum algorithms.
+The quantum Fourier transform is a core component of many quantum algorithms — such as phase estimation and Shor's factoring — provided ready-made in the :doc:`algorithm library </cpp_api/algorithms>`.
 
 .. contents:: Contents
    :local:

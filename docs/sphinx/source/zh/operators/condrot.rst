@@ -1,7 +1,7 @@
 条件旋转算子
 ============
 
-条件旋转算子根据输入寄存器的值对目标寄存器进行旋转操作。
+条件旋转算子根据输入寄存器的值对目标寄存器进行旋转操作。旋转角通常编码在 :doc:`Rational </guide/core_concepts/register_types>` 寄存器中；:doc:`Hadamard </operators/hadamard>` 门制备控制叠加；基于这些旋转的算法（哈密顿量模拟）见 :doc:`算法库 </cpp_api/algorithms>`。
 
 .. contents:: 目录
    :local:

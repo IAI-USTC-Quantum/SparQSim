@@ -17,7 +17,7 @@ CPU 构建
 GPU 构建
 ^^^^^^^^
 
-CUDA/GPU 后端默认关闭；开启需本机 CUDA 工具链（CUDA 13 / CCCL 3 实测通过）。
+CUDA/GPU 后端默认关闭；开启需本机 CUDA 工具链（CUDA 13 / CCCL 3 实测通过）。GPU 代码布局见 :doc:`CUDA 后端参考 </cpp_api/cuda>`。
 
 .. code-block:: bash
 
@@ -33,6 +33,9 @@ Python 绑定
 
 核心代码结构
 ------------
+
+下述头文件的渲染参考：:doc:`核心组件 </cpp_api/core>`、:doc:`寄存器/系统操作 </cpp_api/system_ops>`、
+:doc:`量子算术 </cpp_api/arithmetic>`、:doc:`QRAM </cpp_api/qram>` 与 :doc:`算法库 </cpp_api/algorithms>`。
 
 +--------------------------+---------------------------------------------+--------------------------------------+
 | 组件              | 路径                                   | 用途                   |

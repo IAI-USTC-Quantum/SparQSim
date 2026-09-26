@@ -1,6 +1,8 @@
 Algorithm Library (Top Level)
 =============================
 
+These headers compose the :doc:`core operators </operators/index>` into complete algorithms (Grover, Shor, Hamiltonian simulation). Python-facing counterparts live in ``pysparq.algorithms`` and are exercised in :doc:`Examples </guide/examples>`.
+
 .. note::
 
    ``SparQ_Algorithm/include/qcnn.h`` (quantum convolutional neural networks) is currently disabled

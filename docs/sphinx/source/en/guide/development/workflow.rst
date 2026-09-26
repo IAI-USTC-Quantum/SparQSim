@@ -17,7 +17,7 @@ CPU Build
 GPU Build
 ^^^^^^^^^
 
-The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 tested).
+The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 tested). The GPU code layout is described in the :doc:`CUDA backend reference </cpp_api/cuda>`.
 
 .. code-block:: bash
 
@@ -33,6 +33,8 @@ Python Bindings
 
 Core Code Structure
 -------------------
+
+Rendered references for the headers below: :doc:`core components </cpp_api/core>`, :doc:`register/system operations </cpp_api/system_ops>`, :doc:`quantum arithmetic </cpp_api/arithmetic>`, :doc:`QRAM </cpp_api/qram>`, and the :doc:`algorithm library </cpp_api/algorithms>`.
 
 +----------------------------+-----------------------------------------------+------------------------------------------+
 | Component                  | Path                                          | Purpose                                  |

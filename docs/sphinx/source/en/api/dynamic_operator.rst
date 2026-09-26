@@ -1,7 +1,7 @@
 Dynamic Operator API Reference
 ==============================
 
-This module provides runtime compilation and loading of custom C++ quantum operators.
+This module provides runtime compilation and loading of custom C++ quantum operators. The full workflow guide is :doc:`Dynamic Operator Extension </guide/dynamic_operators>`.
 
 .. automodule:: pysparq.dynamic_operator
    :members:

@@ -3,10 +3,10 @@ Python API 参考
 
 PySparQ 通过 :mod:`pysparq` 模块将所有量子操作暴露为 Python 类和函数。
 
-.. _api-modules:
-
 核心类
 ------
+
+概念介绍见 :doc:`System 类 </guide/core_concepts/system>` 与 :doc:`SparseState 类 </guide/core_concepts/sparse_state>`。
 
 .. autoclass:: pysparq._core.System
    :members:
@@ -19,20 +19,18 @@ PySparQ 通过 :mod:`pysparq` 模块将所有量子操作暴露为 Python 类和
 量子算术算子
 ------------
 
+详细用法见 :doc:`算术算子 </operators/arithmetic>`。
+
 .. autofunction:: pysparq._core.Add_UInt_UInt
 
 .. autofunction:: pysparq._core.Add_UInt_ConstUInt
 
-.. autofunction:: pysparq._core.Add_ConstUInt
-
 .. autofunction:: pysparq._core.Mult_UInt_ConstUInt
-
-.. autofunction:: pysparq._core.Mod_Mult_UInt_ConstUInt
-
-.. autofunction:: pysparq._core.AddAssign_AnyInt_AnyInt
 
 量子门
 ------
+
+详细用法见 :doc:`基本量子门 </operators/gates>`、:doc:`Hadamard 操作 </operators/hadamard>` 与 :doc:`QFT </operators/qft>`。
 
 .. autofunction:: pysparq._core.Hadamard_Int
 
@@ -51,6 +49,8 @@ PySparQ 通过 :mod:`pysparq` 模块将所有量子操作暴露为 Python 类和
 QRAM 操作
 ---------
 
+详细用法见 :doc:`QRAM 算子 </operators/qram_ops>`。
+
 .. autofunction:: pysparq._core.QRAMLoad
 
 .. autofunction:: pysparq._core.QRAMLoadFast
@@ -59,6 +59,8 @@ QRAM 操作
 
 状态管理
 --------
+
+详细用法见 :doc:`系统操作 </operators/system_ops>`、:doc:`部分追迹 </operators/partial_trace>` 与 :doc:`黑魔法操作 </operators/dark_magic>`（``Normalize``）。
 
 .. autofunction:: pysparq._core.AddRegister
 

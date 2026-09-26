@@ -1,18 +1,18 @@
 # SparQSim 架构
 
-本文档描述 SparQSim 仓库（SparQ 框架之家）的整体架构、仓库分工和核心模块。
+本文档描述 SparQSim 仓库（SparQ 框架之家）的整体架构、仓库分工和核心模块。动手入门请先阅读 {doc}`快速入门 </guide/quickstart>`。
 
 ## 概述
 
 ### 项目目标
 
-SparQ 是一个用于模拟**量子随机存取存储器（QRAM）**和**稀疏态量子计算**的高性能模拟器框架。它旨在为量子算法研究者和开发者提供：
+SparQ 是一个用于模拟**量子随机存取存储器（{doc}`QRAM </operators/qram_ops>`）**和**{doc}`稀疏态 <../guide/core_concepts/sparse_state>` 量子计算**的高性能模拟器框架。它旨在为量子算法研究者和开发者提供：
 
 - 高效模拟大规模量子系统的工具（利用稀疏态表示）
 - 精确建模 QRAM 电路的行为和噪声影响
-- 寄存器级编程范式：直接对整数/布尔寄存器做算术与逻辑操作，无需手工分解到门
-- 完整的算法库（Grover、Shor、态制备、块编码、哈密顿量模拟、离散绝热 QDA 等）
-- 简洁的 Python API（`pysparq`）便于快速原型开发
+- {doc}`寄存器级编程范式 </guide/core_concepts/index>`：直接对整数/布尔寄存器做算术与逻辑操作，无需手工分解到门
+- 完整的 {doc}`算法库 </cpp_api/algorithms>`（Grover、Shor、态制备、{doc}`块编码 </cpp_api/block_encoding>`、哈密顿量模拟、{doc}`离散绝热 QDA </cpp_api/qda>` 等）
+- 简洁的 Python API（`pysparq`，见 {doc}`API 参考 </api/index>`）便于快速原型开发
 
 ### 仓库分工
 
@@ -51,41 +51,41 @@ SparQSim/
 
 **核心类**（均在 `qram_simulator` 命名空间下，声明于 `SparQ/include/basic_components.h`）：
 
-- **`System`**：单个计算基态，包含复数振幅 ``amplitude`` 和寄存器值数组 ``registers``；
+- **{doc}`System </guide/core_concepts/system>`**：单个计算基态，包含复数振幅 ``amplitude`` 和寄存器值数组 ``registers``；
   同时以静态成员维护全局寄存器表（名称、类型、位宽），是寄存器级编程的枢纽
-- **`StateStorage`**：量子寄存器存储单元
-- **`SparseState`**：稀疏量子态，托管 ``std::vector<System>``，默认构造创建 ``|0...0⟩`` 初态
-- **`BaseOperator`**：算子的统一接口（``operator()`` / ``dag()``，含 CPU/GPU 重载），支持复合算子和条件算子
-- **`SelfAdjointOperator`**：自伴算子基类（``dag() == operator()``），如 Hadamard、Pauli-X
+- **{doc}`StateStorage </guide/core_concepts/register_types>`**：量子寄存器存储单元
+- **{doc}`SparseState </guide/core_concepts/sparse_state>`**：稀疏量子态，托管 ``std::vector<System>``，默认构造创建 ``|0...0⟩`` 初态
+- **{doc}`BaseOperator </operators/index>`**：算子的统一接口（``operator()`` / ``dag()``，含 CPU/GPU 重载），支持复合算子和条件算子
+- **{doc}`SelfAdjointOperator </operators/index>`**：自伴算子基类（``dag() == operator()``），如 Hadamard、Pauli-X
 
 **主要头文件模块**：
 
 | 头文件 | 内容 |
 |--------|------|
-| `basic_components.h` | System / SparseState / BaseOperator 等核心数据结构 |
-| `basic_gates.h` | Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 等标准门 |
-| `hadamard.h` | 整数寄存器 Hadamard（叠加态生成） |
-| `qft.h` | QFT / InverseQFT / QFT_Full |
-| `measurement.h` | 中间电路测量 MeasureZ / Reset / Probability |
-| `partial_trace.h` | 部分迹与读出 |
-| `qram.h` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
-| `quantum_arithmetic.h` | 加减乘除模、移位、比较等约 50 个量子算术算子 |
-| `system_operations.h` | AddRegister / RemoveRegister / Split / Combine / Push / Pop 等 |
-| `condrot.h` / `rot.h` | 条件旋转、一般酉旋转与态制备 |
-| `debugger.h` | CheckNormalization / CheckNan / StatePrint 等调试算子 |
+| {doc}`basic_components.h </cpp_api/core>` | System / SparseState / BaseOperator 等核心数据结构 |
+| {doc}`basic_gates.h </cpp_api/core>` | Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 等标准门 |
+| {doc}`hadamard.h </cpp_api/core>` | 整数寄存器 Hadamard（叠加态生成） |
+| {doc}`qft.h </cpp_api/core>` | QFT / InverseQFT / QFT_Full |
+| {doc}`measurement.h </cpp_api/measurement>` | 中间电路测量 MeasureZ / Reset / Probability |
+| {doc}`partial_trace.h </cpp_api/measurement>` | 部分迹与读出 |
+| {doc}`qram.h </cpp_api/qram>` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
+| {doc}`quantum_arithmetic.h </cpp_api/arithmetic>` | 加减乘除模、移位、比较等约 50 个量子算术算子 |
+| {doc}`system_operations.h </cpp_api/system_ops>` | AddRegister / RemoveRegister / Split / Combine / Push / Pop 等 |
+| {doc}`condrot.h </cpp_api/core>` / {doc}`rot.h </cpp_api/core>` | 条件旋转、一般酉旋转与态制备 |
+| {doc}`debugger.h </cpp_api/system_ops>` | CheckNormalization / CheckNan / StatePrint 等调试算子 |
 
 ### SparQ_Algorithm/ - 高层算法库
 
 组合核心原语实现完整量子算法，每个算法对应 `Experiments/` 中的 C++ 实验
 与 `PySparQ/pysparq/algorithms/` 中的 Python 实现（对照关系见
-[docs/algorithm-implementation.md](../algorithm-implementation.md)）：
+[docs/algorithm-implementation.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/algorithm-implementation.md)）：
 
-- **grover.h**：QRAM oracle 驱动的 Grover 搜索（含振幅放大与量子计数）
-- **shor.h**：Shor 因数分解（标准版 + 半经典版）
-- **state_preparation.h**：基于 QRAM 的态制备
-- **BlockEncoding/**：三对角矩阵块编码、基于 QRAM 的块编码
-- **DiscreteAdiabatic/**：离散绝热（QDA）线性方程组求解器
-- **hamiltonian_simulation.h**：量子行走 / LCU / 稀疏矩阵 oracle / QSVT 哈密顿量模拟
+- **{doc}`grover.h </cpp_api/algorithms>`**：QRAM oracle 驱动的 Grover 搜索（含振幅放大与量子计数）
+- **{doc}`shor.h </cpp_api/algorithms>`**：Shor 因数分解（标准版 + 半经典版）
+- **{doc}`state_preparation.h </cpp_api/algorithms>`**：基于 QRAM 的态制备
+- **{doc}`BlockEncoding/ </cpp_api/block_encoding>`**：三对角矩阵块编码、基于 QRAM 的块编码
+- **{doc}`DiscreteAdiabatic/ </cpp_api/qda>`**：离散绝热（QDA）线性方程组求解器
+- **{doc}`hamiltonian_simulation.h </cpp_api/algorithms>`**：量子行走 / LCU / 稀疏矩阵 oracle / QSVT 哈密顿量模拟
 - **qcnn.h**：量子卷积网络（当前被 `#if false` 整体禁用）
 
 ### PySparQ/ - Python 绑定与纯 Python 层
@@ -93,10 +93,10 @@ SparQSim/
 通过 pybind11（`PySparQ/core.cpp` → 编译为 ``pysparq._core``）暴露核心 C++ API，
 再由纯 Python 包 ``pysparq`` 组织：
 
-- ``pysparq/operators/``：算子基类与条件控制 mixin
-- ``pysparq/algorithms/``：纯 Python 算法层（Grover、Shor、QDA、CKS、态制备、块编码）
-- ``pysparq/rir.py``：RIR 解释器（QECC.Lang 中间表示）
-- ``pysparq/dynamic_operator/``：运行时 JIT 编译 C++ 动态算子（含独立的 loader）
+- ``pysparq/operators/``：算子基类与条件控制 mixin（{ref}`条件执行 <conditional-operations>`）
+- ``pysparq/algorithms/``：纯 Python 算法层（Grover、Shor、QDA、CKS、态制备、块编码）——用于 {doc}`示例 </guide/examples>`
+- ``pysparq/rir.py``：{doc}`RIR 解释执行 </guide/rir>`（QECC.Lang 中间表示）
+- ``pysparq/dynamic_operator/``：运行时 JIT 编译 C++ {doc}`动态算子 </guide/dynamic_operators>`（含独立的 loader）
 - ``pysparq/conformance.py``：一致性校验工具
 
 ``qram_simulator`` 薄绑定不在本仓库——它由 QRAM-Simulator 核心仓独立打包发布
@@ -104,7 +104,7 @@ SparQSim/
 
 ### extern/qram-simulator/ - QRAM 基座（submodule）
 
-QRAM 电路核心（``QRAMCircuit`` 的 qutrit/qubit 实现、``CuQRAMCircuit``）与
+QRAM 电路核心（{doc}`QRAM 算子 </operators/qram_ops>` ``QRAMCircuit`` 的 qutrit/qubit 实现、``CuQRAMCircuit``）与
 Common 基础设施（数学工具、矩阵封装、随机数引擎、错误处理）。
 **此目录属于另一仓库，不要在本仓库内直接修改**；升级方式是
 `git submodule update --remote` 后提交新 pin。
@@ -131,7 +131,7 @@ Common 基础设施（数学工具、矩阵封装、随机数引擎、错误处�
 
 - 内存使用：O(k × r)，k 为非零基态数，r 为寄存器数
 - 对比稠密表示的 O(2^n)，可实现更大规模的模拟
-- 寄存器级操作：AddRegister ≈ ⊗|0⟩，RemoveRegister ≈ PartialTrace
+- 寄存器级操作：AddRegister ≈ ⊗|0⟩，RemoveRegister ≈ {doc}`部分迹 </operators/partial_trace>`
 
 ## 关键设计决策
 
@@ -159,10 +159,10 @@ Common 基础设施（数学工具、矩阵封装、随机数引擎、错误处�
 
 ### 添加新量子门 / 算子
 
-1. 在 `SparQ/include/` 创建头文件，继承 `BaseOperator`（一般算子）或
-   `SelfAdjointOperator`（自伴算子），实现 `operator()` 与（如非自伴）`dag()`
+1. 在 `SparQ/include/` 创建头文件，继承 {doc}`BaseOperator </operators/index>`（一般算子）或
+   {doc}`SelfAdjointOperator </operators/index>`（自伴算子），实现 `operator()` 与（如非自伴）`dag()`
 2. 在 `SparQ/src/` 同名 .cpp 实现；可利用 `ClassControllable` 宏获得条件控制能力
-3. 需要暴露给 Python 时，在 `PySparQ/core.cpp` 添加绑定，并同步 `_core.pyi` 类型提示
+3. 需要暴露给 Python 时，在 `PySparQ/core.cpp` 添加绑定（见 {doc}`绑定层 </cpp_api/bindings>`），并同步 `_core.pyi` 类型提示
 
 ### 添加新算法
 
@@ -173,4 +173,4 @@ Common 基础设施（数学工具、矩阵封装、随机数引擎、错误处�
 ### 构建选项
 
 - `SPARQ_BUILD_TESTS` / `SPARQ_BUILD_EXPERIMENTS` / `SPARQ_BUILD_EXAMPLES`：CMake 门控，默认 OFF
-- CUDA/GPU 后端：代码保留在 `SparQ/include/cuda/` 与 `SparQ/src/cuda/`，当前 CMake 暂时屏蔽 GPU 构建
+- CUDA/GPU 后端：代码保留在 `SparQ/include/cuda/` 与 `SparQ/src/cuda/`（见 {doc}`CUDA 后端 </cpp_api/cuda>` 参考）；当前 CMake 暂时屏蔽 GPU 构建

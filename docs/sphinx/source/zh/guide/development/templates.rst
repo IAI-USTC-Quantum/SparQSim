@@ -11,6 +11,8 @@
    Boolean          // 单比特
    Rational         // 有理数（用于角度计算）
 
+这些名称对应 :doc:`寄存器类型 <../core_concepts/register_types>` 中描述的存储类型。
+
 C++ 开发模板
 ------------
 
@@ -56,7 +58,7 @@ Python 开发模板
    state = ps.SparseState()
 
    # 4. 应用操作
-   ps.Hadamard_Int("addr")(state)
+   ps.Hadamard_Int("addr", 4)(state)
    ps.QRAMLoad(qram, "addr", "data")(state)
 
    # 5. 读取结果
@@ -91,7 +93,7 @@ Grover 搜索模板
 块编码模板
 ----------
 
-参考 ``SparQ_Algorithm/include/block_encoding.h`` 实现酉矩阵的块编码。
+实现酉矩阵的块编码参见 :doc:`块编码（C++ 参考） </cpp_api/block_encoding>`（``SparQ_Algorithm/include/block_encoding.h``）；Python 端的完整走查见 :doc:`示例 </guide/examples>`。
 
 哈密顿量模拟
 ------------

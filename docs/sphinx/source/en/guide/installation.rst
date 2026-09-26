@@ -5,7 +5,7 @@ Requirements
 ------------
 
 - Python 3.10 or higher
-- NumPy
+- :mod:`numpy`
 
 Install from PyPI
 -----------------
@@ -34,7 +34,7 @@ Building from source requires the following tools:
 
 Optional dependencies:
 
-- The CUDA/GPU backend is currently disabled in CMake; source builds default to the CPU-only path.
+- The CUDA/GPU backend is currently disabled in CMake; source builds default to the CPU-only path. See the :doc:`CUDA backend </cpp_api/cuda>` overview and the :doc:`development workflow </guide/development/workflow>` for build details.
 
 Verify the Installation
 -----------------------
@@ -44,8 +44,9 @@ Verify the Installation
    import pysparq
    pysparq.test_import()
 
-   # Create a quantum system
-   system = pysparq.System()
-   state = pysparq.SparseState(system)
+   # Create a sparse quantum state (|0...0> initial state)
+   state = pysparq.SparseState()
 
    print("PySparQ installed successfully!")
+
+This instantiates a :class:`System <pysparq.System>` and a :class:`SparseState <pysparq.SparseState>` — the two core abstractions introduced in :doc:`Core Concepts </guide/core_concepts/index>`.

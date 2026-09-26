@@ -1,7 +1,7 @@
 Rotation and State Preparation
 ==============================
 
-Rotation and state preparation operators provide arbitrary-dimensional unitary rotations and the ability to prepare a target quantum state from ``|0⟩``.
+Rotation and state preparation operators provide arbitrary-dimensional unitary rotations and the ability to prepare a target quantum state from ``|0⟩``. QRAM-based state preparation built on them is part of the :doc:`algorithm library </cpp_api/algorithms>`.
 
 .. contents:: Contents
    :local:

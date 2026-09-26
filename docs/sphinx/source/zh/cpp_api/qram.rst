@@ -1,6 +1,8 @@
 QRAM 操作
 =========
 
+Python 侧的用法见 :doc:`QRAM 算子 </operators/qram_ops>`。
+
 量子随机存取存储器（``SparQ/include/qram.h``）
 ----------------------------------------------
 

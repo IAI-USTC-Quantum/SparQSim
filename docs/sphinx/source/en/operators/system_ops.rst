@@ -1,7 +1,7 @@
 System Operations
 =================
 
-System operations manage register lifecycles, splitting and merging of basis states, and cleanup of zero amplitudes. Although these operations do not correspond directly to quantum gates, they are indispensable in algorithm workflows.
+System operations manage register lifecycles, splitting and merging of basis states, and cleanup of zero amplitudes. Although these operations do not correspond directly to quantum gates, they are indispensable in algorithm workflows; the underlying concepts are introduced in :doc:`register management </guide/core_concepts/register_management>`.
 
 .. contents:: Contents
    :local:

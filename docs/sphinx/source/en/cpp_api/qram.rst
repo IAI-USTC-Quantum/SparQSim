@@ -1,6 +1,8 @@
 QRAM Operations
 ===============
 
+Python-facing usage is described in :doc:`QRAM Operators </operators/qram_ops>`.
+
 Quantum Random Access Memory (``SparQ/include/qram.h``)
 -------------------------------------------------------
 

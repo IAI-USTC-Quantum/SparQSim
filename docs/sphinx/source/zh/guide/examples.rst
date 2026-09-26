@@ -1,7 +1,7 @@
 示例
 ====
 
-本节展示如何使用 PySparQ 从零构建量子算法——从初态创建、已有算子的使用，到自定义算子，最终搭建 Block Encoding 电路。
+本节展示如何使用 PySparQ 从零构建量子算法——从初态创建、已有算子的使用，到自定义算子，最终搭建 :doc:`Block Encoding </cpp_api/block_encoding>` 电路。
 
 .. contents:: 目录
    :local:
@@ -10,7 +10,7 @@
 前置要求
 --------
 
-PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
+PySparQ 已安装，且 C++ 核心已编译（:doc:`GPU 支持 </cpp_api/cuda>` 可选）。
 
 .. code-block:: bash
 
@@ -20,7 +20,7 @@ PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
 示例 1：创建初态
 ----------------
 
-量子电路的起点是量子态（``SparseState``）。在 PySparQ 中，量子比特以**寄存器**（Register）为单位组织，而不是单个 qubit。
+量子电路的起点是量子态（:class:`SparseState <pysparq.SparseState>`）。在 PySparQ 中，量子比特以**寄存器**（Register，参见 :doc:`寄存器管理 </guide/core_concepts/register_management>`）为单位组织，而不是单个 qubit。
 
 创建系统并初始化寄存器：
 
@@ -42,7 +42,7 @@ PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
    # |(0)q : UInt4 |
    # 1.000000+0.000000i  q=|0>
 
-初始态为 :math:`|0000\rangle`。通过 Hadamard 变换创建叠加态：
+初始态为 :math:`|0000\rangle`。通过 :doc:`Hadamard 变换 </operators/hadamard>` 创建叠加态：
 
 .. code-block:: python
 
@@ -60,7 +60,7 @@ PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
    # 0.250000+0.000000i  q=|15>
    # 16 个等概率幅叠加态（每个 0.25）
 
-将某一基态设为特定值：
+使用 :doc:`黑魔法操作 </operators/dark_magic>` 中的 :class:`Init_Unsafe <pysparq.Init_Unsafe>` 将某一基态设为特定值：
 
 .. code-block:: python
 
@@ -71,7 +71,7 @@ PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
    # |(0)q : UInt4 |
    # 0.250000+0.000000i  q=|5>   ← 16 个振幅都变为 |5⟩
 
-通过加法算子驱动态演化（寄存器级编程的核心）：
+通过 :class:`加法算子 <pysparq.Add_ConstUInt_InPlace>` 驱动态演化（:doc:`寄存器级编程 </guide/core_concepts/index>` 的核心）：
 
 .. code-block:: python
 
@@ -88,7 +88,7 @@ PySparQ 已安装，且 C++ 核心已编译（GPU 支持可选）。
 示例 2：使用已有算子
 --------------------
 
-PySparQ 提供丰富的内置算子，覆盖算术、QRAM、QFT、条件旋转等类别。以下展示如何组合使用。
+PySparQ 提供丰富的内置算子，覆盖 :doc:`算术 </operators/arithmetic>`、:doc:`QRAM </operators/qram_ops>`、:doc:`QFT </operators/qft>`、:doc:`条件旋转 </operators/condrot>` 等类别。以下展示如何组合使用。
 
 加法、乘法、移位
 ~~~~~~~~~~~~~~~~
@@ -133,7 +133,7 @@ PySparQ 提供丰富的内置算子，覆盖算术、QRAM、QFT、条件旋转�
 QRAM 数据加载
 ~~~~~~~~~~~~~~
 
-将经典数组加载到量子态中，支持地址叠加态下的批量查询：
+将经典数组加载到量子态中，支持地址叠加态下的批量查询（参见 :doc:`QRAM 算子 </operators/qram_ops>`）：
 
 .. code-block:: python
 
@@ -175,7 +175,7 @@ QRAM 数据加载
 QFT 与逆 QFT
 ~~~~~~~~~~~~
 
-量子傅里叶变换及其逆变换：
+:doc:`量子傅里叶变换 </operators/qft>` 及其逆变换：
 
 .. code-block:: python
 
@@ -196,7 +196,7 @@ QFT 与逆 QFT
 示例 3：Python 侧自定义算子
 ----------------------------
 
-当内置算子不满足需求时，可以在 Python 侧直接**组合已有算子**封装为新类：
+当内置算子不满足需求时，可以在 Python 侧直接**组合已有算子**（参见 :doc:`算子 </guide/core_concepts/operators>`）封装为新类：
 
 .. code-block:: python
 
@@ -222,7 +222,7 @@ QFT 与逆 QFT
            self(state)
 
 
-对于需要新 primitives 的情况，``pysparq.dynamic_operator.compile_operator`` 支持将用户提供的 C++ 代码编译为动态链接库，并直接包装为 Python 类：
+对于需要新 primitives 的情况，:func:`pysparq.dynamic_operator.compile_operator` 支持将用户提供的 C++ 代码编译为动态链接库，并直接包装为 Python 类：
 
 .. code-block:: python
 
@@ -277,7 +277,7 @@ Block Encoding 是量子算法中最重要的电路构建范式之一——它�
 三对角矩阵的 Block Encoding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``pysparq.algorithms.block_encoding.BlockEncodingTridiagonal`` 将对称三对角矩阵 :math:`A = \alpha I + \beta T`（:math:`T` 为移位矩阵）编码为量子电路。实现逻辑：
+:doc:`pysparq.algorithms.block_encoding </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` :class:`BlockEncodingTridiagonal <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingTridiagonal>` 将对称三对角矩阵 :math:`A = \alpha I + \beta T`（:math:`T` 为移位矩阵）编码为量子电路。实现逻辑：
 
 1. 在辅助寄存器上准备 4 元素叠加态
 2. 对主寄存器执行受控加/减 1（溢出比特记录进位）
@@ -320,16 +320,16 @@ Block Encoding 是量子算法中最重要的电路构建范式之一——它�
 QRAM-Based Block Encoding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-对于任意稀疏矩阵（存储在 QRAM 中），``BlockEncodingViaQRAM`` 组合 :math:`U_L`（行方向旋转）、:math:`U_R^\dagger`（列方向旋转）和 SWAP 操作，实现完整的 Block Encoding：
+对于任意稀疏矩阵（存储在 QRAM 中），:class:`BlockEncodingViaQRAM <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingViaQRAM>` 组合 :math:`U_L`（行方向旋转）、:math:`U_R^\dagger`（列方向旋转）和 SWAP 操作，实现完整的 Block Encoding：
 
 .. math::
 
    U_A = \text{SWAP}(\text{row}, \text{col}) \cdot U_R^\dagger(\text{col}) \cdot U_L(\text{row}, \text{col})
 
 各操作均通过 QRAM 加载父/子节点数据、计算旋转角、执行条件旋转来实现。具体实现见
-``pysparq.algorithms.block_encoding`` 模块源码。
+:doc:`pysparq.algorithms.block_encoding 模块 </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` 的源码。
 
-这两个 Block Encoding 构建块是 QDA（量子线性系统求解器）和 Hamiltonian Simulation 等高级算法的核心，构成了从算子到完整量子算法的桥梁。
+这两个 Block Encoding 构建块是 :doc:`QDA </cpp_api/qda>`（量子线性系统求解器）和 :doc:`哈密顿量模拟 </cpp_api/algorithms>` 等高级算法的核心，构成了从算子到完整量子算法的桥梁。
 
 
 示例 5：C++ 侧自定义算子（进阶）
@@ -337,7 +337,7 @@ QRAM-Based Block Encoding
 
 如果 Python 侧的性能或表达能力不足，可以直接在 C++ 核心中实现新算子，步骤如下：
 
-1. **在** ``SparQ/include/`` **创建头文件**，继承 ``BaseOperator`` 或 ``SelfAdjointOperator``，实现 ``apply()`` 方法：
+1. **在** ``SparQ/include/`` **创建头文件**，继承 :doc:`BaseOperator </cpp_api/core>` 或 :doc:`SelfAdjointOperator </cpp_api/core>`，实现 ``apply()`` 方法：
 
    .. code-block:: cpp
 
@@ -366,8 +366,8 @@ QRAM-Based Block Encoding
 
 2. **在** ``SparQ/src/`` **实现** ``apply()`` **方法**（如需单独 cpp 文件）
 
-3. **在** ``PySparQ/src/pybind_wrapper.cpp`` **添加 pybind11 绑定**
+3. **在** ``PySparQ/src/pybind_wrapper.cpp`` **添加 pybind11 绑定**（参见 :doc:`绑定层 </cpp_api/bindings>`）
 
 4. **重新构建 PySparQ**（``pip install .``）
 
-完整的开发流程参见 :doc:`dynamic_operators`。
+完整的开发流程参见 :doc:`dynamic_operators`，可直接复制的骨架见 :doc:`代码模板 </guide/development/templates>`。

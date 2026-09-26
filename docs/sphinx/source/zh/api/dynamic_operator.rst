@@ -1,7 +1,7 @@
 动态算子 API 参考
 ==================
 
-本模块提供运行时编译和加载自定义 C++ 量子算子的功能。
+本模块提供运行时编译和加载自定义 C++ 量子算子的功能。完整工作流指南见 :doc:`动态算子扩展 </guide/dynamic_operators>`。
 
 .. automodule:: pysparq.dynamic_operator
    :members:

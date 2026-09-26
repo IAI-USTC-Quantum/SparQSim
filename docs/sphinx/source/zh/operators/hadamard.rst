@@ -1,7 +1,7 @@
 Hadamard 操作
 =============
 
-Hadamard 算子在寄存器上创建量子叠加态，是量子算法的基础操作。
+Hadamard 算子在寄存器上创建量子叠加态，是量子算法的基础操作。它们是制备均匀叠加态的标准方式（如在 :doc:`QRAM 查询 </operators/qram_ops>` 之前）；宽寄存器上全寄存器 Hadamard 的内存行为见 :doc:`QFT </operators/qft>` 的性能说明。
 
 .. contents:: 目录
    :local:

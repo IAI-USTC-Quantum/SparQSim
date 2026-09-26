@@ -1,7 +1,7 @@
 Hadamard Operations
 ===================
 
-The Hadamard operators create quantum superpositions on registers and are fundamental operations in quantum algorithms.
+The Hadamard operators create quantum superpositions on registers and are fundamental operations in quantum algorithms. They are the standard way to prepare uniform superpositions, e.g. before :doc:`QRAM queries </operators/qram_ops>`; for the memory behaviour of full-register Hadamards on wide registers, see the performance notes in :doc:`QFT </operators/qft>`.
 
 .. contents:: Contents
    :local:

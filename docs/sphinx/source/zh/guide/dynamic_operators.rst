@@ -84,7 +84,7 @@
 基类选择
 --------
 
-动态算子支持两种基类：``BaseOperator`` 和 ``SelfAdjointOperator``。
+动态算子支持两种基类（两者差异参见 :ref:`SelfAdjointOperator 与 BaseOperator <selfadjoint-vs-baseoperator>`）：``BaseOperator`` 和 ``SelfAdjointOperator``。
 
 对比
 ~~~~
@@ -93,8 +93,8 @@
    :header-rows: 1
 
    * - 特性
-     - SelfAdjointOperator
-     - BaseOperator
+     - :class:`SelfAdjointOperator <pysparq.SelfAdjointOperator>`
+     - :class:`BaseOperator <pysparq.BaseOperator>`
    * - Dagger 行为
      - 自动等于自身
      - 需手动实现
@@ -172,7 +172,7 @@ BaseOperator
 步骤 1：编写 C++ 算子代码
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-编写继承自 ``BaseOperator`` 或 ``SelfAdjointOperator`` 的 C++ 类：
+编写继承自 ``BaseOperator`` 或 ``SelfAdjointOperator``（基类选择参见 :ref:`SelfAdjointOperator 与 BaseOperator <selfadjoint-vs-baseoperator>`）的 C++ 类：
 
 .. code-block:: python
 
@@ -192,7 +192,7 @@ BaseOperator
 步骤 2：编译算子
 ~~~~~~~~~~~~~~~~
 
-使用 ``compile_operator()`` 编译并创建 Python 类：
+使用 :func:`compile_operator() <pysparq.dynamic_operator.compile_operator>` 编译并创建 Python 类：
 
 .. code-block:: python
 
@@ -338,7 +338,7 @@ BaseOperator
 示例 3：Grover 搜索 Oracle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-实现一个自定义的 Grover 搜索 Oracle：
+实现一个自定义的 Grover 搜索 Oracle（内置版本见 :doc:`算法库 </cpp_api/algorithms>`）：
 
 .. code-block:: python
 
@@ -373,7 +373,7 @@ BaseOperator
 示例 4：哈密顿量演化
 ~~~~~~~~~~~~~~~~~~~~
 
-实现时间演化算子：
+实现时间演化算子（相关内容：算法库中的 :doc:`哈密顿量模拟 </cpp_api/algorithms>`）：
 
 .. code-block:: python
 
@@ -460,7 +460,7 @@ BaseOperator
 编译缓存
 ~~~~~~~~
 
-动态算子使用基于代码哈希的缓存机制，避免重复编译：
+动态算子使用基于代码哈希的缓存机制，避免重复编译。可用 :func:`get_cache_info() <pysparq.dynamic_operator.get_cache_info>` 查看缓存状态，用 :func:`clear_cache() <pysparq.dynamic_operator.clear_cache>` 清除缓存：
 
 .. code-block:: python
 
@@ -498,7 +498,7 @@ BaseOperator
 
    error: 'basic_components.h' file not found
 
-解决方案：确保 PySparQ 已正确安装，头文件位于 include/ 目录中。
+解决方案：确保 PySparQ 已正确安装，头文件（参见 :doc:`C++ API 参考 </cpp_api/core>`）位于 include/ 目录中。
 
 **未定义符号**
 
@@ -506,7 +506,7 @@ BaseOperator
 
    error: undefined reference to 'qram_simulator::System::get'
 
-解决方案：检查命名空间是否正确（使用 ``qram_simulator``），确保类型匹配。
+解决方案：检查命名空间是否正确（使用 ``qram_simulator``，参见 :doc:`架构总览 </guide/architecture>`），确保类型匹配。
 
 **Windows ABI 兼容性问题**
 

@@ -1,6 +1,8 @@
 Core Components and Quantum Gates
 =================================
 
+These headers back the :doc:`basic gates </operators/gates>`, :doc:`Hadamard </operators/hadamard>`, :doc:`QFT </operators/qft>`, :doc:`conditional rotation </operators/condrot>`, and :doc:`rotation/state preparation </operators/rot_state_prep>` operator families.
+
 Basic Components (``SparQ/include/basic_components.h``)
 -------------------------------------------------------
 

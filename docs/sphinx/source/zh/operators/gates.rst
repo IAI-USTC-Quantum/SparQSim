@@ -1,7 +1,7 @@
 基本量子门
 ==========
 
-基本量子门实现单量子比特和多量子比特的标准量子门操作。
+基本量子门实现单量子比特和多量子比特的标准量子门操作。它们作用于 :doc:`Boolean </guide/core_concepts/register_types>` 寄存器；存储细节见 :doc:`寄存器类型 </guide/core_concepts/register_types>`，产生叠加态的 Hadamard 家族见 :doc:`Hadamard 操作 </operators/hadamard>`。
 
 .. contents:: 目录
    :local:
@@ -58,7 +58,7 @@
 
 所有量子门要求：
 
-- 寄存器类型：``Boolean``（单量子比特门）
+- 寄存器类型：:doc:`Boolean </guide/core_concepts/register_types>`（单量子比特门）
 - 位索引：必须在寄存器大小范围内 [0, size)
 
 .. code-block:: python
@@ -348,8 +348,4 @@ Rot_Bool（通用旋转）
 Reflection_Bool（反射门）
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: pysparq.Reflection_Bool
-   :members:
-   :undoc-members:
-
-**操作**: 反射操作（Grover 算法中的扩散算子）
+反射门见 :doc:`相位与反射算子 </operators/phase_ops>`，它实现 :doc:`Grover 搜索 </cpp_api/algorithms>` 中的扩散算子。

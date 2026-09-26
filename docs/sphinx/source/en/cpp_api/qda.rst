@@ -1,6 +1,8 @@
 Discrete Adiabatic (DiscreteAdiabatic/)
 =======================================
 
+QDA solves quantum linear systems via block encoding; the operator-level hyperparameters are introduced in :doc:`Operators </guide/core_concepts/operators>`.
+
 QDA Fundamental Components (``SparQ_Algorithm/include/DiscreteAdiabatic/qda_fundamental.h``)
 --------------------------------------------------------------------------------------------
 

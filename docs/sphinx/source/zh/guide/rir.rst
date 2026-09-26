@@ -18,11 +18,11 @@ PySparQ 是 RIR 的**天然解释器**。这不是巧合：
 
 - RIR 本身就是**寄存器级**的：它谈论的是"寄存器"、"视图"、"整数字加法"和
   "QRAM 加载"，而不是物理量子位与门序列；
-- PySparQ 的编程模型恰好是**寄存器级编程**（Register Level Programming）：
+- PySparQ 的编程模型恰好是**寄存器级编程**（Register Level Programming，参见 :doc:`核心概念 </guide/core_concepts/index>`）：
   命名类型化寄存器、原生寄存器算术算子与原生 QRAM 查询。
 
 因此 RIR 的执行不需要额外的"降低"阶段： ``pysparq.run_rir`` 把 JSON 文档
-直接解释在 ``SparseState`` 上，在解释期展开模块图，并在操作数与整个寄存器
+直接解释在 :class:`SparseState <pysparq.SparseState>` 上，在解释期展开模块图，并在操作数与整个寄存器
 对齐时把寄存器级操作映射为 PySparQ 原生算子。解释器只消费 JSON 文档，不依赖
 ``pyqecclang`` 包本身，因此两套实现可以互相交叉验证。
 
@@ -37,22 +37,22 @@ RIR 概念与 PySparQ 原生能力一一对应：
    * - RIR 概念
      - PySparQ 原生对应
    * - ``RegType`` 的 ``bits`` / ``uint`` / ``sint`` / ``rational``
-     - ``StateStorageType.General`` / ``UnsignedInteger`` /
-       ``SignedInteger`` / ``Rational``
+     - :doc:`StateStorageType.General / UnsignedInteger / SignedInteger / Rational </guide/core_concepts/register_types>`
    * - 整个寄存器上的 ``add_const``
-     - ``Add_ConstUInt_InPlace`` （一条原生寄存器算术，而非门链分解）
+     - :class:`Add_ConstUInt_InPlace <pysparq.Add_ConstUInt_InPlace>` （一条原生寄存器算术，而非门链分解）
    * - 非受控 ``gphase``
-     - ``GlobalPhase``
+     - :class:`GlobalPhase <pysparq.GlobalPhase>`
    * - 受控 ``gphase``
-     - ``Phase_Bool`` 加剩余控制位
+     - :class:`Phase_Bool <pysparq.Phase_Bool>` 加剩余控制位
    * - 视图上的门广播（ ``h`` / ``x`` / ``rx`` / ...）
-     - ``Rot_Bool`` 逐位施加
+     - :class:`Rot_Bool <pysparq.Rot_Bool>` 逐位施加
    * - ``xor`` / ``swap`` 视图
-     - 受控 ``X_Bool`` 链
+     - 受控 :class:`X_Bool <pysparq.X_Bool>` 链
    * - QRAM 资源 + ``Load``
-     - ``QRAMCircuit_qutrit`` 物化 + ``QRAMLoad`` 查询
+     - :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>` 物化 + :class:`QRAMLoad <pysparq.QRAMLoad>` 查询
+       （参见 :doc:`QRAM 算子 </operators/qram_ops>`）
    * - ``Control`` （多比特相干条件）
-     - ``conditioned_by_bit`` 多位条件（值为 0 的位临时用 X 翻转）
+     - 通过 :ref:`conditioned_by_bit <conditional-operations>` 多位条件（值为 0 的位临时用 X 翻转）
    * - ``Call``
      - 解释期内联：实参视图经寄存器重命名绑定到被调模块
    * - ``Repeat``
@@ -60,7 +60,7 @@ RIR 概念与 PySparQ 原生能力一一对应：
    * - ``Adjoint``
      - 反向遍历 + 逐操作取逆（角度取负、模减法、自逆门）
    * - ``Module.locals`` 私有工作区
-     - ``AddRegister`` / ``RemoveRegister`` + 退出时的复净检查
+     - :doc:`AddRegister / RemoveRegister </guide/core_concepts/register_management>` + 退出时的复净检查
 
 自动处理流程
 ~~~~~~~~~~~~
@@ -88,17 +88,17 @@ RIR 概念与 PySparQ 原生能力一一对应：
   条件。
 - **能用原生算子就不分解**。例如 ``add_const`` 的操作数完整覆盖一个寄存器
   （起点 0 且宽度等于声明宽度）时，解释器直接调用
-  ``Add_ConstUInt_InPlace`` ，而不是把它分解成多门链；非受控全局相位走
-  ``GlobalPhase`` ，QRAM 加载走原生 ``QRAMLoad`` 。
+  :class:`Add_ConstUInt_InPlace <pysparq.Add_ConstUInt_InPlace>` ，而不是把它分解成多门链；非受控全局相位走
+  :class:`GlobalPhase <pysparq.GlobalPhase>` ，QRAM 加载走原生 :class:`QRAMLoad <pysparq.QRAMLoad>` 。
 - **视图语义由回退路径保证**。当操作数是寄存器切片时，解释器回退到逐位
   分解，模加法在**视图宽度**内回绕，与 RIR 规范一致。
-- **执行完自动清理**。 ``run_rir`` 在退出时保证 ``System.clear()`` ；调用前
+- **执行完自动清理**。 ``run_rir`` 在退出时保证 :meth:`System.clear() <pysparq.System.clear>` ；调用前
   若全局寄存器表非空则直接报错。
 
 基本用法
 --------
 
-入口 API 由 ``pysparq.rir`` 提供，并已在顶层命名空间导出：
+入口 API 由 :mod:`pysparq.rir` 提供，并已在顶层命名空间导出：
 
 .. code-block:: python
 
@@ -271,8 +271,8 @@ RIR 的 ``Ref`` 可以引用寄存器切片。被调模块的形式寄存器绑�
 
 入口模块声明 QRAM 资源（地址宽 2、数据宽 3），对地址寄存器做 Hadamard 广播
 后加载。内存内容不属于程序 JSON，而是执行时绑定。解释器自动完成：QRAM 资源
-物化为 ``QRAMCircuit_qutrit`` ， ``Load`` 通过可逆 XOR 复制到临时寄存器后执行
-原生 ``QRAMLoad`` 查询并完整反算：
+物化为 :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>` ， ``Load`` 通过可逆 XOR 复制到临时寄存器后执行
+原生 :class:`QRAMLoad <pysparq.QRAMLoad>` 查询并完整反算：
 
 .. code-block:: python
 
@@ -334,7 +334,7 @@ RIR 的 ``Ref`` 可以引用寄存器切片。被调模块的形式寄存器绑�
 - ``run_pysparq`` ：事件适配器，直接解释 Python 层的 IR 对象；
 - ``run_pysparq_rir`` ：把程序序列化为 JSON 后交给 ``pysparq.run_rir`` 。
 
-本仓库的解释器（ ``PySparQ/pysparq/rir.py`` ）刻意只消费 JSON 文档、不导入
+本仓库的解释器（ :mod:`pysparq.rir` ）刻意只消费 JSON 文档、不导入
 ``pyqecclang`` ，因此两条路径加上 OriginIR-ext 导出可以三方互为对拍基准。
 回归测试见 ``PySparQ/test/test_rir.py`` 。
 

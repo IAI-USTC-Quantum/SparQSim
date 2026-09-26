@@ -1,7 +1,7 @@
 Quantum Algorithm Development Guide
 ===================================
 
-This guide introduces how to develop new quantum algorithms in SparQ/QRAM-Simulator.
+This guide introduces how to develop new quantum algorithms in SparQ/QRAM-Simulator. For the runtime framework these algorithms run on, see the :doc:`architecture overview <../architecture>`.
 
 .. contents::
    :local:
@@ -10,7 +10,7 @@ This guide introduces how to develop new quantum algorithms in SparQ/QRAM-Simula
 Core Paradigm
 -------------
 
-SparQ adopts the **Register Level Programming** paradigm, in contrast to the traditional composition of gate-level circuits:
+SparQ adopts the **Register Level Programming** paradigm (see :doc:`core concepts <../core_concepts/index>` and the :doc:`quickstart </guide/quickstart>`), in contrast to the traditional composition of gate-level circuits:
 
 +---------------------+-----------------------------------------+----------------------------------------------------+
 | Dimension           | Traditional approach                    | Register Level Programming                         |
@@ -27,11 +27,11 @@ Development Workflow
 
 1. **Environment setup** - build the project and install dependencies
 
-2. **Understand the core components** - get familiar with the code structure
+2. **Understand the core components** - get familiar with the :doc:`code structure <../architecture>`
 
 3. **Implement the algorithm** - refer to existing experiments
 
-4. **Test and verify** - ensure correctness
+4. **Test and verify** - ensure correctness (see :doc:`testing and verification <verification>`)
 
 5. **Submit the code** - PR to upstream
 

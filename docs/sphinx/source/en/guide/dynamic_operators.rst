@@ -84,7 +84,7 @@ The compiled shared library exports the following C-style factory functions:
 Base Class Selection
 --------------------
 
-Dynamic operators support two base classes: ``BaseOperator`` and ``SelfAdjointOperator``.
+Dynamic operators support two base classes (see :ref:`SelfAdjointOperator vs BaseOperator <selfadjoint-vs-baseoperator>`): ``BaseOperator`` and ``SelfAdjointOperator``.
 
 Comparison
 ~~~~~~~~~~
@@ -93,8 +93,8 @@ Comparison
    :header-rows: 1
 
    * - Feature
-     - SelfAdjointOperator
-     - BaseOperator
+     - :class:`SelfAdjointOperator <pysparq.SelfAdjointOperator>`
+     - :class:`BaseOperator <pysparq.BaseOperator>`
    * - Dagger behavior
      - Automatically equal to itself
      - Must be implemented manually
@@ -192,7 +192,7 @@ Write a C++ class that inherits from ``BaseOperator`` or ``SelfAdjointOperator``
 Step 2: Compile the Operator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use ``compile_operator()`` to compile the code and create a Python class:
+Use :func:`compile_operator() <pysparq.dynamic_operator.compile_operator>` to compile the code and create a Python class:
 
 .. code-block:: python
 
@@ -338,7 +338,7 @@ Implement the shift operator of a quantum walk:
 Example 3: Grover Search Oracle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implement a custom Grover search oracle:
+Implement a custom Grover search oracle (the built-in version lives in the :doc:`algorithm library </cpp_api/algorithms>`):
 
 .. code-block:: python
 
@@ -373,7 +373,7 @@ Implement a custom Grover search oracle:
 Example 4: Hamiltonian Evolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implement a time-evolution operator:
+Implement a time-evolution operator (related: :doc:`Hamiltonian simulation </cpp_api/algorithms>` in the algorithm library):
 
 .. code-block:: python
 
@@ -460,7 +460,7 @@ Example with multiple arguments:
 Compilation Cache
 ~~~~~~~~~~~~~~~~~
 
-Dynamic operators use a cache mechanism based on a hash of the code to avoid repeated compilation:
+Dynamic operators use a cache mechanism based on a hash of the code to avoid repeated compilation. Inspect it with :func:`get_cache_info() <pysparq.dynamic_operator.get_cache_info>` and clear it with :func:`clear_cache() <pysparq.dynamic_operator.clear_cache>`:
 
 .. code-block:: python
 
@@ -498,7 +498,7 @@ Common Compilation Errors
 
    error: 'basic_components.h' file not found
 
-Solution: make sure PySparQ is properly installed and that the header files are located in the include/ directory.
+Solution: make sure PySparQ is properly installed and that the header files (see the :doc:`C++ API reference </cpp_api/core>`) are located in the include/ directory.
 
 **Undefined symbols**
 
@@ -506,7 +506,7 @@ Solution: make sure PySparQ is properly installed and that the header files are 
 
    error: undefined reference to 'qram_simulator::System::get'
 
-Solution: check that the namespace is correct (use ``qram_simulator``) and that the types match.
+Solution: check that the namespace is correct (use ``qram_simulator``, see the :doc:`architecture overview </guide/architecture>`) and that the types match.
 
 **Windows ABI compatibility issues**
 

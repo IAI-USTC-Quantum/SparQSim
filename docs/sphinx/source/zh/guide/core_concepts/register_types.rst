@@ -82,6 +82,8 @@ Rational（有理数/定点小数）
    # 用于条件旋转
    ps.CondRot_Rational_Bool("angle", "target")(state)
 
+基于 ``Rational`` 寄存器的条件旋转算子见 :doc:`条件旋转算子 </operators/condrot>`。
+
 General（通用存储）
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -114,6 +116,8 @@ StateStorage 类
 
    # 错误：UnsignedInteger 不能用于 Boolean 算子
    # ps.X_Bool("counter", 0)(state)  # 类型不匹配！
+
+每个 :ref:`算子 <operator-reference>` 都会说明其接受的寄存器类型；类型约束的原理在算子参考概览中总结。
 
 类型选择建议
 ------------

@@ -1,6 +1,8 @@
 Coding Standards
 ================
 
+These standards apply to the C++ core and the Python package; the repository layout they refer to is explained in the :doc:`architecture overview <../architecture>`.
+
 C++ Standards
 -------------
 

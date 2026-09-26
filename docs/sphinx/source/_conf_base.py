@@ -24,8 +24,12 @@ _SOURCE_ROOT = Path(__file__).resolve().parent
 _SHARED = _SOURCE_ROOT / "_shared"
 _REPO_ROOT = _SOURCE_ROOT.parents[2]
 
-# Add PySparQ to path for autodoc
-sys.path.insert(0, str(_REPO_ROOT / "PySparQ"))
+# NOTE: autodoc must import the *installed* pysparq (CI and local docs builds
+# both run `pip install .` first); the installed copy is the only one carrying
+# the compiled pysparq._core extension. Do NOT put the source tree PySparQ/ on
+# sys.path here -- it has no _core, and every autoclass/autofunction in the
+# API pages then fails to import. (autoapi still parses the source tree
+# statically via autoapi_dirs, which is unaffected.)
 
 # -- Project information -----------------------------------------------------
 

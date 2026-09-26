@@ -12,7 +12,7 @@ The Nature of Registers
 
 A register in the System hosts storage of ``n`` ``uint64_t`` values. Each register has a name, a type, and a bit width, and its value is stored as a ``uint64_t``. This design allows us to encode quantum states in a multi-register form such as :math:`|a\rangle|b\rangle|c\rangle` without having to care about how the underlying qubits are encoded.
 
-For example, the QRAM access :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` requires only an address register ``i`` and a data register ``d``: the ``QRAMLoad`` operator completes the mapping directly at the register level, without managing any qubits at all.
+For example, the QRAM access :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` requires only an address register ``i`` and a data register ``d``: the :class:`QRAMLoad <pysparq.QRAMLoad>` operator completes the mapping directly at the register level, without managing any qubits at all.
 
 .. math::
 
@@ -51,7 +51,7 @@ You can also use ``AddRegisterWithHadamard`` to apply a Hadamard while adding th
 Removing Registers: RemoveRegister
 ----------------------------------
 
-Removing a register is equivalent to taking the PartialTrace over that register, i.e. eliminating its contribution to the quantum state. In a simulation this has the same effect as measuring the register and then discarding the measurement result.
+Removing a register is equivalent to taking the :doc:`PartialTrace </operators/partial_trace>` over that register, i.e. eliminating its contribution to the quantum state. In a simulation this has the same effect as measuring the register and then discarding the measurement result.
 
 .. code-block:: python
 
@@ -60,7 +60,7 @@ Removing a register is equivalent to taking the PartialTrace over that register,
 
 .. important::
 
-   ``RemoveRegister`` checks, before executing, whether the register is entangled with the remaining registers (via ``TestRemovable``). If entanglement exists, the removal raises an exception, because in that case the PartialTrace over a single register can no longer be treated simply as discarding it.
+   ``RemoveRegister`` checks, before executing, whether the register is entangled with the remaining registers (via :doc:`TestRemovable </operators/debug>`). If entanglement exists, the removal raises an exception, because in that case the PartialTrace over a single register can no longer be treated simply as discarding it.
 
 Splitting Registers: SplitRegister
 ----------------------------------
@@ -104,7 +104,7 @@ The merge process:
 PartialTrace: Measurement
 -------------------------
 
-In PySparQ, ``PartialTrace`` is treated as being equivalent to a measurement. This is reasonable at the simulation level — taking a partial trace over some registers is the same as measuring them and discarding the results.
+In PySparQ, :class:`PartialTrace <pysparq.PartialTrace>` is treated as being equivalent to a measurement. This is reasonable at the simulation level — taking a partial trace over some registers is the same as measuring them and discarding the results.
 
 ``PartialTrace`` provides three modes:
 
@@ -114,13 +114,13 @@ In PySparQ, ``PartialTrace`` is treated as being equivalent to a measurement. Th
    * - Class
      - Behavior
      - Return value
-   * - ``PartialTrace``
+   * - :class:`PartialTrace <pysparq.PartialTrace>`
      - Random measurement: randomly pick a measurement outcome according to the probability distribution, then collapse the state
      - ``(measured_values, probability)``
-   * - ``PartialTraceSelect``
+   * - :class:`PartialTraceSelect <pysparq.PartialTraceSelect>`
      - Selective collapse: keep the basis states whose specified register has a specified value, and renormalize the remaining ones
      - Normalized probability
-   * - ``PartialTraceSelectRange``
+   * - :class:`PartialTraceSelectRange <pysparq.PartialTraceSelectRange>`
      - Range collapse: keep the basis states whose specified register value lies within a given range
      - Normalized probability
 
@@ -134,8 +134,8 @@ In PySparQ, ``PartialTrace`` is treated as being equivalent to a measurement. Th
    ps.System.add_register("b", ps.UnsignedInteger, 2)
    state = ps.SparseState()
 
-   ps.Hadamard_Int("a")(state)
-   ps.Hadamard_Int("b")(state)
+   ps.Hadamard_Int("a", 2)(state)
+   ps.Hadamard_Int("b", 2)(state)
 
    # Randomly measure register "a"
    measured_values, prob = ps.PartialTrace("a")(state)
@@ -154,7 +154,7 @@ In PySparQ, ``PartialTrace`` is treated as being equivalent to a measurement. Th
 Register Stack Operations: Push / Pop
 -------------------------------------
 
-``Push`` and ``Pop`` provide stack management for temporary registers, which is useful when an algorithm needs temporary variables:
+:class:`Push <pysparq.Push>` and :class:`Pop <pysparq.Pop>` (documented under :doc:`system operations </operators/system_ops>`) provide stack management for temporary registers, which is useful when an algorithm needs temporary variables:
 
 .. code-block:: python
 

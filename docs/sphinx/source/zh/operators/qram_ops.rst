@@ -1,7 +1,7 @@
 QRAM 算子
 =========
 
-QRAM (Quantum Random Access Memory) 算子实现量子并行数据访问。
+QRAM (Quantum Random Access Memory) 算子实现量子并行数据访问。仅 C++ 可用的 qubit 线路变体见 :doc:`QRAM 操作（C++） </cpp_api/qram>`；均匀地址叠加通常用 :doc:`Hadamard_Int_Full </operators/hadamard>` 制备。
 
 .. contents:: 目录
    :local:

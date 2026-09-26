@@ -1,7 +1,7 @@
 Debugging Tools
 ===============
 
-Debugging tools provide quantum-state inspection, normalization checking, NaN detection, state printing, and similar utilities. These tools do not modify the quantum state; they are intended for the development and debugging stages.
+Debugging tools provide quantum-state inspection, normalization checking, NaN detection, state printing, and similar utilities. These tools do not modify the quantum state; they are intended for the development and debugging stages. The :class:`TestRemovable <pysparq.TestRemovable>` check documented here also guards :doc:`RemoveRegister </guide/core_concepts/register_management>` against removing entangled registers.
 
 .. contents:: Contents
    :local:
@@ -44,7 +44,7 @@ StatePrint (state printing)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: pysparq.StatePrint
-.. autofunction:: pysparq.print
+.. autofunction:: pysparq.pprint
 .. autofunction:: pysparq.to_string
 .. autoclass:: pysparq.StatePrinter
    :members:

@@ -1,6 +1,8 @@
 Testing and Verification
 ========================
 
+These practices fit into step 4 of the :doc:`development workflow <workflow>`.
+
 Verification Checklist
 ----------------------
 

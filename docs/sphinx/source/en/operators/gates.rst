@@ -1,7 +1,7 @@
 Basic Quantum Gates
 ===================
 
-Basic quantum gates implement the standard single-qubit and multi-qubit quantum gate operations.
+Basic quantum gates implement the standard single-qubit and multi-qubit quantum gate operations. They act on :doc:`Boolean </guide/core_concepts/register_types>` registers; see :doc:`register types </guide/core_concepts/register_types>` for storage details and :doc:`Hadamard operations </operators/hadamard>` for the superposition-creating Hadamard family.
 
 .. contents:: Contents
    :local:
@@ -58,7 +58,7 @@ Type Constraints
 
 All quantum gates require:
 
-- Register type: ``Boolean`` (single-qubit gates)
+- Register type: :doc:`Boolean </guide/core_concepts/register_types>` (single-qubit gates)
 - Bit index: must be within the register size range [0, size)
 
 .. code-block:: python
@@ -348,8 +348,4 @@ Rot_Bool (general rotation)
 Reflection_Bool (reflection gate)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: pysparq.Reflection_Bool
-   :members:
-   :undoc-members:
-
-**Operation**: Reflection operation (the diffusion operator in Grover's algorithm)
+The reflection gate is documented under :doc:`phase and reflection operators </operators/phase_ops>`; it implements the diffusion operator used in :doc:`Grover search </cpp_api/algorithms>`.

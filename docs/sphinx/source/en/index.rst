@@ -1,10 +1,10 @@
 SparQ Documentation
 ===================
 
-SparQ is a sparse-state quantum circuit simulator framework with native QRAM
-support, a register-level programming paradigm, a quantum algorithm library
-(Grover, Shor, block encoding, Hamiltonian simulation, discrete adiabatic, etc.),
-and complete Python bindings (`pysparq <https://pypi.org/project/pysparq/>`_).
+SparQ is a :doc:`sparse-state </guide/core_concepts/sparse_state>` quantum circuit simulator framework with native
+:doc:`QRAM </operators/qram_ops>` support, a :doc:`register-level programming </guide/core_concepts/index>` paradigm,
+a quantum :doc:`algorithm library </cpp_api/algorithms>` (Grover, Shor, block encoding, Hamiltonian simulation,
+discrete adiabatic, etc.), and complete Python bindings (`pysparq <https://pypi.org/project/pysparq/>`_).
 
 .. raw:: html
 
@@ -65,7 +65,7 @@ Quick Links
 Getting Started
 ---------------
 
-Install PySparQ via pip:
+Install PySparQ via pip (see :doc:`installation </guide/installation>` for building from source):
 
 .. code-block:: bash
 
@@ -75,13 +75,15 @@ A quick example:
 
 .. code-block:: python
 
-   from pysparq import System, SparseState, AddRegister, Hadamard_Int
+   import pysparq as ps
 
-   system = System()
-   state = SparseState(system)
-   AddRegister("q", pysparq.UnsignedInteger, 4)(state)
-   Hadamard_Int("q")(state)
+   ps.System.clear()
+   ps.System.add_register("q", ps.UnsignedInteger, 4)
+   state = ps.SparseState()
+   ps.Hadamard_Int("q", 4)(state)
    print(state)
+
+This declares a register, creates a :class:`SparseState <pysparq.SparseState>` in the ``|0⟩`` state, and applies the :doc:`Hadamard </operators/hadamard>` operator. Continue with the :doc:`Quick Start </guide/quickstart>`.
 
 Indices and Tables
 ==================

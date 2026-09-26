@@ -14,7 +14,7 @@ SparQ operators follow a two-phase model of **construction → application**:
 
 1. **Construction phase** — specify which registers the operator acts on, together with the relevant parameters. No quantum state is involved in this phase.
 
-2. **Application phase** — apply the constructed operator to a ``SparseState``, completing the quantum state transformation.
+2. **Application phase** — apply the constructed operator to a :class:`SparseState <pysparq.SparseState>`, completing the quantum state transformation.
 
 .. code-block:: python
 
@@ -36,8 +36,8 @@ SparQ operators follow a two-phase model of **construction → application**:
 The benefits of this separation:
 
 - **Reuse**: the same operator object can be applied to different quantum states repeatedly, without reconstructing it
-- **Composition**: operators can carry conditions (conditioned_by), so the control logic can be adjusted flexibly after construction
-- **Reversibility**: a constructed operator supports the ``dag()`` method to perform the inverse operation
+- **Composition**: operators can carry conditions (:ref:`conditioned_by <conditional-operations>`), so the control logic can be adjusted flexibly after construction
+- **Reversibility**: a constructed operator supports the :meth:`dag() <pysparq.BaseOperator.dag>` method to perform the inverse operation
 
 Construction Parameters
 -----------------------
@@ -73,7 +73,7 @@ Some operators accept classical constants as parameters, for example the addend 
 Hyperparameters
 ^^^^^^^^^^^^^^^
 
-Some advanced operators require algorithm-level hyperparameters, such as :math:`\kappa` (condition number) and :math:`\epsilon` (precision) in Hamiltonian simulation, or the step-size parameter :math:`s` in QDA.
+Some advanced operators require algorithm-level hyperparameters, such as :math:`\kappa` (condition number) and :math:`\epsilon` (precision) in :doc:`Hamiltonian simulation </cpp_api/algorithms>`, or the step-size parameter :math:`s` in :doc:`QDA </cpp_api/qda>`.
 
 Bit Indices and Angles
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -104,7 +104,7 @@ After construction, the function-call syntax ``op(state)`` applies the operator 
 Inverse Application
 ^^^^^^^^^^^^^^^^^^^
 
-For operators derived from ``BaseOperator``, use ``dag()`` to perform the inverse transformation:
+For operators derived from :class:`BaseOperator <pysparq.BaseOperator>`, use ``dag()`` to perform the inverse transformation:
 
 .. code-block:: python
 
@@ -112,12 +112,12 @@ For operators derived from ``BaseOperator``, use ``dag()`` to perform the invers
    op(state)       # shift left by 2 bits
    op.dag(state)   # shift right by 2 bits (undo)
 
-For ``SelfAdjointOperator``, calling ``op(state)`` again is the inverse operation (:math:`U^\dagger = U`).
+For :class:`SelfAdjointOperator <pysparq.SelfAdjointOperator>`, calling ``op(state)`` again is the inverse operation (:math:`U^\dagger = U`).
 
 Conditional Application
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-All operators support chained conditional methods to implement controlled operations:
+All operators support chained conditional methods (:ref:`conditional operations <conditional-operations>`) to implement controlled operations:
 
 .. code-block:: python
 
@@ -140,43 +140,43 @@ SparQ's operators are divided into the following major categories by function:
    * - Category
      - Description
      - Header file
-   * - Quantum arithmetic
+   * - :doc:`Quantum arithmetic </operators/arithmetic>`
      - Register-level operations such as addition, multiplication, shifting, and comparison
      - ``quantum_arithmetic.h``
-   * - Basic quantum gates
+   * - :doc:`Basic quantum gates </operators/gates>`
      - Pauli gates, phase gates, rotation gates, general-purpose gates
      - ``basic_gates.h``
-   * - Hadamard operations
+   * - :doc:`Hadamard operations </operators/hadamard>`
      - Hadamard transforms over integers / booleans / partial qubits
      - ``hadamard.h``
-   * - QFT
+   * - :doc:`QFT </operators/qft>`
      - Quantum Fourier transform and its inverse
      - ``qft.h``
-   * - QRAM operators
+   * - :doc:`QRAM operators </operators/qram_ops>`
      - Quantum random access memory load operations
      - ``qram.h``
-   * - Conditional rotation
+   * - :doc:`Conditional rotation </operators/condrot>`
      - Rotating qubits conditioned on register values
      - ``condrot.h``
-   * - Phase and reflection
+   * - :doc:`Phase and reflection </operators/phase_ops>`
      - Conditional phase flips, global phase, Grover reflection
      - ``parallel_phase_operations.h``
-   * - Rotation and state preparation
+   * - :doc:`Rotation and state preparation </operators/rot_state_prep>`
      - Unitary rotations of arbitrary dimension, quantum state preparation
      - ``rot.h``
-   * - System operations
+   * - :doc:`System operations </operators/system_ops>`
      - Register stack management, zero-amplitude cleanup, system split/merge
      - ``system_operations.h``
-   * - Partial trace
+   * - :doc:`Partial trace </operators/partial_trace>`
      - Measurement, selective collapse, range collapse
      - ``partial_trace.h``
-   * - Sorting
+   * - :doc:`Sorting </operators/sort_ops>`
      - Sorting basis states by key value, amplitude, and other dimensions
      - ``sort_state.h``
-   * - Dark magic operations
+   * - :doc:`Dark magic operations </operators/dark_magic>`
      - Unsafe operations that directly modify the quantum state
      - ``dark_magic.h``
-   * - Debugging tools
+   * - :doc:`Debugging tools </operators/debug>`
      - Normalization checks, NaN detection, state printing
      - ``debugger.h``
 
@@ -187,12 +187,12 @@ Concept: Operators vs. Flow-Control Classes
 
 SparQ's codebase distinguishes between two concepts at different levels:
 
-**Operators** inherit from ``BaseOperator`` or ``SelfAdjointOperator`` and directly manipulate the quantum state (``SparseState``); they are closely tied to quantum algorithms and quantum circuits. Examples include ``CondRot_Fixed_Bool``, ``T`` (the state-preparation operator in CKS), and ``SparseMatrixOracle1``.
+**Operators** inherit from :doc:`BaseOperator </cpp_api/core>` or :doc:`SelfAdjointOperator </cpp_api/core>` and directly manipulate the quantum state (``SparseState``); they are closely tied to quantum algorithms and quantum circuits. Examples include :class:`CondRot_Fixed_Bool <pysparq.CondRot_Fixed_Bool>`, ``T`` (the state-preparation operator in CKS), and ``SparseMatrixOracle1``.
 
 **Flow-control classes (Flow-Control / Algorithm Classes)** do not manipulate the quantum state directly; instead they hold registers, orchestrate operator execution, and manage state initialization and iteration. Their responsibility is to **test and verify** whether a quantum procedure is correct, not to implement quantum gates. For example:
 
 - ``QuantumWalkNSteps`` (CKS): manages multi-step quantum walks, register creation, and environment initialization
 - ``LCU_Container`` (CKS): manages the Chebyshev LCU iteration loop
-- ``WalkS`` (QDA): coordinates block encoding and state preparation in the QDA algorithm
+- ``WalkS`` (:doc:`QDA </cpp_api/qda>`): coordinates block encoding and state preparation in the QDA algorithm
 
 The point of this distinction: operators are the minimal composable, testable units, while flow-control classes are the glue that chains operators together for a particular algorithmic workflow. Flow-control classes should not inherit from the ``Operator`` base class, because their responsibility is **orchestration** rather than **application**.

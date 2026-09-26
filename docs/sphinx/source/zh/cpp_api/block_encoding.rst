@@ -1,6 +1,8 @@
 块编码（BlockEncoding/）
 =======================
 
+含可运行 Python 代码的概念讲解见示例指南中的 :doc:`示例 4 </guide/examples>`。
+
 三对角矩阵块编码（``SparQ_Algorithm/include/BlockEncoding/block_encoding_tridiagonal.h``）
 -------------------------------------------------------------------------------------------
 

@@ -1,8 +1,9 @@
 SparQ 文档
 ----------
 
-SparQ 是一个稀疏态量子电路模拟器框架，具有原生 QRAM 支持、寄存器级编程范式、
-量子算法库（Grover、Shor、块编码、哈密顿量模拟、离散绝热等）与完整的
+SparQ 是一个 :doc:`稀疏态 </guide/core_concepts/sparse_state>` 量子电路模拟器框架，具有原生
+:doc:`QRAM </operators/qram_ops>` 支持、:doc:`寄存器级编程 </guide/core_concepts/index>` 范式、
+量子 :doc:`算法库 </cpp_api/algorithms>`（Grover、Shor、块编码、哈密顿量模拟、离散绝热等）与完整的
 Python 绑定（`pysparq <https://pypi.org/project/pysparq/>`_）。
 
 .. raw:: html
@@ -64,7 +65,7 @@ Python 绑定（`pysparq <https://pypi.org/project/pysparq/>`_）。
 快速开始
 --------
 
-通过 pip 安装 PySparQ：
+通过 pip 安装 PySparQ（从源码构建参见 :doc:`安装 </guide/installation>`）：
 
 .. code-block:: bash
 
@@ -74,13 +75,16 @@ Python 绑定（`pysparq <https://pypi.org/project/pysparq/>`_）。
 
 .. code-block:: python
 
-   from pysparq import System, SparseState, AddRegister, Hadamard_Int
+   import pysparq as ps
 
-   system = System()
-   state = SparseState(system)
-   AddRegister("q", pysparq.UnsignedInteger, 4)(state)
-   Hadamard_Int("q")(state)
+   ps.System.clear()
+   ps.System.add_register("q", ps.UnsignedInteger, 4)
+   state = ps.SparseState()
+   ps.Hadamard_Int("q", 4)(state)
    print(state)
+
+该示例声明了一个寄存器，创建了处于 ``|0⟩`` 态的 :class:`SparseState <pysparq.SparseState>` 初态，
+并施加了 :doc:`Hadamard </operators/hadamard>` 算子。继续阅读 :doc:`快速入门 </guide/quickstart>`。
 
 索引和表格
 ==========

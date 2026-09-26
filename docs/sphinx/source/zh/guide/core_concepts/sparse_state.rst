@@ -1,7 +1,7 @@
 SparseState 类
 ==============
 
-``SparseState`` 类是 PySparQ 的核心数据结构，表示一个稀疏量子态。它内部托管了 ``std::vector<System>``，只存储振幅非零的基态。
+``SparseState`` 类是 PySparQ 的核心数据结构，表示一个稀疏量子态。它内部托管了 ``std::vector<System>``（每个元素是一个 :doc:`System </guide/core_concepts/system>`），只存储振幅非零的基态。
 
 .. contents:: 目录
    :local:
@@ -21,7 +21,7 @@ SparseState 类
 
 ``SparseState`` 中的一个核心不变量是：**所有 ``System`` 的寄存器值组合必须唯一**。
 
-如果对 ``SparseState`` 中的基态进行操作后产生了两个具有相同寄存器值的 ``System``，这意味着发生了量子干涉——此时两个 ``System`` 的振幅应当相加，合并为一个 ``System``。这一过程通常由算子内部的 ``sort-merge-unique`` 机制自动完成。
+如果对 ``SparseState`` 中的基态进行操作后产生了两个具有相同寄存器值的 ``System``，这意味着发生了量子干涉——此时两个 ``System`` 的振幅应当相加，合并为一个 ``System``。这一过程通常由 :doc:`算子 </guide/core_concepts/operators>` 内部的 ``sort-merge-unique`` 机制自动完成。
 
 .. code-block:: python
 
@@ -81,7 +81,7 @@ SparseState 类
 状态演化示例
 ------------
 
-下面的示例展示 ``SparseState`` 如何随算子操作演化：
+下面的示例展示 ``SparseState`` 如何随 :ref:`算子操作 <operator-reference>` 演化：
 
 .. code-block:: python
    :caption: 示例：Hadamard 创建叠加态
@@ -128,7 +128,7 @@ SparseState 类
 状态打印模式
 ------------
 
-``ps.StatePrint(state, mode)`` 和 ``ps.pprint(state, mode)`` 支持多种显示模式：
+``ps.StatePrint(state, mode)`` 和 ``ps.pprint(state, mode)``（参见 :doc:`调试工具 </operators/debug>`）支持多种显示模式：
 
 .. list-table:: StatePrintDisplay 枚举
    :header-rows: 1
@@ -168,6 +168,9 @@ SparseState 类
 
 清除接近零的振幅
 ----------------
+
+使用 :doc:`系统操作 </operators/system_ops>` 中的 :class:`ClearZero <pysparq.ClearZero>` 与
+:doc:`黑魔法操作 </operators/dark_magic>` 中的 :class:`Normalize <pysparq.Normalize>`：
 
 .. code-block:: python
 
@@ -216,10 +219,8 @@ API 参考
    :members:
    :undoc-members:
 
-.. autofunction:: pysparq.split_systems
-
-.. autofunction:: pysparq.combine_systems
-
 .. autofunction:: pysparq.merge_system
 
 .. autofunction:: pysparq.remove_system
+
+``split_systems`` / ``combine_systems`` 辅助函数的说明见 :doc:`系统操作 </operators/system_ops>`。

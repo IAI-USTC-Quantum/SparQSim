@@ -21,11 +21,11 @@ System 类
 一个 ``System`` 包含两部分核心数据：
 
 - **amplitude**（``complex``）：该基态的复数振幅
-- **registers**（``list[StateStorage]``）：各寄存器的值，按寄存器 ID 索引。每个寄存器值以 ``uint64_t`` 存储
+- **registers**（``list[StateStorage]``）：各寄存器的值，按寄存器 ID 索引。每个寄存器值以 ``uint64_t`` 存储——存储单元在 :doc:`寄存器类型 </guide/core_concepts/register_types>` 中描述
 
 .. important::
 
-   ``System`` 不是独立使用的对象。它始终由 ``SparseState`` 托管。``SparseState`` 保证其中所有 ``System`` 的寄存器值组合唯一——如果两个 ``System`` 具有相同的寄存器值，意味着发生了量子干涉，它们的振幅应当相加合并为一个 ``System``。
+   ``System`` 不是独立使用的对象。它始终由 :class:`SparseState <pysparq.SparseState>` 托管。``SparseState`` 保证其中所有 ``System`` 的寄存器值组合唯一——如果两个 ``System`` 具有相同的寄存器值，意味着发生了量子干涉，它们的振幅应当相加合并为一个 ``System``。
 
 静态变量：全局寄存器追踪
 ------------------------
@@ -38,7 +38,7 @@ System 类
 
 .. warning::
 
-   **重要**：每次运行新程序前，必须调用 ``System.clear()`` 清理静态状态，否则会残留上次运行的信息！
+   **重要**：每次运行新程序前，必须调用 :meth:`System.clear() <pysparq.System.clear>` 清理静态状态，否则会残留上次运行的信息！
 
 静态成员
 ^^^^^^^^
@@ -86,7 +86,7 @@ System 类
 
 系统中的寄存器托管了 ``n`` 个 ``uint64_t`` 的存储方式。这使得我们可以将量子态编码为类似 :math:`|a\rangle|b\rangle|c\rangle` 的多寄存器形式，而无需管理量子比特是如何编码的。
 
-例如，QRAM 访问 :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` 可以被轻松编码——只需要一个地址寄存器和一个数据寄存器。整个项目的管理层面从量子比特上升到了量子寄存器，几乎所有操作都以量子寄存器为单位。
+例如，QRAM 访问 :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle` 可以被轻松编码——只需要一个地址寄存器和一个数据寄存器（参见 :doc:`QRAM 算子 </operators/qram_ops>`）。整个项目的管理层面从量子比特上升到了量子寄存器，几乎所有操作都以量子寄存器为单位。
 
 查询方法
 --------
@@ -114,6 +114,8 @@ System 类
 
    # 根据 ID 获取名称
    name = ps.System.name_of(reg_id)
+
+返回的 :class:`StateStorageType <pysparq.StateStorageType>` 枚举及各存储类型取值的含义在 :doc:`寄存器类型 </guide/core_concepts/register_types>` 中描述。
 
 统计信息
 ^^^^^^^^
@@ -191,7 +193,7 @@ System 类
 
 3. **使用有意义的寄存器名称**
 
-   名称用于调试和 ``StatePrint`` 输出，应具有描述性。
+   名称用于调试和 :doc:`StatePrint </operators/debug>` 输出，应具有描述性。
 
 API 参考
 --------

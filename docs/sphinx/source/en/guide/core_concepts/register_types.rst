@@ -82,6 +82,8 @@ Rational (rational / fixed-point)
    # Used for conditional rotation
    ps.CondRot_Rational_Bool("angle", "target")(state)
 
+The conditional-rotation operators built on ``Rational`` registers are described in :doc:`conditional rotation operators </operators/condrot>`.
+
 General (general-purpose storage)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -114,6 +116,8 @@ Operators check whether register types match their requirements:
 
    # Wrong: UnsignedInteger cannot be used with a Boolean operator
    # ps.X_Bool("counter", 0)(state)  # Type mismatch!
+
+Each :ref:`operator <operator-reference>` documents the register types it accepts; the type-constraints rationale is summarized in the operator reference overview.
 
 Type Selection Guide
 --------------------
