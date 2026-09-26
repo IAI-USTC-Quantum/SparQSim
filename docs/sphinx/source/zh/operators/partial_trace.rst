@@ -1,7 +1,7 @@
 部分追迹
 ========
 
-部分追迹（Partial Trace）操作对指定寄存器执行测量或选择性坍缩。这是量子算法中提取经典信息的关键手段。寄存器管理背景见 :doc:`寄存器管理 </guide/core_concepts/register_management>`。
+部分追迹（Partial Trace）操作对指定寄存器执行测量或选择性坍缩。这是量子算法中提取经典信息的关键手段。寄存器管理背景见 :doc:`寄存器管理 </guide/core_concepts/register_management>`；Born 规则采样与主动复位见 :doc:`线路中测量 </operators/measurement>`。
 
 .. contents:: 目录
    :local:

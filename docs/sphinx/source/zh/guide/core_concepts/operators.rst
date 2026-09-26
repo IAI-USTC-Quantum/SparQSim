@@ -170,6 +170,9 @@ SparQ 的算子按功能分为以下几大类：
    * - :doc:`部分追迹 </operators/partial_trace>`
      - 测量、选择性坍缩、范围坍缩
      - ``partial_trace.h``
+   * - :doc:`线路中测量 </operators/measurement>`
+     - Born 规则测量、主动复位、概率查询
+     - ``measurement.h``
    * - :doc:`排序 </operators/sort_ops>`
      - 按键值、振幅等维度排序基态
      - ``sort_state.h``

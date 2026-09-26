@@ -137,7 +137,7 @@ entry module one by one, and each resource accepts either a full word
 sequence or a sparse ``{address: word}`` mapping (cells left out are
 zero).
 
-The return value is an ``RIRResult``:
+The return value is an :class:`RIRResult <pysparq.rir.RIRResult>`:
 
 .. code-block:: python
 
@@ -355,7 +355,7 @@ Execution Budgets and Safety Properties
 ---------------------------------------
 
 The interpreter enforces two kinds of budgets; exceeding one raises an
-``RIRError`` instead of truncating silently:
+:class:`RIRError <pysparq.rir.RIRError>` instead of truncating silently:
 
 - ``max_steps`` (default ``1_000_000``): the module-graph expansion
   budget. A ``Repeat`` is charged its body cost multiplied by the repeat

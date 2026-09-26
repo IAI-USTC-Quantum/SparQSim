@@ -18,7 +18,7 @@ For example, the QRAM access :math:`|i\rangle|0\rangle \to |i\rangle|d[i]\rangle
 
    |\psi\rangle = \sum_j \alpha_j \, |a_j\rangle |b_j\rangle |c_j\rangle
 
-where each :math:`|a_j\rangle |b_j\rangle |c_j\rangle` corresponds to one entry of the ``registers`` array in a ``System``.
+where each :math:`|a_j\rangle |b_j\rangle |c_j\rangle` corresponds to one entry of the ``registers`` array in a :class:`System <pysparq.System>`.
 
 Adding Registers: AddRegister
 -----------------------------
@@ -41,7 +41,7 @@ Adding a register is equivalent to taking the tensor product with a :math:`|0\ra
 
 ``AddRegister`` updates both the static metadata (``name_register_map``) and the register values of all existing basis states.
 
-You can also use ``AddRegisterWithHadamard`` to apply a Hadamard while adding the register, directly creating a uniform superposition:
+You can also use :class:`AddRegisterWithHadamard <pysparq.AddRegisterWithHadamard>` to apply a Hadamard while adding the register, directly creating a uniform superposition:
 
 .. code-block:: python
 
@@ -65,7 +65,7 @@ Removing a register is equivalent to taking the :doc:`PartialTrace </operators/p
 Splitting Registers: SplitRegister
 ----------------------------------
 
-``SplitRegister`` splits one register into two: the original register keeps the high bits, and the new register receives the low bits.
+:class:`SplitRegister <pysparq.SplitRegister>` splits one register into two: the original register keeps the high bits, and the new register receives the low bits.
 
 .. code-block:: python
 
@@ -87,7 +87,7 @@ The split process:
 Combining Registers: CombineRegister
 ------------------------------------
 
-``CombineRegister`` merges two registers into one: the value of the first register is shifted left and concatenated with the value of the second register.
+:class:`CombineRegister <pysparq.CombineRegister>` merges two registers into one: the value of the first register is shifted left and concatenated with the value of the second register.
 
 .. code-block:: python
 

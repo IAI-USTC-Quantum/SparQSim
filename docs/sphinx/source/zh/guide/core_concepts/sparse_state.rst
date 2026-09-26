@@ -21,7 +21,7 @@ SparseState 类
 
 ``SparseState`` 中的一个核心不变量是：**所有 ``System`` 的寄存器值组合必须唯一**。
 
-如果对 ``SparseState`` 中的基态进行操作后产生了两个具有相同寄存器值的 ``System``，这意味着发生了量子干涉——此时两个 ``System`` 的振幅应当相加，合并为一个 ``System``。这一过程通常由 :doc:`算子 </guide/core_concepts/operators>` 内部的 ``sort-merge-unique`` 机制自动完成。
+如果对 ``SparseState`` 中的基态进行操作后产生了两个具有相同寄存器值的 ``System``，这意味着发生了量子干涉——此时两个 ``System`` 的振幅应当相加，合并为一个 ``System``。这一过程通常由 :doc:`算子 </guide/core_concepts/operators>` 内部的 ``sort-merge-unique`` 机制自动完成；而使其可被观察的基态排序则由 :doc:`排序算子 </operators/sort_ops>` 提供。
 
 .. code-block:: python
 
@@ -128,7 +128,7 @@ SparseState 类
 状态打印模式
 ------------
 
-``ps.StatePrint(state, mode)`` 和 ``ps.pprint(state, mode)``（参见 :doc:`调试工具 </operators/debug>`）支持多种显示模式：
+``ps.StatePrint(state, mode)`` 和 ``ps.pprint(state, mode)``（参见 :doc:`调试工具 </operators/debug>`）支持 :class:`StatePrintDisplay <pysparq.StatePrintDisplay>` 枚举的多种显示模式：
 
 .. list-table:: StatePrintDisplay 枚举
    :header-rows: 1
@@ -211,6 +211,8 @@ SparseState 类
 
    # 切片
    first_three = state.basis_states[:3]
+
+``SparseState`` 在算子作用下的完整演化过程会在 :doc:`稀疏态演化 notebook </notebooks/02_sparse_state_evolution>` 中逐步演示。
 
 API 参考
 --------

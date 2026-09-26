@@ -12,7 +12,7 @@ Operators are the building blocks of quantum operations in PySparQ. All operatio
 What Is an Operator?
 --------------------
 
-An **operator** is a callable object that transforms a ``SparseState``, implementing quantum operations while guaranteeing unitarity. The :doc:`Operators </guide/core_concepts/operators>` chapter of the core concepts guide explains the underlying design.
+An **operator** is a callable object that transforms a ``SparseState``, implementing quantum operations while guaranteeing unitarity. The :doc:`Operators </guide/core_concepts/operators>` chapter of the core concepts guide explains the underlying design. For hands-on practice, work through the :doc:`operator usage notebook </notebooks/03_operator_examples>`.
 
 Basic Usage
 ^^^^^^^^^^^
@@ -239,6 +239,7 @@ Operator Categories in Detail
    qram_ops
    system_ops
    partial_trace
+   measurement
    sort_ops
    dark_magic
    debug

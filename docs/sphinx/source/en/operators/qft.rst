@@ -49,7 +49,7 @@ QFT
 
 **Operation**: Performs the quantum Fourier transform on an integer register
 
-**Type constraints**: ``UnsignedInteger`` or ``SignedInteger``
+**Type constraints**: :doc:`UnsignedInteger </guide/core_concepts/register_types>` or :doc:`SignedInteger </guide/core_concepts/register_types>`
 
 **Bit constraints**: The register size determines the transform dimension
 

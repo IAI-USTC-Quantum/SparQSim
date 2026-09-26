@@ -46,8 +46,8 @@ QRAMLoad
 **操作**: 从 QRAM 电路加载数据到量子寄存器
 
 **类型约束**:
-- 地址寄存器: ``UnsignedInteger``
-- 数据寄存器: ``UnsignedInteger`` 或 ``General``
+- 地址寄存器: :doc:`UnsignedInteger </guide/core_concepts/register_types>`
+- 数据寄存器: :doc:`UnsignedInteger </guide/core_concepts/register_types>` 或 :doc:`General </guide/core_concepts/register_types>`
 
 **位约束**:
 - 地址大小必须匹配 QRAM 配置

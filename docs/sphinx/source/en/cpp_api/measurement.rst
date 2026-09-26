@@ -1,7 +1,7 @@
 Measurement and Readout
 =======================
 
-Python-facing readout is described in :doc:`Partial Trace </operators/partial_trace>`.
+Python-facing readout is described in :doc:`Partial Trace </operators/partial_trace>`, and mid-circuit measurement/reset/probability in :doc:`Mid-Circuit Measurement </operators/measurement>`.
 
 Mid-Circuit Measurement (``SparQ/include/measurement.h``)
 ---------------------------------------------------------

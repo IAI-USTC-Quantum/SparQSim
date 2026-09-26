@@ -31,6 +31,7 @@ Python 绑定（`pysparq <https://pypi.org/project/pysparq/>`_）。
    guide/quickstart
    guide/architecture
    guide/examples
+   guide/algorithms/index
    guide/dynamic_operators
    guide/rir
    guide/core_concepts/index

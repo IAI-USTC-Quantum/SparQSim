@@ -23,6 +23,7 @@
 ```
 docs/
 ├── algorithm-implementation.md       # 算法转译指南（英文版；中文版见 algorithm-implementation_zh-cn.md）
+├── verification/                     # 运行时验证记录（如 v1b-runtime.md）
 ├── doxygen/                          # Doxyfile -> build/xml（breathe 输入）
 └── sphinx/
     ├── Makefile                      # make html（两棵树一起构建）

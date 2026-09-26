@@ -46,8 +46,8 @@ QRAMLoad
 **Operation**: Loads data from the QRAM circuit into a quantum register
 
 **Type constraints**:
-- Address register: ``UnsignedInteger``
-- Data register: ``UnsignedInteger`` or ``General``
+- Address register: :doc:`UnsignedInteger </guide/core_concepts/register_types>`
+- Data register: :doc:`UnsignedInteger </guide/core_concepts/register_types>` or :doc:`General </guide/core_concepts/register_types>`
 
 **Bit constraints**:
 - The address size must match the QRAM configuration

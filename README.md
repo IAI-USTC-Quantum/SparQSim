@@ -118,6 +118,16 @@ dist = ps.Probability.distribution(state, reg)  # full outcome distribution of a
 An algorithm layer implemented in pure Python that composes public primitives (Grover, Shor, QDA, CKS, state preparation, block encoding, etc.);
 its one-to-one correspondence with the C++ experiment code is documented in [docs/algorithm-implementation.md](docs/algorithm-implementation.md).
 
+## Documentation
+
+The full documentation site is hosted on GitHub Pages: https://iai-ustc-quantum.github.io/SparQSim/
+
+- [Quick Start](https://iai-ustc-quantum.github.io/SparQSim/en/guide/quickstart.html) and [Core Concepts](https://iai-ustc-quantum.github.io/SparQSim/en/guide/core_concepts/index.html)
+- [Operator Reference](https://iai-ustc-quantum.github.io/SparQSim/en/operators/index.html) — the full register-level operator catalogue
+- [Algorithm Guide](https://iai-ustc-quantum.github.io/SparQSim/en/guide/algorithms/index.html) — Grover / Shor / QDA / CKS / block encoding
+- [Interactive Tutorials](https://iai-ustc-quantum.github.io/SparQSim/en/notebooks/01_quickstart.html) — runnable notebooks
+- 中文版站点：[中文文档](https://iai-ustc-quantum.github.io/SparQSim/zh/index.html)
+
 ## Project Structure
 
 ```

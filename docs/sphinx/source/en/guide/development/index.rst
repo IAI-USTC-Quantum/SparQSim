@@ -29,11 +29,11 @@ Development Workflow
 
 2. **Understand the core components** - get familiar with the :doc:`code structure <../architecture>`
 
-3. **Implement the algorithm** - refer to existing experiments
+3. **Implement the algorithm** - refer to existing experiments; copyable skeletons are provided in :doc:`code templates <templates>`
 
 4. **Test and verify** - ensure correctness (see :doc:`testing and verification <verification>`)
 
-5. **Submit the code** - PR to upstream
+5. **Submit the code** - PR to upstream (make sure the :doc:`coding standards <standards>` are followed)
 
 .. toctree::
    :maxdepth: 2

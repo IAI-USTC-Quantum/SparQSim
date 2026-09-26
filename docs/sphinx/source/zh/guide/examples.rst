@@ -1,7 +1,7 @@
 示例
 ====
 
-本节展示如何使用 PySparQ 从零构建量子算法——从初态创建、已有算子的使用，到自定义算子，最终搭建 :doc:`Block Encoding </cpp_api/block_encoding>` 电路。
+本节展示如何使用 PySparQ 从零构建量子算法——从初态创建、已有算子的使用，到自定义算子，最终搭建 :doc:`Block Encoding </cpp_api/block_encoding>` 电路。其中多个示例还提供了可直接运行的 notebook 版本：:doc:`算子使用示例 </notebooks/03_operator_examples>`。
 
 .. contents:: 目录
    :local:
@@ -277,7 +277,7 @@ Block Encoding 是量子算法中最重要的电路构建范式之一——它�
 三对角矩阵的 Block Encoding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:doc:`pysparq.algorithms.block_encoding </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` :class:`BlockEncodingTridiagonal <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingTridiagonal>` 将对称三对角矩阵 :math:`A = \alpha I + \beta T`（:math:`T` 为移位矩阵）编码为量子电路。实现逻辑：
+:doc:`pysparq.algorithms.block_encoding </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` :class:`BlockEncodingTridiagonal <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingTridiagonal>` 将对称三对角矩阵 :math:`A = \alpha I + \beta T` （:math:`T` 为移位矩阵）编码为量子电路。实现逻辑：
 
 1. 在辅助寄存器上准备 4 元素叠加态
 2. 对主寄存器执行受控加/减 1（溢出比特记录进位）
@@ -320,7 +320,7 @@ Block Encoding 是量子算法中最重要的电路构建范式之一——它�
 QRAM-Based Block Encoding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-对于任意稀疏矩阵（存储在 QRAM 中），:class:`BlockEncodingViaQRAM <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingViaQRAM>` 组合 :math:`U_L`（行方向旋转）、:math:`U_R^\dagger`（列方向旋转）和 SWAP 操作，实现完整的 Block Encoding：
+对于任意稀疏矩阵（存储在 QRAM 中），:class:`BlockEncodingViaQRAM <PySparQ.pysparq.algorithms.block_encoding.BlockEncodingViaQRAM>` 组合 :math:`U_L` （行方向旋转）、:math:`U_R^\dagger` （列方向旋转）和 SWAP 操作，实现完整的 Block Encoding：
 
 .. math::
 
@@ -329,7 +329,7 @@ QRAM-Based Block Encoding
 各操作均通过 QRAM 加载父/子节点数据、计算旋转角、执行条件旋转来实现。具体实现见
 :doc:`pysparq.algorithms.block_encoding 模块 </autoapi/PySparQ/pysparq/algorithms/block_encoding/index>` 的源码。
 
-这两个 Block Encoding 构建块是 :doc:`QDA </cpp_api/qda>`（量子线性系统求解器）和 :doc:`哈密顿量模拟 </cpp_api/algorithms>` 等高级算法的核心，构成了从算子到完整量子算法的桥梁。
+这两个 Block Encoding 构建块是 :doc:`QDA </cpp_api/qda>` （量子线性系统求解器）和 :doc:`哈密顿量模拟 </cpp_api/algorithms>` 等高级算法的核心，构成了从算子到完整量子算法的桥梁。
 
 
 示例 5：C++ 侧自定义算子（进阶）

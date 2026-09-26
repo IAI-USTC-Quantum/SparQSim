@@ -142,7 +142,7 @@ split_systems (split basis states)
 
 .. autofunction:: pysparq.split_systems
 
-**Operation**: Splits the basis states of a ``SparseState`` into two groups — those that satisfy and those that do not satisfy the given conditioned_by condition.
+**Operation**: Splits the basis states of a ``SparseState`` into two groups — those that satisfy and those that do not satisfy the given :ref:`conditioned_by <conditional-operations>` condition.
 
 **Parameters**:
 
@@ -188,3 +188,24 @@ The Split-Transform-Merge Pattern
 
    # 3. Merge
    ps.combine_systems(state, matching)
+
+Register Lifecycle Functions
+----------------------------
+
+These callable classes manage the register table itself (see :doc:`register management </guide/core_concepts/register_management>` for the concepts; :class:`AddRegister <pysparq.AddRegister>` and :class:`RemoveRegister <pysparq.RemoveRegister>` are documented in the :doc:`Python API reference </api/python>`).
+
+.. autoclass:: pysparq.AddRegisterWithHadamard
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.SplitRegister
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.CombineRegister
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.MoveBackRegister
+   :members:
+   :undoc-members:

@@ -170,6 +170,9 @@ SparQ's operators are divided into the following major categories by function:
    * - :doc:`Partial trace </operators/partial_trace>`
      - Measurement, selective collapse, range collapse
      - ``partial_trace.h``
+   * - :doc:`Mid-circuit measurement </operators/measurement>`
+     - Born-rule measurement, active reset, probability queries
+     - ``measurement.h``
    * - :doc:`Sorting </operators/sort_ops>`
      - Sorting basis states by key value, amplitude, and other dimensions
      - ``sort_state.h``

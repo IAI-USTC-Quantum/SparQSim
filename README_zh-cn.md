@@ -118,6 +118,16 @@ dist = ps.Probability.distribution(state, reg)  # 单寄存器完整结果分布
 纯 Python 实现的算法层，组合公开原语（Grover、Shor、QDA、CKS、态制备、块编码等），
 与 C++ 实验代码的逐一对应关系见 [docs/algorithm-implementation.md](docs/algorithm-implementation.md)。
 
+## 文档
+
+完整文档站托管在 GitHub Pages：https://iai-ustc-quantum.github.io/SparQSim/
+
+- [快速入门](https://iai-ustc-quantum.github.io/SparQSim/zh/guide/quickstart.html)与[核心概念](https://iai-ustc-quantum.github.io/SparQSim/zh/guide/core_concepts/index.html)
+- [算子参考](https://iai-ustc-quantum.github.io/SparQSim/zh/operators/index.html)——寄存器级算子完整目录
+- [算法指南](https://iai-ustc-quantum.github.io/SparQSim/zh/guide/algorithms/index.html)——Grover / Shor / QDA / CKS / 块编码
+- [交互式教程](https://iai-ustc-quantum.github.io/SparQSim/zh/notebooks/01_quickstart.html)——可运行 notebook
+- English site: [English documentation](https://iai-ustc-quantum.github.io/SparQSim/en/index.html)
+
 ## 项目结构
 
 ```

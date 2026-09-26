@@ -18,7 +18,7 @@
 
    |\psi\rangle = \sum_j \alpha_j \, |a_j\rangle |b_j\rangle |c_j\rangle
 
-其中每个 :math:`|a_j\rangle |b_j\rangle |c_j\rangle` 对应一个 ``System`` 中的 ``registers`` 数组。
+其中每个 :math:`|a_j\rangle |b_j\rangle |c_j\rangle` 对应一个 :class:`System <pysparq.System>` 中的 ``registers`` 数组。
 
 添加寄存器：AddRegister
 ------------------------
@@ -41,7 +41,7 @@
 
 ``AddRegister`` 会同时更新静态元数据（``name_register_map``）和所有现有基态的寄存器值。
 
-也可以使用 ``AddRegisterWithHadamard`` 在添加寄存器的同时施加 Hadamard，直接创建均匀叠加态：
+也可以使用 :class:`AddRegisterWithHadamard <pysparq.AddRegisterWithHadamard>` 在添加寄存器的同时施加 Hadamard，直接创建均匀叠加态：
 
 .. code-block:: python
 
@@ -65,7 +65,7 @@
 拆分寄存器：SplitRegister
 --------------------------
 
-``SplitRegister`` 将一个寄存器拆分为两个：原寄存器保留高位，新寄存器获取低位。
+:class:`SplitRegister <pysparq.SplitRegister>` 将一个寄存器拆分为两个：原寄存器保留高位，新寄存器获取低位。
 
 .. code-block:: python
 
@@ -87,7 +87,7 @@
 合并寄存器：CombineRegister
 ---------------------------
 
-``CombineRegister`` 将两个寄存器合并为一个：第一个寄存器的值左移后拼接第二个寄存器的值。
+:class:`CombineRegister <pysparq.CombineRegister>` 将两个寄存器合并为一个：第一个寄存器的值左移后拼接第二个寄存器的值。
 
 .. code-block:: python
 

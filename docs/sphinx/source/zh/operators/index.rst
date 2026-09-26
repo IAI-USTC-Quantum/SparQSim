@@ -239,6 +239,7 @@ API 参考
    qram_ops
    system_ops
    partial_trace
+   measurement
    sort_ops
    dark_magic
    debug

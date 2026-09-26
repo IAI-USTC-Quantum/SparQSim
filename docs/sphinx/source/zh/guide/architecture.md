@@ -66,7 +66,7 @@ SparQSim/
 | {doc}`basic_gates.h </cpp_api/core>` | Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 等标准门 |
 | {doc}`hadamard.h </cpp_api/core>` | 整数寄存器 Hadamard（叠加态生成） |
 | {doc}`qft.h </cpp_api/core>` | QFT / InverseQFT / QFT_Full |
-| {doc}`measurement.h </cpp_api/measurement>` | 中间电路测量 MeasureZ / Reset / Probability |
+| {doc}`measurement.h </cpp_api/measurement>` | 中间电路测量 MeasureZ / Reset / Probability（Python 页：{doc}`测量算子 </operators/measurement>`） |
 | {doc}`partial_trace.h </cpp_api/measurement>` | 部分迹与读出 |
 | {doc}`qram.h </cpp_api/qram>` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
 | {doc}`quantum_arithmetic.h </cpp_api/arithmetic>` | 加减乘除模、移位、比较等约 50 个量子算术算子 |
@@ -78,7 +78,7 @@ SparQSim/
 
 组合核心原语实现完整量子算法，每个算法对应 `Experiments/` 中的 C++ 实验
 与 `PySparQ/pysparq/algorithms/` 中的 Python 实现（对照关系见
-[docs/algorithm-implementation.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/algorithm-implementation.md)）：
+{doc}`算法移植指南 </guide/algorithms/porting>`）：
 
 - **{doc}`grover.h </cpp_api/algorithms>`**：QRAM oracle 驱动的 Grover 搜索（含振幅放大与量子计数）
 - **{doc}`shor.h </cpp_api/algorithms>`**：Shor 因数分解（标准版 + 半经典版）

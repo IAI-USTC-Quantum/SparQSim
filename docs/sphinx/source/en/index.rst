@@ -31,6 +31,7 @@ Quick Links
    guide/quickstart
    guide/architecture
    guide/examples
+   guide/algorithms/index
    guide/dynamic_operators
    guide/rir
    guide/core_concepts/index

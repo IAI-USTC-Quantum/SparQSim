@@ -200,3 +200,12 @@ CheckDuplicateKey (duplicate key detection)
 .. code-block:: python
 
    ps.CheckDuplicateKey()(state)
+
+StatePrintDisplay Enum
+----------------------
+
+The output modes accepted by :class:`StatePrint <pysparq.StatePrint>` / ``pprint`` (used throughout :doc:`The SparseState Class </guide/core_concepts/sparse_state>`):
+
+.. autoclass:: pysparq.StatePrintDisplay
+   :members:
+   :undoc-members:

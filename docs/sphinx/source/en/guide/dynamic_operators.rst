@@ -172,7 +172,7 @@ Basic Usage
 Step 1: Write the C++ Operator Code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Write a C++ class that inherits from ``BaseOperator`` or ``SelfAdjointOperator``:
+Write a C++ class that inherits from ``BaseOperator`` or ``SelfAdjointOperator`` (see :ref:`SelfAdjointOperator vs BaseOperator <selfadjoint-vs-baseoperator>`):
 
 .. code-block:: python
 
@@ -338,7 +338,7 @@ Implement the shift operator of a quantum walk:
 Example 3: Grover Search Oracle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implement a custom Grover search oracle (the built-in version lives in the :doc:`algorithm library </cpp_api/algorithms>`):
+Implement a custom Grover search oracle (the built-in version lives in the :doc:`algorithm library </cpp_api/algorithms>`; the marking step mirrors the reflection primitives in :doc:`phase and reflection operators </operators/phase_ops>`):
 
 .. code-block:: python
 

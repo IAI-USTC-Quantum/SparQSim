@@ -65,3 +65,8 @@ Control Types
 - :ref:`conditioned_by_all_ones(reg) <conditional-operations>` - execute when the register is all ones
 - :ref:`conditioned_by_bit(reg, pos) <conditional-operations>` - execute when a specific bit is 1
 - :ref:`conditioned_by_value(reg, val) <conditional-operations>` - execute when the register equals a specific value
+
+Next Steps
+----------
+
+Try the same workflow interactively in the :doc:`PySparQ Quick Start notebook </notebooks/01_quickstart>`, then continue with :doc:`Core Concepts </guide/core_concepts/index>` and :doc:`Examples </guide/examples>`.

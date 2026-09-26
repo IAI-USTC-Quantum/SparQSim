@@ -67,6 +67,8 @@ Python Development Template
 Grover Search Template
 ----------------------
 
+See :doc:`Grover search (C++ reference) </cpp_api/algorithms>` for the production implementation.
+
 .. code-block:: cpp
 
    // Create a QRAM
@@ -98,4 +100,4 @@ See :doc:`block encoding (C++ reference) </cpp_api/block_encoding>` (``SparQ_Alg
 Hamiltonian Simulation
 ----------------------
 
-See the CKS (Carnegie-Kellam-Schulten) algorithm implementation under ``Experiments/CKS/``.
+See the CKS (Carnegie-Kellam-Schulten) algorithm implementation under ``Experiments/CKS/``; the underlying Hamiltonian-simulation primitives are documented under :doc:`the algorithm library </cpp_api/algorithms>`.

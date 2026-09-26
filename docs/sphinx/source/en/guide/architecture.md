@@ -66,7 +66,7 @@ SparQSim/
 | {doc}`basic_gates.h </cpp_api/core>` | standard gates such as Phase / Rotation / Pauli / S / T / RX-RI-RZ / SX / U2 / U3 |
 | {doc}`hadamard.h </cpp_api/core>` | Hadamard on integer registers (superposition generation) |
 | {doc}`qft.h </cpp_api/core>` | QFT / InverseQFT / QFT_Full |
-| {doc}`measurement.h </cpp_api/measurement>` | mid-circuit measurement MeasureZ / Reset / Probability |
+| {doc}`measurement.h </cpp_api/measurement>` | mid-circuit measurement MeasureZ / Reset / Probability (Python page: {doc}`measurement operators </operators/measurement>`) |
 | {doc}`partial_trace.h </cpp_api/measurement>` | partial trace and readout |
 | {doc}`qram.h </cpp_api/qram>` | QRAMLoad / QRAMLoadFast / QRAMInputGenerator |
 | {doc}`quantum_arithmetic.h </cpp_api/arithmetic>` | about 50 quantum arithmetic operators for modular add/sub/mul/div, shifts, comparisons, etc. |
@@ -77,8 +77,8 @@ SparQSim/
 ### SparQ_Algorithm/ - High-Level Algorithm Library
 
 Composes core primitives into complete quantum algorithms; each algorithm corresponds to a C++ experiment in `Experiments/`
-and a Python implementation in `PySparQ/pysparq/algorithms/` (see
-[docs/algorithm-implementation.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/algorithm-implementation.md) for the mapping):
+and a Python implementation in `PySparQ/pysparq/algorithms/` (see the
+{doc}`algorithm porting guide </guide/algorithms/porting>` for the mapping):
 
 - **{doc}`grover.h </cpp_api/algorithms>`**: QRAM-oracle-driven Grover search (incl. amplitude amplification and quantum counting)
 - **{doc}`shor.h </cpp_api/algorithms>`**: Shor factoring (standard + semiclassical variants)

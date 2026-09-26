@@ -21,7 +21,7 @@ Uniqueness Rule
 
 A core invariant of ``SparseState`` is: **the register-value combination of every ``System`` must be unique**.
 
-If an operation on the basis states of a ``SparseState`` produces two ``System`` objects with identical register values, this means quantum interference has occurred — in that case the amplitudes of the two ``System`` objects should be added and they should be merged into a single ``System``. This process is usually performed automatically by the ``sort-merge-unique`` mechanism inside :doc:`operators </guide/core_concepts/operators>`.
+If an operation on the basis states of a ``SparseState`` produces two ``System`` objects with identical register values, this means quantum interference has occurred — in that case the amplitudes of the two ``System`` objects should be added and they should be merged into a single ``System``. This process is usually performed automatically by the ``sort-merge-unique`` mechanism inside :doc:`operators </guide/core_concepts/operators>`; the basis-state ordering that makes it observable is provided by the :doc:`sorting operators </operators/sort_ops>`.
 
 .. code-block:: python
 
@@ -128,7 +128,7 @@ The following example shows how a ``SparseState`` evolves under :ref:`operator a
 State Printing Modes
 --------------------
 
-``ps.StatePrint(state, mode)`` and ``ps.pprint(state, mode)`` (see :doc:`debugging tools </operators/debug>`) support several display modes:
+``ps.StatePrint(state, mode)`` and ``ps.pprint(state, mode)`` (see :doc:`debugging tools </operators/debug>`) support several display modes of the :class:`StatePrintDisplay <pysparq.StatePrintDisplay>` enum:
 
 .. list-table:: The StatePrintDisplay enum
    :header-rows: 1
@@ -210,6 +210,8 @@ Iterator Support
 
    # Slicing
    first_three = state.basis_states[:3]
+
+The full evolution of a ``SparseState`` under operator applications is demonstrated step by step in the :doc:`sparse state evolution notebook </notebooks/02_sparse_state_evolution>`.
 
 API Reference
 -------------

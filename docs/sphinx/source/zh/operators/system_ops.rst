@@ -188,3 +188,24 @@ combine_systems（合并基态）
 
    # 3. 合并
    ps.combine_systems(state, matching)
+
+寄存器生命周期函数
+------------------
+
+这些可调用类管理寄存器表本身（概念见 :doc:`寄存器管理 </guide/core_concepts/register_management>`；:class:`AddRegister <pysparq.AddRegister>` 与 :class:`RemoveRegister <pysparq.RemoveRegister>` 见 :doc:`Python API 参考 </api/python>`）。
+
+.. autoclass:: pysparq.AddRegisterWithHadamard
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.SplitRegister
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.CombineRegister
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.MoveBackRegister
+   :members:
+   :undoc-members:

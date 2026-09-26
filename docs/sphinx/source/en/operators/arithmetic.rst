@@ -78,6 +78,8 @@ Overview
      - Out-of-place
      - SelfAdjoint
 
+The table lists the most commonly used arithmetic operators; the full set including signed-integer, bitwise, and overflow-aware variants is rendered in `Additional Arithmetic Operators`_ below.
+
 ---
 
 Addition Operators
@@ -94,7 +96,7 @@ Add_UInt_UInt (out-of-place addition)
 
 **Unitarity guarantee**: XOR mechanism — applying twice restores the original value.
 
-**Type constraints**: All registers must be ``UnsignedInteger``.
+**Type constraints**: All registers must be :doc:`UnsignedInteger </guide/core_concepts/register_types>`.
 
 **Bit constraints**: No special requirements; the result is truncated to the output register size.
 
@@ -133,7 +135,7 @@ Add_UInt_UInt_InPlace (in-place addition)
 
 **Dagger implementation**: ``rhs = (rhs + 2^n - lhs) mod 2^n``
 
-**Type constraints**: Both registers must be ``UnsignedInteger``.
+**Type constraints**: Both registers must be :doc:`UnsignedInteger </guide/core_concepts/register_types>`.
 
 **Bit constraints**: Registers of the same size are recommended; otherwise the smaller value is truncated.
 
@@ -164,7 +166,7 @@ Add_UInt_ConstUInt (constant out-of-place addition)
 
 **Operation**: ``result ^= lhs + const``
 
-**Type constraints**: All registers must be ``UnsignedInteger``.
+**Type constraints**: All registers must be :doc:`UnsignedInteger </guide/core_concepts/register_types>`.
 
 .. code-block:: python
 
@@ -288,7 +290,7 @@ Mod_Mult_UInt_ConstUInt_InPlace (modular multiplication operator)
 
 **Dagger**: ``y → y * a^(-2^x) mod N`` (the modular inverse is computed with the extended Euclidean algorithm)
 
-**Type constraints**: ``UnsignedInteger``; the register size must be ≥ ⌈log₂(N)⌉.
+**Type constraints**: :doc:`UnsignedInteger </guide/core_concepts/register_types>`; the register size must be ≥ ⌈log₂(N)⌉.
 
 **Condition**: ``a`` and ``N`` must be coprime (gcd(a, N) = 1); otherwise an exception is raised at construction.
 
@@ -324,7 +326,7 @@ ShiftLeft_InPlace (circular left shift)
 
 **Dagger**: ``.dag()`` is implemented and has the same effect as ``ShiftRight_InPlace(reg, digit)``; the two are daggers of each other.
 
-**Type constraints**: ``UnsignedInteger`` or ``SignedInteger``.
+**Type constraints**: :doc:`UnsignedInteger </guide/core_concepts/register_types>` or :doc:`SignedInteger </guide/core_concepts/register_types>`.
 
 **Bit constraints**: ``digit <= register size``.
 
@@ -380,7 +382,7 @@ Compare_UInt_UInt (comparison)
 
 **Operation**: Sets ``less_flag`` and ``equal_flag`` based on ``lhs < rhs`` and ``lhs == rhs``.
 
-**Type constraints**: Inputs ``UnsignedInteger``, outputs ``Boolean``.
+**Type constraints**: Inputs :doc:`UnsignedInteger </guide/core_concepts/register_types>`, outputs :doc:`Boolean </guide/core_concepts/register_types>`.
 
 .. code-block:: python
 
@@ -507,3 +509,78 @@ GetMid_UInt_UInt (midpoint computation)
 
    ps.GetMid_UInt_UInt("left", "right", "mid")(state)
    # mid = (2 + 8) // 2 = 5
+
+.. _additional-arithmetic-operators:
+
+Additional Arithmetic Operators
+-------------------------------
+
+Extended integer arithmetic beyond the operators above: signed-integer operations, bitwise logic, division/square roots, overflow-aware adds, and selection. All act on whole registers (see :doc:`register types </guide/core_concepts/register_types>` for the storage semantics of ``SignedInteger`` vs ``UnsignedInteger``).
+
+.. autoclass:: pysparq.Sub_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Add_AnyInt_AnyInt_InPlace
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Neg_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Abs_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Mul_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Div_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Sqrt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Select_Bool_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.And_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Or_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Xor_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Less_SInt_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Carry_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Overflow_SInt_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.MulOverflow_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.IsZero_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.CustomArithmetic
+   :members:
+   :undoc-members:

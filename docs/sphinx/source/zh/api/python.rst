@@ -60,7 +60,7 @@ QRAM 操作
 状态管理
 --------
 
-详细用法见 :doc:`系统操作 </operators/system_ops>`、:doc:`部分追迹 </operators/partial_trace>` 与 :doc:`黑魔法操作 </operators/dark_magic>`（``Normalize``）。
+详细用法见 :doc:`系统操作 </operators/system_ops>`、:doc:`部分追迹 </operators/partial_trace>` 与 :doc:`黑魔法操作 </operators/dark_magic>` （``Normalize``）。
 
 .. autofunction:: pysparq._core.AddRegister
 

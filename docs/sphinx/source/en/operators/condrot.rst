@@ -19,6 +19,9 @@ Overview
    * - ``CondRot_Fixed_Bool``
      - Fixed conditional rotation driven by a Rational angle register
      - BaseOperator
+   * - ``CondRot_Rational_Bool``
+     - Conditional rotation driven by a Rational angle register (variant)
+     - BaseOperator
 
 Rotation Mechanism
 ------------------
@@ -49,8 +52,8 @@ CondRot_Fixed_Bool
 **Operation**: Rotates a Boolean register according to the value of a Rational register
 
 **Type constraints**:
-- Input register: ``Rational``
-- Output register: ``Boolean`` (size must be 1)
+- Input register: :doc:`Rational </guide/core_concepts/register_types>`
+- Output register: :doc:`Boolean </guide/core_concepts/register_types>` (size must be 1)
 
 **Dagger**: Uses the inverse rotation matrix
 
@@ -132,3 +135,12 @@ Quantum amplitude encoding
    # 2. rotate with CondRot_Fixed_Bool
    # 3. apply the same adapter again to uncompute
    ps.CondRot_Fixed_Bool("angle", "qubit")(state)
+
+CondRot_Rational_Bool
+---------------------
+
+.. autoclass:: pysparq.CondRot_Rational_Bool
+   :members:
+   :undoc-members:
+
+**Operation**: Conditional rotation driven by a Rational angle register onto a Boolean target; a variant of :class:`CondRot_Fixed_Bool <pysparq.CondRot_Fixed_Bool>`, used for angle encoding (see :doc:`register types </guide/core_concepts/register_types>`).

@@ -1,7 +1,7 @@
 Examples
 ========
 
-This section demonstrates how to build quantum algorithms with PySparQ from scratch — from creating initial states and using existing operators to defining custom operators, and finally to assembling :doc:`Block Encoding </cpp_api/block_encoding>` circuits.
+This section demonstrates how to build quantum algorithms with PySparQ from scratch — from creating initial states and using existing operators to defining custom operators, and finally to assembling :doc:`Block Encoding </cpp_api/block_encoding>` circuits. Several of these examples are also available as a runnable notebook: :doc:`Operator Usage Examples </notebooks/03_operator_examples>`.
 
 .. contents:: Contents
    :local:

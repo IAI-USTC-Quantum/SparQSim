@@ -338,7 +338,7 @@ BaseOperator
 示例 3：Grover 搜索 Oracle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-实现一个自定义的 Grover 搜索 Oracle（内置版本见 :doc:`算法库 </cpp_api/algorithms>`）：
+实现一个自定义的 Grover 搜索 Oracle（内置版本见 :doc:`算法库 </cpp_api/algorithms>`；标记步骤与 :doc:`相位与反射算子 </operators/phase_ops>` 中的反射原语同源）：
 
 .. code-block:: python
 

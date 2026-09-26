@@ -139,7 +139,9 @@ autoapi_dirs = [str(_REPO_ROOT / "PySparQ" / "pysparq")]
 autoapi_root = "autoapi"
 autoapi_file_patterns = ["*.pyi", "*.py"]
 autoapi_generate_api_docs = True
-autoapi_add_toctree_entry = True
+# autoapi/index is added manually to the api/index toctree (both trees) with an
+# explicit title, so it does not duplicate the hand-written "API Reference" entry
+autoapi_add_toctree_entry = False
 autoapi_options = [
     "members",
     "undoc-members",
@@ -198,3 +200,10 @@ nbsphinx_timeout = 60
 # in newer versions. We omit prolog for simplicity.
 # compile_operator cells require pysparq and g++ in the Jupyter kernel environment,
 # so notebooks are rendered as static content only (not executed).
+
+# Notebook markdown cells intentionally link to sibling pages with static
+# relative .html hrefs (nbsphinx markdown does not support Sphinx roles), so
+# nbsphinx cannot map them to source documents and warns "File not found".
+# These are false positives -- every emitted href is validated against the
+# built HTML tree by the docs link checker instead.
+suppress_warnings = ["nbsphinx.localfile"]

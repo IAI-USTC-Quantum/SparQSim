@@ -200,3 +200,12 @@ CheckDuplicateKey（重复键检测）
 .. code-block:: python
 
    ps.CheckDuplicateKey()(state)
+
+StatePrintDisplay 枚举
+----------------------
+
+:class:`StatePrint <pysparq.StatePrint>` / ``pprint`` 接受的输出模式枚举（:doc:`SparseState 类 </guide/core_concepts/sparse_state>` 中的显示模式表即基于它）：
+
+.. autoclass:: pysparq.StatePrintDisplay
+   :members:
+   :undoc-members:

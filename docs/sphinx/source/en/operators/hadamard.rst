@@ -51,7 +51,7 @@ Hadamard_Int
 
    H|x\rangle = \frac{1}{\sqrt{2}}(|0\rangle + |1\rangle) \quad \text{for each qubit}
 
-**Type constraints**: ``UnsignedInteger`` or ``SignedInteger``
+**Type constraints**: :doc:`UnsignedInteger </guide/core_concepts/register_types>` or :doc:`SignedInteger </guide/core_concepts/register_types>`
 
 .. code-block:: python
 
@@ -138,7 +138,7 @@ Hadamard_Bool
 
    H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}
 
-**Type constraints**: ``Boolean`` (the register size must be 1)
+**Type constraints**: :doc:`Boolean </guide/core_concepts/register_types>` (the register size must be 1)
 
 **Bit constraints**: None (operates on bit 0 by default)
 

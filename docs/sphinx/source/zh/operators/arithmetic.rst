@@ -78,6 +78,8 @@
      - Out-of-place
      - SelfAdjoint
 
+上表仅列出最常用的算术算子；完整清单（含带符号、位运算与溢出版本）见下文 `Additional Arithmetic Operators`_ 一节。
+
 ---
 
 加法算子
@@ -507,3 +509,78 @@ GetMid_UInt_UInt（中点计算）
 
    ps.GetMid_UInt_UInt("left", "right", "mid")(state)
    # mid = (2 + 8) // 2 = 5
+
+.. _additional-arithmetic-operators:
+
+Additional Arithmetic Operators
+-------------------------------
+
+上述算子之外的扩展整数运算：带符号整数运算、位逻辑、除法与开方、溢出感知加法以及选择算子。它们均作用于整个寄存器（``SignedInteger`` 与 ``UnsignedInteger`` 的存储语义见 :doc:`寄存器类型 </guide/core_concepts/register_types>`）。
+
+.. autoclass:: pysparq.Sub_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Add_AnyInt_AnyInt_InPlace
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Neg_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Abs_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Mul_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Div_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Sqrt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Select_Bool_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.And_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Or_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Xor_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Less_SInt_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Carry_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.Overflow_SInt_SInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.MulOverflow_UInt_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.IsZero_UInt
+   :members:
+   :undoc-members:
+
+.. autoclass:: pysparq.CustomArithmetic
+   :members:
+   :undoc-members:

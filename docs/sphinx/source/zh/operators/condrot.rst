@@ -19,6 +19,9 @@
    * - ``CondRot_Fixed_Bool``
      - 基于 Rational 角度寄存器的固定条件旋转
      - BaseOperator
+   * - ``CondRot_Rational_Bool``
+     - 由 Rational 角度寄存器驱动的条件旋转（变体）
+     - BaseOperator
 
 旋转机制
 --------
@@ -49,8 +52,8 @@ CondRot_Fixed_Bool
 **操作**: 根据 Rational 寄存器值旋转 Boolean 寄存器
 
 **类型约束**:
-- 输入寄存器: ``Rational``
-- 输出寄存器: ``Boolean``（大小必须为 1）
+- 输入寄存器: :doc:`Rational </guide/core_concepts/register_types>`
+- 输出寄存器: :doc:`Boolean </guide/core_concepts/register_types>`（大小必须为 1）
 
 **Dagger**: 使用反向旋转矩阵
 
@@ -132,3 +135,12 @@ CondRot_Fixed_Bool
    # 2. rotate with CondRot_Fixed_Bool
    # 3. apply the same adapter again to uncompute
    ps.CondRot_Fixed_Bool("angle", "qubit")(state)
+
+CondRot_Rational_Bool
+---------------------
+
+.. autoclass:: pysparq.CondRot_Rational_Bool
+   :members:
+   :undoc-members:
+
+**操作**: 由 Rational 角度寄存器驱动、作用于 Boolean 目标的条件旋转；:class:`CondRot_Fixed_Bool <pysparq.CondRot_Fixed_Bool>` 的变体，用于角度编码（见 :doc:`寄存器类型 </guide/core_concepts/register_types>`）。

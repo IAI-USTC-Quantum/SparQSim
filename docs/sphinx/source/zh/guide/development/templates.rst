@@ -67,6 +67,8 @@ Python 开发模板
 Grover 搜索模板
 ---------------
 
+生产实现参见 :doc:`Grover 搜索（C++ 参考） </cpp_api/algorithms>`。
+
 .. code-block:: cpp
 
    // 创建 QRAM
@@ -93,9 +95,9 @@ Grover 搜索模板
 块编码模板
 ----------
 
-实现酉矩阵的块编码参见 :doc:`块编码（C++ 参考） </cpp_api/block_encoding>`（``SparQ_Algorithm/include/block_encoding.h``）；Python 端的完整走查见 :doc:`示例 </guide/examples>`。
+实现酉矩阵的块编码参见 :doc:`块编码（C++ 参考） </cpp_api/block_encoding>` （``SparQ_Algorithm/include/block_encoding.h``）；Python 端的完整走查见 :doc:`示例 </guide/examples>`。
 
 哈密顿量模拟
 ------------
 
-参考 ``Experiments/CKS/`` 中的 CKS（Carnegie-Kellam-Schulten）算法实现。
+参考 ``Experiments/CKS/`` 中的 CKS（Carnegie-Kellam-Schulten）算法实现；底层哈密顿量模拟原语见 :doc:`算法库 </cpp_api/algorithms>`。

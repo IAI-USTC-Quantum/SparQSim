@@ -44,7 +44,7 @@ PySparQ 采用":doc:`寄存器级编程 </guide/core_concepts/index>`"范式。�
    ps.pprint(state)
 
 示例使用了 :class:`Hadamard_Int <pysparq.Hadamard_Int>` 将两个寄存器置于叠加态，并用 :class:`Add_UInt_UInt <pysparq.Add_UInt_UInt>` 完成求和。
-详见 :doc:`Hadamard 操作 </operators/hadamard>`、:doc:`算术算子 </operators/arithmetic>` 与 :doc:`调试工具 </operators/debug>`（``pprint``）。
+详见 :doc:`Hadamard 操作 </operators/hadamard>`、:doc:`算术算子 </operators/arithmetic>` 与 :doc:`调试工具 </operators/debug>` （``pprint``）。
 
 条件操作
 --------
@@ -66,3 +66,8 @@ PySparQ 采用":doc:`寄存器级编程 </guide/core_concepts/index>`"范式。�
 - :ref:`conditioned_by_all_ones(reg) <conditional-operations>` - 当寄存器全为1时执行
 - :ref:`conditioned_by_bit(reg, pos) <conditional-operations>` - 当特定位为1时执行
 - :ref:`conditioned_by_value(reg, val) <conditional-operations>` - 当寄存器值等于特定值时执行
+
+下一步
+------
+
+在 :doc:`PySparQ 快速入门 notebook </notebooks/01_quickstart>` 中以交互方式尝试同样的工作流，然后继续阅读 :doc:`核心概念 </guide/core_concepts/index>` 与 :doc:`示例 </guide/examples>`。
