@@ -17,7 +17,7 @@ CPU Build
 GPU Build
 ^^^^^^^^^
 
-The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 and CUDA 12.8 / sm_80 on A800-class GPUs tested; verification record: ``docs/verification/v1c-gpu-cuda-a800.md``). The GPU code layout is described in the :doc:`CUDA backend reference </cpp_api/cuda>`.
+The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 and CUDA 12.8 / sm_80 on A800-class GPUs tested; verification record: ``docs/verification/v1c-gpu-cuda-a800.md``). The GPU code layout is described in the :doc:`CUDA backend reference </cpp_api/cuda>`. For large sparse-state runs, add ``-DCMAKE_CUDA_FLAGS="-DCACHED_REGISTER_SIZE=<n>"`` (and the same for ``CMAKE_CXX_FLAGS``) to shrink the per-amplitude payload — see the CUDA backend reference for the constraints and measured effect (``docs/verification/v1d-qda-linsolver-a800.md``).
 
 .. code-block:: bash
 

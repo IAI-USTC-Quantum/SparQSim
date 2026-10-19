@@ -28,7 +28,7 @@ C++ QRAM base lives in the
 ```
 docs/
 ├── algorithm-implementation.md       # algorithm porting guide (English; see algorithm-implementation_zh-cn.md)
-├── verification/                     # runtime verification records (v1b-runtime.md, v1c-gpu-cuda-a800.md)
+├── verification/                     # runtime verification records (v1b-runtime.md, v1c-gpu-cuda-a800.md, v1d-qda-linsolver-a800.md)
 ├── doxygen/                          # Doxyfile -> build/xml (input for breathe)
 └── sphinx/
     ├── Makefile                      # make html (builds both trees)

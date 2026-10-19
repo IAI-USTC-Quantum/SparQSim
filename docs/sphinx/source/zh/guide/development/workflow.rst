@@ -17,7 +17,7 @@ CPU 构建
 GPU 构建
 ^^^^^^^^
 
-CUDA/GPU 后端默认关闭；开启需本机 CUDA 工具链（CUDA 13 / CCCL 3 与 A800 级 GPU 上的 CUDA 12.8 / sm_80 均实测通过，验证记录见仓库内 ``docs/verification/v1c-gpu-cuda-a800.md``）。GPU 代码布局见 :doc:`CUDA 后端参考 </cpp_api/cuda>`。
+CUDA/GPU 后端默认关闭；开启需本机 CUDA 工具链（CUDA 13 / CCCL 3 与 A800 级 GPU 上的 CUDA 12.8 / sm_80 均实测通过，验证记录见仓库内 ``docs/verification/v1c-gpu-cuda-a800.md``）。GPU 代码布局见 :doc:`CUDA 后端参考 </cpp_api/cuda>`。大规模稀疏态运行可加 ``-DCMAKE_CUDA_FLAGS="-DCACHED_REGISTER_SIZE=<n>"``（``CMAKE_CXX_FLAGS`` 同步）以压缩每振幅负载——约束与实测效果见 CUDA 后端参考（``docs/verification/v1d-qda-linsolver-a800.md``）。
 
 .. code-block:: bash
 

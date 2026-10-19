@@ -11,6 +11,14 @@ Build-side instructions: :doc:`GPU Build </guide/development/workflow>` in the d
    in the repository). GPU kernels for the production CondRot primitives are not yet available; the
    relevant operators automatically fall back to the CPU path on GPU states.
 
+   For large sparse-state runs the per-amplitude payload can be tuned with
+   ``-DCACHED_REGISTER_SIZE=<n>`` (default 64; must cover the circuit's live
+   register count, asserted <= 64 on CUDA). The 2^20-dimensional QDA
+   linear-solver production benchmark runs with 8; combined with the
+   element-parallel ``Hadamard_Int_Full`` kernels this brings the
+   40568-step walk to ~9.6 GB peak memory and ~1.3 s/step on one A800
+   (``docs/verification/v1d-qda-linsolver-a800.md``).
+
 GPU Basic Components (``SparQ/include/cuda/basic_components.cuh``)
 ------------------------------------------------------------------
 
