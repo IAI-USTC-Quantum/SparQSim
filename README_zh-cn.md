@@ -47,6 +47,8 @@ pip install qram-simulator
 
 **GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链；CUDA 13 / CCCL 3 与 8×A800 Linux 服务器上的 CUDA 12.8 / sm_80 均实测通过，详见 [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)）；PyPI wheel 恒为 CPU-only。
 
+**MPI**：SparQSim 的 C++ 核心本身不含 MPI 路径；qram-simulator 绑定侧的轨迹级 MPI 系综并行（单机多进程，结果与进程数无关）由 [QRAM-Simulator 仓库](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)的 `qram_simulator.mpi` 提供——见其「MPI 系综并行」一节。
+
 ### 从源码构建
 
 ```bash

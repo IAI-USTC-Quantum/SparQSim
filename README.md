@@ -47,6 +47,8 @@ pip install qram-simulator
 
 **GPU support**: the CUDA/GPU backend is disabled by default; enable it at build time by passing `-DSPARQ_ENABLE_CUDA=ON` (requires a local CUDA toolchain; verified with CUDA 13 / CCCL 3 and with CUDA 12.8 / sm_80 on an 8×A800 Linux server — see [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)); the PyPI wheel is always CPU-only.
 
+**MPI**: the SparQSim C++ core itself ships no MPI path; trajectory-level MPI ensemble parallelism for the qram-simulator bindings (single-node multi-process, results independent of the process count) is provided by the [QRAM-Simulator repository](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) as `qram_simulator.mpi` — see its "MPI Ensemble Parallelism" section.
+
 ### Building from Source
 
 ```bash
