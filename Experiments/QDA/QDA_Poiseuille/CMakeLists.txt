@@ -4,4 +4,14 @@ add_executable(Experiment_PoiseuilleModuleTest PoiseuilleModuleTest.cpp)
 target_link_libraries(Experiment_PoiseuilleModuleTest SparQ)  
 
 add_executable(Experiment_PoiseuilleQDATest PoiseuilleQDATest.cpp)
-target_link_libraries(Experiment_PoiseuilleQDATest SparQ)  
+target_link_libraries(Experiment_PoiseuilleQDATest SparQ)
+
+add_executable(Experiment_PoiseuilleQDABench PoiseuilleQDABench.cpp)
+target_link_libraries(Experiment_PoiseuilleQDABench SparQ)
+
+if (CUDA_FOUND)
+	add_executable(Experiment_PoiseuilleQDABench_cuda PoiseuilleQDABench.cu)
+	target_link_libraries(Experiment_PoiseuilleQDABench_cuda PRIVATE SparQ_cuda SparQ)
+	include(${QRAM_CORE_DIR}/cmake/CUDA.cmake)
+	sparq_setup_cuda_target(Experiment_PoiseuilleQDABench_cuda)
+endif()

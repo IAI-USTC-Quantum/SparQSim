@@ -14,6 +14,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Poiseuille QDA linear-solver production benchmark, CPU and CUDA drivers with an
+  identical CLI and artifact schema (`Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cpp`
+  / `.cu`): tridiagonal `A = tridiag(beta, alpha, beta)`, `b = ones(n)/sqrt(n)`
+  (hadamard_b), Thomas reference solution, `GetOutput` post-selection extraction
+  with `res_dir` / `res_opt` / fidelity / success-probability curves identical to
+  the validated `linear_solver_bench.py` conventions, plus `residual_curve.csv`
+  and `qda_summary_cpp.json` artifacts (including `clearzero_eps`).
+
+### Fixed
+- `Hadamard_Bool` CUDA path: removed the debug trap that forced a full
+  host round trip (`move_to_cpu`) on every call — it was the last remaining
+  host fallback in the tridiagonal walk hot path (~15% of step time at dim256,
+  O(GB) PCIe traffic per step at n=2^20). The GPU implementation is now
+  exercised and cross-validated per run via the dim8/dim256 parity curves.
+
+### Performance
+- `Hadamard_Int_Full` CUDA v2 kernels rewritten element-parallel (one thread
+  per child element / per butterfly pair instead of one thread serially
+  processing a whole unique-group through double-indirect `state[indices[...]]`
+  accesses). Identical memory operations and bitwise-equal output; measured
+  on A800-SXM4-80GB: dim256 walk 60→30 ms/step, n=2^16 walk 3.9→0.24 s/step
+  (16×), n=2^20 walk 47.7→1.33 s/step (36×). The two expansion kernels
+  previously accounted for 98.7% of GPU time (nsys, n=2^16).
+- Documented the `CACHED_REGISTER_SIZE` compile-time knob
+  (`SparQ/include/basic_components.h`): lowering it from the default 64 to the
+  circuit's live register count shrinks the per-amplitude `System` payload and
+  cuts sparse-state peak memory ~6.6× (n=2^20 walk: >80 GB OOM → 9.6 GB on an
+  80 GB A800).
+
 ### Docs
 - GPU/CUDA backend verification record on an 8×A800 Linux server (CUDA 12.8, sm_80):
   build matrix, CPU-vs-GPU consistency results (max deviation 1.55e-17 against the

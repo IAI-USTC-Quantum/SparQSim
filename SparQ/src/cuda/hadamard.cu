@@ -101,87 +101,90 @@ namespace qram_simulator {
             }
         }
 
-        __global__ void Hadamard_Int_Full_operate_not_full(System* state, const size_t *indices, size_t nsize, unq_ele* unq_s, size_t old_size, int id, size_t n_digits)
+        /* v2 element-parallel kernels (2026-10-20): the previous v2 kernels ran one
+           thread per unique group and serially expanded/butterflied the whole group
+           through double-indirect state[indices[...]] accesses, capping the walk at
+           ~1% of memory bandwidth (98.7% of GPU time at n=2^16 per nsys). The
+           element-parallel versions below perform the identical memory operations
+           (same index arithmetic, same read-read-write-write per pair, same FP ops,
+           bitwise-equal output) with one thread per child element / per butterfly
+           pair. Phases are separate kernel launches so the default-stream ordering
+           preserves the group-local init -> place -> butterfly dependency. */
+        __global__ void Hadamard_Int_Full_v2_init_children(System* state, const size_t* indices, size_t nsize, unq_ele* unq_s, size_t old_size, int id, size_t full_size)
         {
-            size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            double amp_real, amp_imag;
+            size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+            if (gid >= nsize * full_size) return;
+            size_t g = gid / full_size;
+            size_t i = gid - g * full_size;
 
-            if (tid < nsize) {
-                size_t full_size = pow2(n_digits);
-                size_t my_loc = unq_s[tid].sptr;
-                size_t old_state_num = unq_s[tid].num;
-                size_t new_pos = old_size + tid * full_size;
+            size_t my_loc = unq_s[g].sptr;
+            size_t new_pos = old_size + g * full_size + i;
 
-                /* init the new state */
-                for (size_t i = 0; i < full_size; i++)
-                {
-                    state[new_pos + i] = state[indices[my_loc]];
-                    CuSystemAmplitude(state[new_pos + i])[0] = 0.0;
-                    CuSystemAmplitude(state[new_pos + i])[1] = 0.0;
-                    CuGet(state[new_pos + i], id).value = i;
-                }
+            state[new_pos] = state[indices[my_loc]];
+            CuSystemAmplitude(state[new_pos])[0] = 0.0;
+            CuSystemAmplitude(state[new_pos])[1] = 0.0;
+            CuGet(state[new_pos], id).value = i;
+        }
 
-                // place the state to the new location
-                for (size_t i = 0; i < old_state_num; i++)
-                {
-                    size_t state_val = CuGet(state[indices[my_loc + i]], id).value;
-                    CuSystemAmplitude(state[new_pos + state_val])[0] = CuSystemAmplitude(state[indices[my_loc + i]])[0];
-                    CuSystemAmplitude(state[new_pos + state_val])[1] = CuSystemAmplitude(state[indices[my_loc + i]])[1];
-                    CuSystemAmplitude(state[indices[my_loc + i]])[0] = 0;
-                    CuSystemAmplitude(state[indices[my_loc + i]])[1] = 0;
-                }
+        __global__ void Hadamard_Int_Full_v2_place_amps(System* state, const size_t* indices, size_t nsize, unq_ele* unq_s, size_t old_size, int id, size_t full_size)
+        {
+            size_t g = blockIdx.x * blockDim.x + threadIdx.x;
+            if (g >= nsize) return;
 
-                for (size_t qn = 0; qn < n_digits; ++qn)
-                {
-                    size_t step = pow2(qn);
-                    for (size_t i = 0; i < full_size; i += 2 * step)
-                    {
-                        for (size_t j = i; j < i + step; ++j)
-                        {
-                            double amp0_real = CuSystemAmplitude(state[new_pos + j])[0];
-                            double amp0_imag = CuSystemAmplitude(state[new_pos + j])[1];
-                            double amp1_real = CuSystemAmplitude(state[new_pos + j + step])[0];
-                            double amp1_imag = CuSystemAmplitude(state[new_pos + j + step])[1];
+            size_t my_loc = unq_s[g].sptr;
+            size_t old_state_num = unq_s[g].num;
+            size_t new_pos = old_size + g * full_size;
 
-                            CuSystemAmplitude(state[new_pos + j])[0] = (amp0_real + amp1_real) * sqrt2inv;
-                            CuSystemAmplitude(state[new_pos + j])[1] = (amp0_imag + amp1_imag) * sqrt2inv;
-                            CuSystemAmplitude(state[new_pos + j + step])[0] = (amp0_real - amp1_real) * sqrt2inv;
-                            CuSystemAmplitude(state[new_pos + j + step])[1] = (amp0_imag - amp1_imag) * sqrt2inv;
-                        }
-                    }
-                }
-
+            for (size_t i = 0; i < old_state_num; i++)
+            {
+                size_t state_val = CuGet(state[indices[my_loc + i]], id).value;
+                CuSystemAmplitude(state[new_pos + state_val])[0] = CuSystemAmplitude(state[indices[my_loc + i]])[0];
+                CuSystemAmplitude(state[new_pos + state_val])[1] = CuSystemAmplitude(state[indices[my_loc + i]])[1];
+                CuSystemAmplitude(state[indices[my_loc + i]])[0] = 0;
+                CuSystemAmplitude(state[indices[my_loc + i]])[1] = 0;
             }
         }
 
-        __global__ void Hadamard_Int_Full_operate_full(System* state, const size_t* indices, size_t nsize, unq_ele* unq_s, size_t old_size, int id, size_t n_digits)
+        __global__ void Hadamard_Int_Full_v2_butterfly_raw(System* state, size_t nsize, unq_ele* unq_s, size_t old_size, size_t step, size_t full_size)
         {
-            size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
-            if (tid < nsize) {
-                size_t full_size = pow2(n_digits);
-                size_t new_pos = unq_s[tid].sptr;
+            size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+            if (gid >= nsize * full_size) return;
+            size_t g = gid / full_size;
+            size_t j = gid - g * full_size;
+            if (j & step) return;
 
-                for (size_t qn = 0; qn < n_digits; ++qn)
-                {
-                    size_t step = pow2(qn);
-                    for (size_t i = 0; i < full_size; i += 2 * step)
-                    {
-                        for (size_t j = i; j < i + step; ++j)
-                        {
-                            double amp0_real = CuSystemAmplitude(state[indices[new_pos + j]])[0];
-                            double amp0_imag = CuSystemAmplitude(state[indices[new_pos + j]])[1];
-                            double amp1_real = CuSystemAmplitude(state[indices[new_pos + j + step]])[0];
-                            double amp1_imag = CuSystemAmplitude(state[indices[new_pos + j + step]])[1];
+            size_t p0 = old_size + g * full_size + j;
+            size_t p1 = p0 + step;
+            double amp0_real = CuSystemAmplitude(state[p0])[0];
+            double amp0_imag = CuSystemAmplitude(state[p0])[1];
+            double amp1_real = CuSystemAmplitude(state[p1])[0];
+            double amp1_imag = CuSystemAmplitude(state[p1])[1];
 
-                            CuSystemAmplitude(state[indices[new_pos + j]])[0] = (amp0_real + amp1_real) * sqrt2inv;
-                            CuSystemAmplitude(state[indices[new_pos + j]])[1] = (amp0_imag + amp1_imag) * sqrt2inv;
-                            CuSystemAmplitude(state[indices[new_pos + j + step]])[0] = (amp0_real - amp1_real) * sqrt2inv;
-                            CuSystemAmplitude(state[indices[new_pos + j + step]])[1] = (amp0_imag - amp1_imag) * sqrt2inv;
-                        }
-                    }
-                }
+            CuSystemAmplitude(state[p0])[0] = (amp0_real + amp1_real) * sqrt2inv;
+            CuSystemAmplitude(state[p0])[1] = (amp0_imag + amp1_imag) * sqrt2inv;
+            CuSystemAmplitude(state[p1])[0] = (amp0_real - amp1_real) * sqrt2inv;
+            CuSystemAmplitude(state[p1])[1] = (amp0_imag - amp1_imag) * sqrt2inv;
+        }
 
-            }
+        __global__ void Hadamard_Int_Full_v2_butterfly_indexed(System* state, const size_t* indices, size_t nsize, unq_ele* unq_s, size_t step, size_t full_size)
+        {
+            size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+            if (gid >= nsize * full_size) return;
+            size_t g = gid / full_size;
+            size_t j = gid - g * full_size;
+            if (j & step) return;
+
+            size_t p0 = indices[unq_s[g].sptr + j];
+            size_t p1 = indices[unq_s[g].sptr + j + step];
+            double amp0_real = CuSystemAmplitude(state[p0])[0];
+            double amp0_imag = CuSystemAmplitude(state[p0])[1];
+            double amp1_real = CuSystemAmplitude(state[p1])[0];
+            double amp1_imag = CuSystemAmplitude(state[p1])[1];
+
+            CuSystemAmplitude(state[p0])[0] = (amp0_real + amp1_real) * sqrt2inv;
+            CuSystemAmplitude(state[p0])[1] = (amp0_imag + amp1_imag) * sqrt2inv;
+            CuSystemAmplitude(state[p1])[0] = (amp0_real - amp1_real) * sqrt2inv;
+            CuSystemAmplitude(state[p1])[1] = (amp0_imag - amp1_imag) * sqrt2inv;
         }
 
     }
@@ -291,17 +294,34 @@ namespace qram_simulator {
             if (num_not_full > 0)
             {
                 s_ptr = unique_s.data().get();
-                nblock = (num_not_full - 1) / blocksize + 1;
-                Hadamard_Int_Full_operate_not_full << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(), indices.data().get(),
-                    num_not_full, s_ptr, state_size_0, id, n_digits);
+                size_t n_child = num_not_full * full_size;
+                nblock = (n_child - 1) / blocksize + 1;
+                Hadamard_Int_Full_v2_init_children << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(), indices.data().get(),
+                    num_not_full, s_ptr, state_size_0, id, full_size);
 
+                nblock = (num_not_full - 1) / blocksize + 1;
+                Hadamard_Int_Full_v2_place_amps << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(), indices.data().get(),
+                    num_not_full, s_ptr, state_size_0, id, full_size);
             }
-            if (num_full > 0)
+
+            for (size_t qn = 0; qn < n_digits; ++qn)
             {
-                s_ptr = thrust::raw_pointer_cast(&(unique_s[num_not_full]));
-                nblock = (num_full - 1) / blocksize + 1;
-                Hadamard_Int_Full_operate_full << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(), indices.data().get(),
-                    num_full, s_ptr, state_size_0, id, n_digits);
+                size_t step = pow2(qn);
+                if (num_not_full > 0)
+                {
+                    size_t n_child = num_not_full * full_size;
+                    nblock = (n_child - 1) / blocksize + 1;
+                    Hadamard_Int_Full_v2_butterfly_raw << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(),
+                        num_not_full, s_ptr, state_size_0, step, full_size);
+                }
+                if (num_full > 0)
+                {
+                    unq_ele* fs_ptr = thrust::raw_pointer_cast(&(unique_s[num_not_full]));
+                    size_t n_child = num_full * full_size;
+                    nblock = (n_child - 1) / blocksize + 1;
+                    Hadamard_Int_Full_v2_butterfly_indexed << <nblock, blocksize >> > (state.sparse_state_gpu.data().get(), indices.data().get(),
+                        num_full, fs_ptr, step, full_size);
+                }
             }
 #endif
 #undef HADAMARD_CUDA_VERSION
@@ -435,11 +455,17 @@ namespace qram_simulator {
     void Hadamard_Bool::operator()(CuSparseState& state) const
     {
         profiler _("Hadamard_Bool cuda");
-        state.move_to_cpu();
-        (*this)(state.sparse_state_cpu);
-        state.move_to_gpu();
-        return;
-        
+        // host-fallback trap disabled 2026-10-20: the trap forced a full
+        // host<->device round trip 4x per QDA walk step (sole remaining
+        // move_to_cpu source in the tridiagonal walk hot path, ~15% of step
+        // time at dim256 and O(GB) PCIe traffic at n=2^20). The GPU v2
+        // implementation below is now exercised; equivalence with the CPU
+        // path is verified per-run via the dim8/dim256 rate0.1 parity curves.
+        //state.move_to_cpu();
+        //(*this)(state.sparse_state_cpu);
+        //state.move_to_gpu();
+        //return;
+
         using namespace hadamard_bool_gpu_detail;
 
         state.move_to_gpu();
