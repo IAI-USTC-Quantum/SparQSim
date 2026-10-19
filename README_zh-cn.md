@@ -45,7 +45,7 @@ pip install pysparq
 pip install qram-simulator
 ```
 
-**GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链，CUDA 13 实测通过）；PyPI wheel 恒为 CPU-only。
+**GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链；CUDA 13 / CCCL 3 与 8×A800 Linux 服务器上的 CUDA 12.8 / sm_80 均实测通过，详见 [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)）；PyPI wheel 恒为 CPU-only。
 
 ### 从源码构建
 

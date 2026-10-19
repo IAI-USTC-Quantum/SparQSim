@@ -6,9 +6,10 @@ Build-side instructions: :doc:`GPU Build </guide/development/workflow>` in the d
 .. note::
 
    The CUDA/GPU backend is controlled by the ``SPARQ_ENABLE_CUDA`` switch (OFF by default; only the CPU
-   path is compiled). Enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 tested). GPU kernels
-   for the production CondRot primitives are not yet available; the relevant operators automatically
-   fall back to the CPU path on GPU states.
+   path is compiled). Enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 and CUDA 12.8 /
+   sm_80 on an 8×A800 Linux server tested; verification record: ``docs/verification/v1c-gpu-cuda-a800.md``
+   in the repository). GPU kernels for the production CondRot primitives are not yet available; the
+   relevant operators automatically fall back to the CPU path on GPU states.
 
 GPU Basic Components (``SparQ/include/cuda/basic_components.cuh``)
 ------------------------------------------------------------------

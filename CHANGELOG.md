@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+- GPU/CUDA backend verification record on an 8×A800 Linux server (CUDA 12.8, sm_80):
+  build matrix, CPU-vs-GPU consistency results (max deviation 1.55e-17 against the
+  1e-12 tolerance) and the MPI environment link check
+  (`docs/verification/v1c-gpu-cuda-a800.md`); README / CUDA backend / development
+  workflow pages updated with the newly verified toolchain combination.
+
 ## [0.2.1] - 2026-09-25
 
 ### Fixed
@@ -162,6 +169,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+### Docs
+- 新增 8×A800 Linux 服务器（CUDA 12.8、sm_80）上的 GPU/CUDA 后端验证记录：
+  构建矩阵、CPU↔GPU 一致性结果（1e-12 容差下最大偏差 1.55e-17）与 MPI
+  环境链路检查（`docs/verification/v1c-gpu-cuda-a800.md`）；README /
+  CUDA 后端 / 开发工作流文档同步更新实测通过的工具链组合。
 
 ## [0.2.1] - 2026-09-25
 

@@ -45,7 +45,7 @@ noise-simulation workflow), additionally install the standalone package released
 pip install qram-simulator
 ```
 
-**GPU support**: the CUDA/GPU backend is disabled by default; enable it at build time by passing `-DSPARQ_ENABLE_CUDA=ON` (requires a local CUDA toolchain; verified with CUDA 13); the PyPI wheel is always CPU-only.
+**GPU support**: the CUDA/GPU backend is disabled by default; enable it at build time by passing `-DSPARQ_ENABLE_CUDA=ON` (requires a local CUDA toolchain; verified with CUDA 13 / CCCL 3 and with CUDA 12.8 / sm_80 on an 8×A800 Linux server — see [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)); the PyPI wheel is always CPU-only.
 
 ### Building from Source
 

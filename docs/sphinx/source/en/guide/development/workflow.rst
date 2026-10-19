@@ -17,7 +17,7 @@ CPU Build
 GPU Build
 ^^^^^^^^^
 
-The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 tested). The GPU code layout is described in the :doc:`CUDA backend reference </cpp_api/cuda>`.
+The CUDA/GPU backend is off by default; enabling it requires a local CUDA toolchain (CUDA 13 / CCCL 3 and CUDA 12.8 / sm_80 on A800-class GPUs tested; verification record: ``docs/verification/v1c-gpu-cuda-a800.md``). The GPU code layout is described in the :doc:`CUDA backend reference </cpp_api/cuda>`.
 
 .. code-block:: bash
 
