@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- QRAM-free CKS (Chebyshev quantum-walk LCU) linear-solver path for the Poiseuille
+  tridiagonal case: direct arithmetic oracles (`TridiagOracle1/2`, replacing the
+  QRAM table lookups), `T_Tridiagonal`, `QuantumWalkNSteps_Tridiagonal`,
+  `LCU_Container_NoiseFree_Tridiagonal`, and `ChebyshevInverseCoefficients`
+  (collocation least-squares 1/x fit on the exact quantized walk spectrum;
+  the stock binomial-tail family floors at res ~ 0.2-0.4 on this case) in
+  `SparQ_Algorithm/include/hamiltonian_simulation_tridiagonal.h` plus CPU
+  (OpenMP) and CUDA implementations. Production benchmark
+  `Experiments/CKS/CKSPoiseuilleBench.cu` (CLI and artifact schema identical to
+  the QDA bench: `residual_curve.csv` + `qda_summary_cpp.json`) and
+  `Experiments/CKS/CKSTridiagonalProbe.cpp` oracle/walk debugger
+  (`--path walkdebug/qwalkdebug`).
+- `CondRot_Rational_Bool` / `CondRot_Fixed_Bool` CUDA implementation
+  (`SparQ/src/cuda/condrot.cu`): per-system scatter into both output-bit
+  branches followed by sort-merge-dedup; bit-exact against the CPU pairwise
+  rotation (each output key receives at most two contributions).
 - Poiseuille QDA linear-solver production benchmark, CPU and CUDA drivers with an
   identical CLI and artifact schema (`Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cpp`
   / `.cu`): tridiagonal `A = tridiag(beta, alpha, beta)`, `b = ones(n)/sqrt(n)`
@@ -24,6 +40,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `qda_summary_cpp.json` artifacts (including `clearzero_eps`).
 
 ### Fixed
+- `CuSortMergeUniqueErase` (`SparQ/include/cuda/basic_components.cuh`) left
+  stale default-constructed systems beyond the reduce-by-key group count in
+  the output vector (phantom amplitude-1.0 systems). Now erases through the
+  end of the vector.
+- LCU accumulator residency: the container's default-constructed
+  `current_state` is CPU-resident, which forced every per-term `add_systems`
+  onto the host fallback — a D2H copy plus a single-threaded `std::sort` of
+  the whole accumulated state (the 2^20 CKS run stalled there: 100% of one
+  core, 0% GPU, no progress past FirstStep; dim14 spent 90% of its wall time
+  in the same branch). The constructor now moves the accumulator to the GPU
+  under `USE_CUDA`; host builds are unchanged.
+- `T::impl` / `T::impl_dag` never registered the `"rotation"` Rational
+  register, so whole-solver CKS runs threw "Register not found" before the
+  first step; both directions now add it before the name-based angle-operator
+  constructors resolve.
 - `Hadamard_Bool` CUDA path: removed the debug trap that forced a full
   host round trip (`move_to_cpu`) on every call — it was the last remaining
   host fallback in the tridiagonal walk hot path (~15% of step time at dim256,
@@ -31,6 +62,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   exercised and cross-validated per run via the dim8/dim256 parity curves.
 
 ### Performance
+- GPU-native `add_systems` (`SparQ/src/cuda/system_operations.cu`): scaled
+  append + `CuSortMergeUniqueErase` replaces the unconditional `copy_to_cpu`
+  round trip per LCU term (GBs of PCIe traffic at n = 2^20). Together with
+  the residency fix the dim14 reference run drops 222 s -> 28 s and the
+  n = 2^20 CKS production run converges in 2682 s (44.7 min) at full GPU
+  utilization on the 20,971,512-system walk state, terminating early at
+  640/1024 Chebyshev terms with direction residual 0 <= 1e-6 and fidelity
+  1.0000000000. dim16/dim64 success probabilities are bit-identical to the CPU
+  reference (see `docs/verification/v1e-cks-direct-oracle-linsolver.md`).
 - `Hadamard_Int_Full` CUDA v2 kernels rewritten element-parallel (one thread
   per child element / per butterfly pair instead of one thread serially
   processing a whole unique-group through double-indirect `state[indices[...]]`

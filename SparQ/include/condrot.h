@@ -117,6 +117,20 @@ namespace qram_simulator
 		 * @param state System state vector
 		 */
 		void dag(std::vector<System>& state) const;
+
+#ifdef USE_CUDA
+		/**
+		 * @brief Apply the controlled rotation to a CUDA sparse state
+		 * @param state CUDA sparse state
+		 */
+		void operator()(CuSparseState& state) const override;
+
+		/**
+		 * @brief Apply the dagger operation to a CUDA sparse state
+		 * @param state CUDA sparse state
+		 */
+		void dag(CuSparseState& state) const override;
+#endif
 		};
 
 		struct CondRot_Fixed_Bool : CondRot_Rational_Bool

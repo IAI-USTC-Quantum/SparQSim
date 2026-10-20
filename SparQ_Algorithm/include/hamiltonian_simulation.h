@@ -371,6 +371,13 @@ namespace qram_simulator
 				 * @note The operator is self-adjoint: two consecutive invocations cancel each other.
 				 */
 				void operator()(std::vector<System>& state) const;
+#ifdef USE_CUDA
+				/**
+				 * @brief Computes the walk rotation angle on a CUDA sparse state
+				 * @param state CUDA sparse state
+				 */
+				void operator()(CuSparseState& state) const override;
+#endif
 			};
 
 		// Chebyshev approach
@@ -1348,6 +1355,11 @@ namespace qram_simulator
 
 				// |j>��|s_k>|d[j,k]> -> |j>��|s_k>|d[j,k]>(a|0>+b|1>)
 				// Two-step equivalent of CondRot_General_Bool_QW: compute angle then apply fixed rotation
+				// 2026-10-20: "rotation" was never registered before use (upstream bug: the name-based
+				// GetQWRotateAngle_Int_Int_Int constructor resolves System::get("rotation") immediately,
+				// so any whole-solver CKS run threw "Register not found"). Registered here as a 32-bit
+				// Rational (angle in [0,1) fixed point; 2^-32 resolution).
+				AddRegister("rotation", Rational, 32)(system_states);
 				GetQWRotateAngle_Int_Int_Int("data", reg_j, reg_k, "rotation", mat)(system_states);
 				CondRot_Fixed_Bool("rotation", reg_b2)(system_states);
 				GetQWRotateAngle_Int_Int_Int("data", reg_j, reg_k, "rotation", mat)(system_states);
@@ -1393,6 +1405,8 @@ namespace qram_simulator
 					reg_j, reg_k, reg_search_result, nnz_col)(system_states);
 
 				// Two-step inverse of CondRot_General_Bool_QW: self-adjoint angle + inverse fixed rotation
+				// 2026-10-20: register "rotation" before first use (see forward impl note)
+				AddRegister("rotation", Rational, 32)(system_states);
 				GetQWRotateAngle_Int_Int_Int("data", reg_j, reg_k, "rotation", mat)(system_states);
 				CondRot_Fixed_Bool("rotation", reg_b2).dag(system_states);
 				GetQWRotateAngle_Int_Int_Int("data", reg_j, reg_k, "rotation", mat)(system_states);

@@ -386,7 +386,55 @@ namespace qram_simulator {
 			);
 		}
 
-		CU_IMPL(QuantumBinarySearch)
+		namespace {
+		struct GetQWRotateAngleFunctor
+		{
+			size_t data_id;
+			size_t data_sz_reg;
+			size_t out_id;
+			size_t out_sz;
+			size_t mat_data_size;
+			bool positive_only;
+
+			__device__ void operator()(System& s) const
+			{
+				// Bit-exact mirror of the CPU implementation: read the quantized
+				// element, normalize to a ratio in [0,1], theta = acos(sqrt(ratio))/(2 pi),
+				// quantize into a Rational fixed point and XOR into the output register
+				uint64_t v = CuGetAsUint64(s, data_id, data_sz_reg);
+				double ratio;
+				if (positive_only)
+				{
+					uint64_t Amax_real = pow2(mat_data_size) - 1;
+					v = v % (Amax_real + 1);
+					ratio = 1.0 * v / Amax_real;
+				}
+				else
+				{
+					v = v % pow2(mat_data_size);
+					int64_t v_real = get_complement(v, mat_data_size);
+					ratio = std::abs(1.0 * v_real) / (1.0 * (pow2(mat_data_size - 1) - 1));
+				}
+				ratio = std::fmax(0.0, std::fmin(1.0, ratio));
+				double out = std::acos(std::sqrt(ratio)) / pi / 2;
+				CuGet(s, out_id).value ^= get_rational(out, out_sz);
+			}
+		};
+	}
+
+	void GetQWRotateAngle_Int_Int_Int::operator()(CuSparseState& state) const
+	{
+		profiler _("GetQWRotateAngle cuda");
+		state.move_to_gpu();
+		thrust::for_each(thrust::device,
+			state.sparse_state_gpu.begin(), state.sparse_state_gpu.end(),
+			GetQWRotateAngleFunctor{
+				data_id, System::size_of(data_id), out_id, System::size_of(out_id),
+				mat->data_size, mat->positive_only }
+		);
+	}
+
+	CU_IMPL(QuantumBinarySearch)
 		CU_IMPL(SparseMatrixOracle1)
 		CU_IMPL(SparseMatrixOracle2)
 		CU_IMPL(T)

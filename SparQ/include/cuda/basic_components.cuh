@@ -499,4 +499,95 @@ struct AmplitudeZero_Functor
 		}
 	};
 
+	/**
+	 * @brief Plain double pair used as a device-side amplitude value type
+	 * @details Avoids std::complex arithmetic in device code (the codebase convention);
+	 *          addition is component-wise and IEEE-exact
+	 */
+	struct Amp2
+	{
+		/** @brief Real part */
+		double re;
+		/** @brief Imaginary part */
+		double im;
+	};
+
+	/**
+	 * @brief Thrust functor reading a basis state's amplitude as an Amp2
+	 */
+	struct GetAmp2Functor
+	{
+		__host__ __device__ Amp2 operator()(const System& s) const {
+			const double* amplitude = CuSystemAmplitude(s);
+			return Amp2{ amplitude[0], amplitude[1] };
+		}
+	};
+
+	/**
+	 * @brief Thrust functor summing two Amp2 amplitudes (component-wise)
+	 */
+	struct Amp2SumFunctor
+	{
+		__host__ __device__ Amp2 operator()(const Amp2& x, const Amp2& y) const {
+			return Amp2{ x.re + y.re, x.im + y.im };
+		}
+	};
+
+	/**
+	 * @brief Thrust functor writing an Amp2 amplitude back into a basis state
+	 */
+	struct SetAmp2Functor
+	{
+		__host__ __device__ void operator()(thrust::tuple<System&, Amp2> t) const {
+			double* amplitude = CuSystemAmplitude(thrust::get<0>(t));
+			Amp2 v = thrust::get<1>(t);
+			amplitude[0] = v.re;
+			amplitude[1] = v.im;
+		}
+	};
+
+	/**
+	 * @brief GPU sort-merge-deduplicate: sort basis states, sum the amplitudes of equal
+	 *        keys and drop near-zero amplitudes
+	 * @details GPU equivalent of the CPU sort_merge_unique_erase(..., merge_system,
+	 *          remove_system) pipeline used by add_systems: sorting is by the full
+	 *          active-register key (SystemLess_Functor), equal keys sum amplitudes
+	 *          (merge_system), and |amp|^2 < epsilon systems are erased (remove_system).
+	 *          Exact (bit-identical to the CPU result) whenever each key occurs at most
+	 *          twice, since IEEE addition is commutative; both inputs of add_systems
+	 *          maintain that invariant (each is already unique-keyed).
+	 * @param states Device vector of basis states (sorted and shrunk in place)
+	 */
+	inline void CuSortMergeUniqueErase(thrust::device_vector<System>& states)
+	{
+		if (states.empty()) return;
+		thrust::sort(thrust::device, states.begin(), states.end(), SystemLess_Functor{});
+
+		size_t n = states.size();
+		thrust::device_vector<System> keys_out(n);
+		thrust::device_vector<Amp2> vals_in(n), vals_out(n);
+
+		thrust::transform(thrust::device, states.begin(), states.end(),
+			vals_in.begin(), GetAmp2Functor{});
+
+		auto end = thrust::reduce_by_key(thrust::device,
+			states.begin(), states.end(), vals_in.begin(),
+			keys_out.begin(), vals_out.begin(),
+			SystemEqual_Functor{}, Amp2SumFunctor{});
+
+		size_t m = static_cast<size_t>(end.second - vals_out.begin());
+
+		thrust::for_each(thrust::device,
+			thrust::make_zip_iterator(thrust::make_tuple(
+				keys_out.begin(), vals_out.begin())),
+			thrust::make_zip_iterator(thrust::make_tuple(
+				keys_out.begin() + m, vals_out.begin() + m)),
+			SetAmp2Functor{});
+
+		auto keep_end = thrust::remove_if(thrust::device,
+			keys_out.begin(), keys_out.begin() + m, AmplitudeZero_Functor{ epsilon });
+		keys_out.erase(keep_end, keys_out.end());
+		states.swap(keys_out);
+	}
+
 	}

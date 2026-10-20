@@ -68,17 +68,29 @@ namespace qram_simulator {
 	void add_systems(CuSparseState& current, const CuSparseState& new_state, double coef)
 	{
 		profiler _("add_systems Cuda");
-		if (current.on_cpu())
+		if (new_state.size() == 0) return;
+		if (current.on_cpu() || new_state.on_cpu())
 		{
+			current.move_to_cpu();
 			auto copy = new_state.get_cpu_copy();
 			add_systems(current.sparse_state_cpu, copy, coef);
+			return;
 		}
-		else
-		{
-			current.copy_to_cpu();
-			auto copy = new_state.get_cpu_copy();
-			add_systems(current.sparse_state_cpu, copy, coef);
-		}
+		// 2026-10-20: GPU-native merge (scaled append + sort + reduce-by-key) replacing
+		// the previous unconditional copy_to_cpu round-trip, which cost GBs of PCIe
+		// traffic per call at n = 2^20 states (e.g. one Chebyshev LCU term).
+		// Semantics identical to the CPU path: append coef-scaled copies, sum the
+		// amplitudes of equal keys, drop |amp|^2 < epsilon (exact for unique-keyed
+		// inputs, the invariant both arguments maintain; see CuSortMergeUniqueErase).
+		auto& cur = current.sparse_state_gpu;
+		thrust::device_vector<System> scaled(new_state.sparse_state_gpu);
+		if (std::abs(coef - 1.0) > epsilon)
+			thrust::for_each(thrust::device, scaled.begin(), scaled.end(),
+				Normalize_Functor{ coef });
+		size_t old_size = cur.size();
+		cur.resize(old_size + scaled.size());
+		thrust::copy(thrust::device, scaled.begin(), scaled.end(), cur.begin() + old_size);
+		CuSortMergeUniqueErase(cur);
 	}
 
 	struct SplitRegisterFunctor {
