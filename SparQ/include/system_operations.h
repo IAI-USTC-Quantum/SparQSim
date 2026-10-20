@@ -568,6 +568,15 @@ namespace qram_simulator
 	};
 
 	/**
+	 * @brief Default clear-zero threshold (mutable global default)
+	 * @details Initialized to the library epsilon; applications facing
+	 *          high-dimensional states (per-amplitude magnitudes far below
+	 *          sqrt(epsilon)) may retune it so that default-constructed
+	 *          ClearZero() calls do not prune meaningful amplitudes
+	 */
+	inline double clearzero_default_eps = epsilon;
+
+	/**
 	 * @brief Clear-zero operation
 	 * @details Removes the state components whose amplitudes are close to zero
 	 */
@@ -580,9 +589,9 @@ namespace qram_simulator
 		double eps;
 
 		/**
-		 * @brief Default constructor (uses the default epsilon)
+		 * @brief Default constructor (uses clearzero_default_eps)
 		 */
-		ClearZero() :eps(epsilon) {};
+		ClearZero() :eps(clearzero_default_eps) {};
 
 		/**
 		 * @brief Constructor (with a specified threshold)

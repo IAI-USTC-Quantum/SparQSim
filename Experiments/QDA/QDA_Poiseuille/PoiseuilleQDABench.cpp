@@ -136,6 +136,7 @@ int main(int argc, const char** argv) {
     size_t max_steps = parser.exists("maxSteps") ? parser.get<size_t>("maxSteps") : size_t(1e9);
     std::string outdir_s = parser.exists("outdir") ? parser.get<std::string>("outdir") : ".";
     double cz_eps = parser.exists("czEps") ? parser.get<double>("czEps") : 1e-14;
+    qram_simulator::clearzero_default_eps = cz_eps; // walk-internal ClearZero() calls follow the same threshold
     if (log_every % 2 == 1) log_every += 1; // 2-step periodicity: keep log points on valid solution blocks
 
     size_t n = size_t(1) << nqubit;
