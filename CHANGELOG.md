@@ -40,6 +40,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `qda_summary_cpp.json` artifacts (including `clearzero_eps`).
 
 ### Fixed
+- QDA extraction above dim 2^18: `ClearZero` prunes by `abs_sqr(amplitude) < eps`
+  and the walk-internal default-constructed calls read the library constant
+  `epsilon = 1e-14`, i.e. an effective amplitude cutoff |a| < 1e-7. The QDA
+  solution branch is born with per-state amplitudes ~sqrt(2e-6/n), which fall
+  below that cutoff for n >= 2^19 (measured cliff: 2^17 2.9e-7 / 2^18 1.5e-7
+  survive, 2^19 7.4e-8 pruned), so every walk step pruned the branch at birth
+  and the 2^20 production run extracted succP=0/NaN at all 163 log points while
+  the walk itself progressed normally. Added a mutable global default
+  `clearzero_default_eps` (initialized to the library epsilon; default behavior
+  bit-identical, dim256/2^16 parity chains re-verified bitwise) and routed the
+  Poiseuille QDA bench `--czEps` through it so walk-internal `ClearZero()`
+  calls follow the same threshold. With `--czEps 1e-16` the 2^20 run extracts
+  the solution block again (40-step compressed schedule: res_dir 5.18e-3,
+  fidelity 0.999999; see `docs/verification/v1d-qda-linsolver-a800.md`).
 - `CuSortMergeUniqueErase` (`SparQ/include/cuda/basic_components.cuh`) left
   stale default-constructed systems beyond the reduce-by-key group count in
   the output vector (phantom amplitude-1.0 systems). Now erases through the
