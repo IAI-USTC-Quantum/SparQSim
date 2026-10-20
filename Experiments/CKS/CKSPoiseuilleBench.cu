@@ -60,7 +60,7 @@ namespace {
 	double analytic_kappa(double alpha, double beta, size_t n) {
 		double lam_max = 0.0, lam_min = std::numeric_limits<double>::infinity();
 		for (size_t k = 1; k <= n; ++k) {
-			double lam = std::fabs(alpha + 2.0 * beta * std::cos(M_PI * double(k) / double(n + 1)));
+			double lam = std::fabs(alpha + 2.0 * beta * std::cos(pi * double(k) / double(n + 1)));
 			lam_max = std::max(lam_max, lam);
 			lam_min = std::min(lam_min, lam);
 		}
@@ -184,7 +184,7 @@ int main(int argc, const char** argv) {
 	double bnorm_inv = 1.0 / std::sqrt(double(n));
 
 	// exact walk-matrix spectral interval from the quantized entries (same as the CPU probe)
-	double ccos = std::cos(M_PI / double(n + 1));
+	double ccos = std::cos(pi / double(n + 1));
 	double denom = double(pow2(ds)) * 4.0;
 	double lam1 = (double(spec.alpha_enc) + 2.0 * double(spec.beta_enc) * ccos) / denom;
 	double lamn = (double(spec.alpha_enc) - 2.0 * double(spec.beta_enc) * ccos) / denom;

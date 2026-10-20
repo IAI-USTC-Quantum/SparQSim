@@ -75,7 +75,7 @@ namespace qram_simulator {
 				std::vector<double> T(2 * J_ + 2);
 				for (size_t i = 0; i <= ngrid; ++i)
 				{
-					double th = M_PI * double(i) / double(ngrid);
+					double th = pi * double(i) / double(ngrid);
 					double x = 0.5 * (M + m) + 0.5 * (M - m) * std::cos(th);
 					T[0] = 1.0;
 					T[1] = x;
