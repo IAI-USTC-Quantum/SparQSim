@@ -69,3 +69,84 @@ Notes recorded for the report (non-judging quantities):
 - Early-schedule log points report `nan` residuals while the post-selection
   population is below extraction sensitivity; the replay judgment reads only the
   final summary values.
+
+## 2026-10-21 addendum: first production run extracted NaN — root cause, fix, re-run
+
+The 2026-10-20 production run completed all 40568 walk steps normally
+(86279.7 s, `max_sys` 31,457,308) but every one of the 163 log points extracted
+`res_dir=nan`, `succP=0`, `final_res_dir=null`, `termination=fixed_step_budget`.
+The walk was healthy; only the readout was empty.
+
+### Root cause: dimension-blind clear-zero cutoff pruned the solution branch at birth
+
+`ClearZero` prunes basis states by `abs_sqr(amplitude) < eps`. The walk-internal
+gates (Hadamard/split/merge cleanup) call the **default-constructed**
+`ClearZero()`, which read the library constant `epsilon = 1e-14` — an effective
+amplitude cutoff |a| < 1e-7. The bench-level `--czEps` only controlled the
+bench's own final cleanup call, not these internal calls (verified: a czEps
+sweep at 2^19/2^20 reproduced the failure bit-for-bit with unchanged
+`max_sys`).
+
+The QDA solution branch is born with per-state amplitudes ≈ sqrt(2e-6/n),
+which cross the 1e-7 cutoff between 2^18 and 2^19:
+
+| dim | solution-branch birth amplitude | vs cutoff 1e-7 |
+|-----|-------------------------------|----------------|
+| 2^16 | 5.9e-7 | survives (5.9x) |
+| 2^17 | 2.9e-7 | survives (2.9x) |
+| 2^18 | 1.5e-7 | survives (1.5x) |
+| 2^19 | 7.4e-8 | **pruned every step** |
+| 2^20 | 3.7e-8 | **pruned every step** |
+
+Bisect confirmation (40-step compressed schedule, CUDA, a800): 2^16/17/18
+extract normally (fid 0.99998–0.999996), 2^19 and 2^20 keep exactly n
+post-selected basis states — all in the initial branch (anc_1=0), solution
+block `[n,2n)` empty, `PartialTraceSelect` itself healthy (kept-state norm 1.0,
+returned prob ≈ 1.004). At 2^16 the solution block holds exactly n states with
+per-state amplitude 5.5e-6 at the first log point — the same branch at 2^19
+would sit at 7.4e-8, under the cutoff.
+
+### Fix (commit 10a96aa)
+
+`SparQ/include/system_operations.h` gains a mutable global default
+`clearzero_default_eps` (initialized to the library `epsilon`, so default
+behavior is bit-identical) and `ClearZero()`'s default constructor now reads it.
+Both Poiseuille QDA benches route `--czEps` into the global so the walk-internal
+`ClearZero()` calls follow the same threshold.
+
+Validation matrix (a800, CUDA backend, 2026-10-21):
+
+| check | result |
+|-------|--------|
+| 2^16 default-eps path, 40-step schedule | `res_dir=2.071000e-02` — **bitwise** identical to the pre-fix binary and to the v1d parity chain |
+| 2^19 + `--czEps 1e-18`, 40-step | extraction restored (res_dir 7.56e-2, fid 0.999925) |
+| 2^20 + `--czEps 1e-16`, 40-step | res_dir 5.178906e-3, fid 0.999999 |
+| 2^20 + `--czEps 1e-18`, 40-step | res_dir 5.178908e-3 — same floor, 33% larger state (67M vs 50M peak systems), 2.3x wall time |
+| 2^20 + `--czEps 1e-16`, 400-step | res_dir constant 5.178908e-3 through s=0.4 (compressed-schedule truncation, see below) |
+| CI (Python tests + Documentation) on 10a96aa | green |
+
+Production re-run therefore uses `--czEps 1e-16` (3.7x margin over the 3.7e-8
+birth amplitude at 2^20, smallest state of the working settings).
+
+### Corrected reading of the compressed-schedule "floor"
+
+During validation the 40/400-step compressed schedules plateau at
+dimension-dependent `res_dir` values (2^16: 2.07e-2; 2^20: 5.18e-3) that look
+s-independent. A full-schedule dim256 control disproved the "hard floor"
+reading: the anneal is simply slow in its early phase and accelerates late —
+
+| dim256 run | steps | final res_dir | final fid | final succP |
+|------------|-------|---------------|-----------|-------------|
+| rate 0.1 (the v1d parity-chain config) | 3688 | 3.135e-2 | 0.999438 | 0.5969 |
+| rate 1.1 (production schedule) | 40568 | **5.9485e-4** | 1.000000 | 1.0000 |
+
+More steps converge deeper, as adiabatic scaling predicts; the mid-anneal
+plateau is not a convergence floor. A 2^16 full-schedule default-eps control
+(40568 steps) is running to confirm the same behavior above the cutoff; the
+re-run production (2^20, rate 1.1, 40568 steps, `--czEps 1e-16`) and a
+rate-0.1 companion (3688 steps) are in flight — final tables to be appended.
+
+The archived failed run is kept at
+`05-测试报告/data/T2-稀疏态虚拟机/T2-LS-1e6-kappa16-qda-cpp-nan-failed-20261020/`
+as evidence of the failure mode; the fresh run directory is
+`T2-LS-1e6-kappa16-qda-cpp/`.
