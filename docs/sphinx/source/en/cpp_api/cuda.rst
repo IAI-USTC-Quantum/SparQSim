@@ -17,7 +17,10 @@ Build-side instructions: :doc:`GPU Build </guide/development/workflow>` in the d
    linear-solver production benchmark runs with 8; combined with the
    element-parallel ``Hadamard_Int_Full`` kernels this brings the
    40568-step walk to ~9.6 GB peak memory and ~1.3 s/step on one A800
-   (``docs/verification/v1d-qda-linsolver-a800.md``).
+   (``docs/verification/v1d-qda-linsolver-a800.md``). The QRAM-free CKS
+   tridiagonal benchmark runs with 16 (covering the CKS walk's ~11 peak
+   simultaneous registers) and completes the 2^20 Poiseuille case in 2682 s
+   on one A800 (``docs/verification/v1e-cks-direct-oracle-linsolver.md``).
 
 GPU Basic Components (``SparQ/include/cuda/basic_components.cuh``)
 ------------------------------------------------------------------

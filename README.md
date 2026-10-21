@@ -15,6 +15,12 @@ English | [简体中文](README_zh-cn.md)
 
 > **pysparq — a full-featured Python framework for sparse-state quantum circuit simulation (Register Level Programming, native QRAM, dynamic operators, RIR interpreter)**
 
+## Highlights
+
+- **Sparse-state quantum simulation with Register Level Programming** — direct register-level arithmetic, native QRAM, dynamic operators, and an RIR interpreter (see the quick start below)
+- **Quantum linear-system solving, dual engines** — discrete-adiabatic **QDA** and Chebyshev-quantum-walk **CKS** solvers, validated end to end up to **2^20 dimensions** on a single A800 GPU ([v1d](docs/verification/v1d-qda-linsolver-a800.md), [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md))
+- **CPU (OpenMP) and CUDA backends** with bitwise kernel cross-validation ([v1c](docs/verification/v1c-gpu-cuda-a800.md))
+
 ## Repository Responsibilities
 
 Dependency direction: **SparQSim → QRAM-Simulator**. SparQSim releases the
@@ -45,7 +51,7 @@ noise-simulation workflow), additionally install the standalone package released
 pip install qram-simulator
 ```
 
-**GPU support**: the CUDA/GPU backend is disabled by default; enable it at build time by passing `-DSPARQ_ENABLE_CUDA=ON` (requires a local CUDA toolchain; verified with CUDA 13 / CCCL 3 and with CUDA 12.8 / sm_80 on an 8×A800 Linux server — see [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)); the PyPI wheel is always CPU-only.
+**GPU support**: the CUDA/GPU backend is disabled by default; enable it at build time by passing `-DSPARQ_ENABLE_CUDA=ON` (requires a local CUDA toolchain; verified with CUDA 13 / CCCL 3 and with CUDA 12.8 / sm_80 on an 8×A800 Linux server — see [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md); the 2^20 CKS/QDA linear-solver production runs on this backend are recorded in [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md) and [v1d](docs/verification/v1d-qda-linsolver-a800.md)); the PyPI wheel is always CPU-only.
 
 **MPI**: the SparQSim C++ core itself ships no MPI path; trajectory-level MPI ensemble parallelism for the qram-simulator bindings (single-node multi-process, results independent of the process count) is provided by the [QRAM-Simulator repository](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) as `qram_simulator.mpi` — see its "MPI Ensemble Parallelism" section.
 
@@ -119,6 +125,54 @@ dist = ps.Probability.distribution(state, reg)  # full outcome distribution of a
 
 An algorithm layer implemented in pure Python that composes public primitives (Grover, Shor, QDA, CKS, state preparation, block encoding, etc.);
 its one-to-one correspondence with the C++ experiment code is documented in [docs/algorithm-implementation.md](docs/algorithm-implementation.md).
+
+## Quantum Linear-System Benches (CKS / QDA, validated at 2^20)
+
+The C++ layer ships production Poiseuille tridiagonal linear-system benchmarks
+(`A = tridiag(-1, α, -1)`, `b = ones(n)/sqrt(n)`, κ = 16) with an identical CLI and
+artifact schema for both engines (`residual_curve.csv` + `qda_summary_cpp.json`):
+
+```bash
+# QDA (discrete adiabatic) — at 2^20 the default --czEps prunes the solution
+# branch; size it by dimension/schedule as described below
+./Experiment_PoiseuilleQDABench_cuda --nqubit 20 --kappa 16 --steprate 1.1 \
+    --tol 1e-6 --logEvery 250 --czEps 1e-20 --outdir qda_2p20
+
+# CKS (Chebyshev quantum walk, QRAM-free direct oracles)
+./Experiment_CKS_PoiseuilleBench_cuda --nqubit 20 --kappa 16 --eps 0.01 \
+    --ds 32 --coef true --J 1024 --logEvery 64 --tol 1e-6 --outdir cks_2p20
+```
+
+Verified results (single A800, CUDA sparse-state backend):
+
+- **CKS at 2^20** (QRAM-free direct oracles, built with `-DCACHED_REGISTER_SIZE=16`):
+  direction residual `0 ≤ 1e-6` with early termination at 640/1024 Chebyshev terms,
+  fidelity `1.0000000000`, success probability `4.75e-2`, 20,971,512 walk states,
+  2682 s wall time; dim16/dim64 success probabilities bitwise-identical to the CPU
+  reference — [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md).
+- **QDA at dim256**: the full 40568-step schedule converges to `res_dir = 5.9485e-4`
+  (fidelity `1.000000`, success probability `1.0`); the 2^20 production re-run is in
+  progress and the record is continuously updated —
+  [v1d](docs/verification/v1d-qda-linsolver-a800.md).
+
+### Sizing `--czEps` by dimension and schedule (QDA)
+
+`ClearZero` prunes basis states with |amplitude|² < eps. The QDA solution branch is
+born with per-state amplitudes ≈ sqrt(2e-6/n), shrinking linearly as the schedule is
+refined (ds = 1/steps), so the rule of thumb is
+**keep sqrt(czEps) below the solution-branch birth amplitude**:
+
+| Schedule | Working `--czEps` |
+|----------|-------------------|
+| coarse (`--steprate 0.1`) | `1e-16` |
+| fine (`--steprate 1.1`, production) | `1e-20` – `1e-22` |
+
+At the library default `1e-14` (amplitude cutoff 1e-7) the solution branch is pruned
+at birth from dim 2^19 upward — measured cliff: 2^17 (2.9e-7) and 2^18 (1.5e-7)
+survive, 2^19 (7.4e-8) and 2^20 (3.7e-8) are pruned, which surfaced as all-NaN
+extraction in the first 2^20 run. Commit `10a96aa` made the threshold
+dimension-adaptive via `--czEps` (default behavior bitwise-unchanged); the full
+analysis lives in the [v1d addendum](docs/verification/v1d-qda-linsolver-a800.md).
 
 ## Documentation
 

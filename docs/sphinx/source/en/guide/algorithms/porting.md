@@ -413,6 +413,12 @@ vector<double> weights = ComputeFourierCoeffs(epsilon_, l_);
 // Build the weight QRAM → apply the LCU
 ```
 
+#### 5.7 C++ Tridiagonal Production Path: `Walk_s_Tridiagonal` + `GetOutput` Post-Selection
+
+The C++ production path for the tridiagonal case lives in `SparQ_Algorithm/include/DiscreteAdiabatic/qda_tridiagonal.h`: the interpolated Hamiltonian H(s) of the tridiagonal Poiseuille matrix is block-encoded arithmetically (`Walk_s_Tridiagonal`), the schedule f(s) is discretized into `ceil(rate * 2305 * kappa)` walk steps, and the solution vector is extracted by `GetOutput` post-selection (res_dir / res_opt / fidelity / success probability against a Thomas-solve reference). Complexity follows the discrete-adiabatic O(κ log(κ/ε)) scaling — more steps keep converging rather than hitting a floor: at dim256 the 3688-step rate-0.1 schedule ends at res_dir 3.1e-2 while the full 40568-step production schedule converges to 5.9485e-4 (fidelity 1.000000, success probability 1.0).
+
+The production benchmark `Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cu` (executable `Experiment_PoiseuilleQDABench_cuda`; CLI and artifact schema identical to the CKS bench) validates this path on a single A800 up to 2^20 dimensions — the verification record is continuously updated as production re-runs complete, see [docs/verification/v1d-qda-linsolver-a800.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/verification/v1d-qda-linsolver-a800.md). Its 2026-10-21 addendum documents the dimension-adaptive `--czEps` (ClearZero) threshold: `ClearZero` prunes by |amplitude|² < eps, the solution branch is born at ≈ sqrt(2e-6/n) per state and shrinks linearly under schedule refinement (ds = 1/steps), so keep sqrt(czEps) below the birth amplitude — `1e-16` for coarse schedules (`--steprate 0.1`), `1e-20`–`1e-22` for the fine production schedule (`--steprate 1.1`); at the default `1e-14` the branch is pruned at birth from 2^19 on (measured birth amplitudes: 2^17 2.9e-7 / 2^18 1.5e-7 survive, 2^19 7.4e-8 / 2^20 3.7e-8 pruned vs the 1e-7 cutoff).
+
 ---
 
 ### 6. CKS Quantum Linear System Solver (Childs-Kothari-Somma)
@@ -563,6 +569,12 @@ while (obj.Step()) {
     // Record the success rate and fidelity at each step
 }
 ```
+
+#### 6.6 QRAM-Free Direct-Oracle Path: `TridiagOracle1/2` + `T_Tridiagonal`
+
+For a constant-diagonal tridiagonal A every matrix element is computable arithmetically, so the CKS walk's two QRAM table oracles can be replaced by **direct arithmetic oracles** (`SparQ_Algorithm/include/hamiltonian_simulation_tridiagonal.h`, CPU + CUDA): `TridiagOracle1/2` reproduce the QRAM circuit's composite register maps bit-exactly — the element load is an XOR of a computed memory word, the slot↔column conversion is a range test plus row-address add/sub, and garbage branches are tagged into `k_comp` exactly like the QRAM path — eliminating the QRAM circuit entirely. `T_Tridiagonal` is the matching state-preparation operator, and `ChebyshevInverseCoefficients` fits the inverse series 1/x ~ Σ d_j T_{2j+1}(x) by collocation least squares on the exact quantized walk spectrum (the stock binomial-tail family floors at res ~ 0.2–0.4 on this case); the sign convention is handled by the D-transform (`TridiagParityPhase`, A⁻¹|b⟩ = D|A|⁻¹D|b⟩).
+
+2^20 Poiseuille production on a single A800 (benchmark `Experiments/CKS/CKSPoiseuilleBench.cu`, executable `Experiment_CKS_PoiseuilleBench_cuda`, built with `-DCACHED_REGISTER_SIZE=16`): direction residual 0 ≤ 1e-6 with early termination at 640/1024 Chebyshev terms, fidelity 1.0000000000, success probability 4.75e-2, 20,971,512 walk states, 2682 s; the dim16/dim64 success probabilities are bitwise-identical to the CPU reference. Construction and validation details: [docs/verification/v1e-cks-direct-oracle-linsolver.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/verification/v1e-cks-direct-oracle-linsolver.md).
 
 ---
 

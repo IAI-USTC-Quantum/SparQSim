@@ -413,6 +413,12 @@ vector<double> weights = ComputeFourierCoeffs(epsilon_, l_);
 // 构建权重 QRAM → 应用 LCU
 ```
 
+#### 5.7 C++ 三对角生产路径：`Walk_s_Tridiagonal` + `GetOutput` 后选择
+
+三对角情形的 C++ 生产路径位于 `SparQ_Algorithm/include/DiscreteAdiabatic/qda_tridiagonal.h`：三对角 Poiseuille 矩阵的插值哈密顿量 H(s) 以算术方式块编码（`Walk_s_Tridiagonal`），调度 f(s) 离散化为 `ceil(rate * 2305 * kappa)` 个 walk 步，解向量由 `GetOutput` 后选择提取（对 Thomas 参考解计算 res_dir / res_opt / 保真度 / 成功概率）。复杂度遵循离散绝热 O(κ log(κ/ε)) 规模——步数越多收敛越深而非存在硬底：dim256 下 3688 步的 rate-0.1 调度终值 res_dir 3.1e-2，而全程 40568 步生产调度收敛到 5.9485e-4（保真度 1.000000，成功概率 1.0）。
+
+生产基准 `Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cu`（可执行文件 `Experiment_PoiseuilleQDABench_cuda`；CLI 与产物 schema 和 CKS bench 完全一致）在单张 A800 上验证该路径至 2^20 维——验证记录随生产复跑持续更新，见 [docs/verification/v1d-qda-linsolver-a800.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/verification/v1d-qda-linsolver-a800.md)。其 2026-10-21 补篇给出 `--czEps`（ClearZero）阈值的维度自适应方法：`ClearZero` 按 |振幅|² < eps 裁剪，解分支出生单态幅值 ≈ sqrt(2e-6/n) 且随调度细化（ds = 1/步数）线性缩小，应使 sqrt(czEps) 低于出生幅值——粗调度（`--steprate 0.1`）取 `1e-16`，细生产调度（`--steprate 1.1`）取 `1e-20`~`1e-22`；默认 `1e-14` 下解分支自 2^19 维起出生即被剪（实测出生幅值：2^17 2.9e-7 / 2^18 1.5e-7 存活，2^19 7.4e-8 / 2^20 3.7e-8 被剪，断点 1e-7）。
+
 ---
 
 ### 六、CKS 量子线性系统求解器（Childs-Kothari-Somma）
@@ -563,6 +569,12 @@ while (obj.Step()) {
     // 记录每步成功率和保真度
 }
 ```
+
+#### 6.6 QRAM-free 直接 Oracle 路径：`TridiagOracle1/2` + `T_Tridiagonal`
+
+对常对角三对角矩阵 A，每个矩阵元素都可算术求出，因此 CKS walk 的两个 QRAM 表 Oracle 可以替换为**直接算术 Oracle**（`SparQ_Algorithm/include/hamiltonian_simulation_tridiagonal.h`，CPU + CUDA）：`TridiagOracle1/2` 逐位复刻 QRAM 电路的复合寄存器映射——元素加载是对计算出的存储字做 XOR，槽位↔列转换是范围测试加行地址加减，垃圾分支与 QRAM 路径一致地标记进 `k_comp`——从而完全去掉 QRAM 电路。`T_Tridiagonal` 是配套的态制备算子，`ChebyshevInverseCoefficients` 在精确量化的 walk 谱上以配置点最小二乘拟合逆级数 1/x ~ Σ d_j T_{2j+1}(x)（原生二项式尾系数族在本用例收敛底约 0.2–0.4）；符号约定由 D 变换处理（`TridiagParityPhase`，A⁻¹|b⟩ = D|A|⁻¹D|b⟩）。
+
+单张 A800 上的 2^20 Poiseuille 生产（基准 `Experiments/CKS/CKSPoiseuilleBench.cu`，可执行文件 `Experiment_CKS_PoiseuilleBench_cuda`，构建参数 `-DCACHED_REGISTER_SIZE=16`）：方向残差 0 ≤ 1e-6（640/1024 项提前终止）、保真度 1.0000000000、成功概率 4.75e-2、20,971,512 个 walk 基态、2682 s；dim16/dim64 成功概率与 CPU 参考逐位一致。构造与验证细节见 [docs/verification/v1e-cks-direct-oracle-linsolver.md](https://github.com/IAI-USTC-Quantum/SparQSim/blob/main/docs/verification/v1e-cks-direct-oracle-linsolver.md)。
 
 ---
 

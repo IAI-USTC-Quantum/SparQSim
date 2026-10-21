@@ -15,7 +15,10 @@ CUDA 后端
    （默认 64，不得小于电路活跃寄存器数，CUDA 侧断言 <= 64）。2^20 维 QDA
    线性求解器生产基准以 8 编译，配合元素级并行的 ``Hadamard_Int_Full``
    内核，40568 步行走峰值显存约 9.6 GB、约 1.3 秒/步（单卡 A800，
-   见 ``docs/verification/v1d-qda-linsolver-a800.md``）。
+   见 ``docs/verification/v1d-qda-linsolver-a800.md``）。无 QRAM 的 CKS
+   三对角基准以 16 编译（覆盖 CKS 行走约 11 个峰值并发寄存器），
+   在单卡 A800 上 2682 s 完成 2^20 Poiseuille 用例
+   （``docs/verification/v1e-cks-direct-oracle-linsolver.md``）。
 
 GPU 基础组件（``SparQ/include/cuda/basic_components.cuh``）
 ------------------------------------------------------------

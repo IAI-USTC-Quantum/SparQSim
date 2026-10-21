@@ -43,6 +43,7 @@ Shor 因数分解
 - Python：:func:`qda_solve() <PySparQ.pysparq.algorithms.qda_solver.qda_solve>`、:func:`qda_solve_tridiagonal() <PySparQ.pysparq.algorithms.qda_solver.qda_solve_tridiagonal>`、:func:`qda_solve_via_qram() <PySparQ.pysparq.algorithms.qda_solver.qda_solve_via_qram>`，以及编排类 :class:`WalkS <PySparQ.pysparq.algorithms.qda_solver.WalkS>`、:class:`LCU <PySparQ.pysparq.algorithms.qda_solver.LCU>`、:class:`BlockEncoding <PySparQ.pysparq.algorithms.qda_solver.BlockEncoding>` 与 :class:`StatePreparation <PySparQ.pysparq.algorithms.qda_solver.StatePreparation>`
 - C++：:doc:`离散绝热（QDA） </cpp_api/qda>`
 - 构建块：块编码（见下文）；步长/条件数等超参数在 :doc:`算子 </guide/core_concepts/operators>` 中介绍
+- 生产：Poiseuille 基准 ``Experiment_PoiseuilleQDABench_cuda``（``Experiments/QDA/QDA_Poiseuille/``）在单张 A800 上将三对角路径验证至 2^20 维，含 ``--czEps``（ClearZero）阈值按维度自适应——验证记录 ``docs/verification/v1d-qda-linsolver-a800.md``
 
 哈密顿量模拟（CKS）
 -------------------
@@ -50,7 +51,7 @@ Shor 因数分解
 通过量子行走 / LCU / 稀疏矩阵 oracle 进行哈密顿量模拟，以 CKS 实验为参考实现。
 
 - Python：``pysparq.algorithms.cks_solver`` 中的 :class:`TOperator <PySparQ.pysparq.algorithms.cks_solver.TOperator>` 与 :class:`QuantumWalkNSteps <PySparQ.pysparq.algorithms.cks_solver.QuantumWalkNSteps>`
-- C++：:doc:`算法库 </cpp_api/algorithms>` 中的 ``hamiltonian_simulation.h`` （``T`` 态制备算子与 ``SparseMatrixOracle1`` 位于此处）
+- C++：:doc:`算法库 </cpp_api/algorithms>` 中的 ``hamiltonian_simulation.h`` （``T`` 态制备算子与 ``SparseMatrixOracle1`` 位于此处）；对常对角三对角矩阵，无 QRAM 直接 Oracle 路径位于 ``hamiltonian_simulation_tridiagonal.h`` （同页），已在单张 A800 上完成 2^20 维验证（``docs/verification/v1e-cks-direct-oracle-linsolver.md``）
 - 相关：:doc:`动态算子扩展 </guide/dynamic_operators>` 中的量子行走动态算子示例
 
 块编码

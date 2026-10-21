@@ -37,3 +37,14 @@ Shor 因数分解（``SparQ_Algorithm/include/shor.h``）
 
 .. doxygenfile:: hamiltonian_simulation.h
    :project: SparQ
+
+无 QRAM 三对角 CKS 行走（``SparQ_Algorithm/include/hamiltonian_simulation_tridiagonal.h``）
+------------------------------------------------------------------------------------------
+
+对常对角三对角矩阵，CKS 行走的 QRAM 表 Oracle 被直接算术 Oracle 取代
+（``TridiagOracle1/2``、``T_Tridiagonal``、``ChebyshevInverseCoefficients``）；
+已在单张 A800 上完成 2^20 维端到端验证
+（``docs/verification/v1e-cks-direct-oracle-linsolver.md``）。
+
+.. doxygenfile:: hamiltonian_simulation_tridiagonal.h
+   :project: SparQ

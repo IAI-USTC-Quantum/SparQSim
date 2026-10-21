@@ -40,6 +40,7 @@ Discrete-adiabatic quantum linear-system solvers built on block encoding and sta
 - Python: :func:`qda_solve() <PySparQ.pysparq.algorithms.qda_solver.qda_solve>`, :func:`qda_solve_tridiagonal() <PySparQ.pysparq.algorithms.qda_solver.qda_solve_tridiagonal>`, :func:`qda_solve_via_qram() <PySparQ.pysparq.algorithms.qda_solver.qda_solve_via_qram>`, plus the orchestration classes :class:`WalkS <PySparQ.pysparq.algorithms.qda_solver.WalkS>`, :class:`LCU <PySparQ.pysparq.algorithms.qda_solver.LCU>`, :class:`BlockEncoding <PySparQ.pysparq.algorithms.qda_solver.BlockEncoding>`, and :class:`StatePreparation <PySparQ.pysparq.algorithms.qda_solver.StatePreparation>`
 - C++: :doc:`Discrete Adiabatic (QDA) </cpp_api/qda>`
 - Building blocks: block encoding (below); the step-size/condition-number hyperparameters are introduced in :doc:`Operators </guide/core_concepts/operators>`
+- Production: the Poiseuille benchmark ``Experiment_PoiseuilleQDABench_cuda`` (``Experiments/QDA/QDA_Poiseuille/``) validates the tridiagonal path up to 2^20 dimensions on a single A800, including the dimension-adaptive ``--czEps`` ClearZero threshold — verification record ``docs/verification/v1d-qda-linsolver-a800.md``
 
 Hamiltonian Simulation (CKS)
 ----------------------------
@@ -47,7 +48,7 @@ Hamiltonian Simulation (CKS)
 Hamiltonian simulation via quantum walk / LCU / sparse-matrix oracle, with the CKS experiment as the reference implementation.
 
 - Python: :class:`TOperator <PySparQ.pysparq.algorithms.cks_solver.TOperator>`, :class:`QuantumWalkNSteps <PySparQ.pysparq.algorithms.cks_solver.QuantumWalkNSteps>` in ``pysparq.algorithms.cks_solver``
-- C++: ``hamiltonian_simulation.h`` in :doc:`the algorithm library </cpp_api/algorithms>` (the ``T`` state-preparation operator and ``SparseMatrixOracle1`` live here)
+- C++: ``hamiltonian_simulation.h`` in :doc:`the algorithm library </cpp_api/algorithms>` (the ``T`` state-preparation operator and ``SparseMatrixOracle1`` live here); for constant-diagonal tridiagonal matrices the QRAM-free direct-oracle path lives in ``hamiltonian_simulation_tridiagonal.h`` (same page), validated at 2^20 dimensions on a single A800 (``docs/verification/v1e-cks-direct-oracle-linsolver.md``)
 - Related: the quantum-walk dynamic operator example in :doc:`Dynamic Operator Extension </guide/dynamic_operators>`
 
 Block Encoding

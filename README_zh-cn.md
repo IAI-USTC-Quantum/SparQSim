@@ -15,6 +15,12 @@
 
 > **pysparq —— 稀疏态量子电路模拟器的全功能 Python 框架（Register Level Programming、原生 QRAM、动态算子、RIR 解释器）**
 
+## 亮点
+
+- **稀疏态量子模拟 + Register Level Programming**——直接寄存器级算术、原生 QRAM、动态算子与 RIR 解释器（见下方快速上手）
+- **量子线性方程组求解，双引擎**——离散绝热 **QDA** 与 Chebyshev 量子行走 **CKS** 求解器，在单张 A800 上完成最高 **2^20 维**的端到端验证（[v1d](docs/verification/v1d-qda-linsolver-a800.md)、[v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md)）
+- **CPU（OpenMP）与 CUDA 双后端**，内核逐位交叉验证（[v1c](docs/verification/v1c-gpu-cuda-a800.md)）
+
 ## 仓库分工
 
 依赖方向：**SparQSim → QRAM-Simulator**。SparQSim 发布
@@ -45,7 +51,7 @@ pip install pysparq
 pip install qram-simulator
 ```
 
-**GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链；CUDA 13 / CCCL 3 与 8×A800 Linux 服务器上的 CUDA 12.8 / sm_80 均实测通过，详见 [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)）；PyPI wheel 恒为 CPU-only。
+**GPU 支持**：CUDA/GPU 后端默认关闭，构建时传 `-DSPARQ_ENABLE_CUDA=ON` 开启（需本机 CUDA 工具链；CUDA 13 / CCCL 3 与 8×A800 Linux 服务器上的 CUDA 12.8 / sm_80 均实测通过，详见 [`docs/verification/v1c-gpu-cuda-a800.md`](docs/verification/v1c-gpu-cuda-a800.md)；该后端上的 2^20 CKS/QDA 线性求解器生产记录见 [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md) 与 [v1d](docs/verification/v1d-qda-linsolver-a800.md)）；PyPI wheel 恒为 CPU-only。
 
 **MPI**：SparQSim 的 C++ 核心本身不含 MPI 路径；qram-simulator 绑定侧的轨迹级 MPI 系综并行（单机多进程，结果与进程数无关）由 [QRAM-Simulator 仓库](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)的 `qram_simulator.mpi` 提供——见其「MPI 系综并行」一节。
 
@@ -119,6 +125,50 @@ dist = ps.Probability.distribution(state, reg)  # 单寄存器完整结果分布
 
 纯 Python 实现的算法层，组合公开原语（Grover、Shor、QDA、CKS、态制备、块编码等），
 与 C++ 实验代码的逐一对应关系见 [docs/algorithm-implementation.md](docs/algorithm-implementation.md)。
+
+## 量子线性方程组 bench（CKS / QDA，2^20 维已验证）
+
+C++ 层提供 Poiseuille 三对角线性方程组的生产基准
+（`A = tridiag(-1, α, -1)`、`b = ones(n)/sqrt(n)`、κ = 16），
+两个引擎的 CLI 与产物 schema 完全一致（`residual_curve.csv` + `qda_summary_cpp.json`）：
+
+```bash
+# QDA（离散绝热）——2^20 下默认 --czEps 会剪掉解分支，
+# 需按维度/调度自适应设置（见下）
+./Experiment_PoiseuilleQDABench_cuda --nqubit 20 --kappa 16 --steprate 1.1 \
+    --tol 1e-6 --logEvery 250 --czEps 1e-20 --outdir qda_2p20
+
+# CKS（Chebyshev 量子行走，QRAM-free 直接算术 Oracle）
+./Experiment_CKS_PoiseuilleBench_cuda --nqubit 20 --kappa 16 --eps 0.01 \
+    --ds 32 --coef true --J 1024 --logEvery 64 --tol 1e-6 --outdir cks_2p20
+```
+
+已验证成绩（单张 A800，CUDA 稀疏态后端）：
+
+- **CKS 2^20**（QRAM-free 直接 Oracle，构建参数 `-DCACHED_REGISTER_SIZE=16`）：
+  方向残差 `0 ≤ 1e-6`（640/1024 项提前终止）、保真度 `1.0000000000`、
+  成功概率 `4.75e-2`、20,971,512 个 walk 基态、2682 s；dim16/dim64 成功概率与
+  CPU 参考逐位一致——[v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md)。
+- **QDA dim256**：全程 40568 步调度收敛到 `res_dir = 5.9485e-4`
+  （保真度 `1.000000`、成功概率 `1.0`）；2^20 生产复跑进行中，
+  验证记录持续更新——[v1d](docs/verification/v1d-qda-linsolver-a800.md)。
+
+### `--czEps` 按维度与调度自适应（QDA）
+
+`ClearZero` 按 |振幅|² < eps 裁剪基态。QDA 解分支出生时单态幅值 ≈ sqrt(2e-6/n)，
+且随调度细化（ds = 1/步数）线性缩小，因此经验规则是
+**让 sqrt(czEps) 低于解分支出生幅值**：
+
+| 调度 | 可用 `--czEps` |
+|------|----------------|
+| 粗调度（`--steprate 0.1`） | `1e-16` |
+| 细调度（`--steprate 1.1`，生产） | `1e-20` ~ `1e-22` |
+
+在库默认 `1e-14`（幅值断点 1e-7）下，解分支从 2^19 维起在出生时即被剪掉——
+实测断崖：2^17（2.9e-7）、2^18（1.5e-7）存活，2^19（7.4e-8）、2^20（3.7e-8）被剪，
+这正是首次 2^20 运行提取全 NaN 的根因。commit `10a96aa` 通过 `--czEps`
+使阈值可按维度自适应（默认行为逐位不变）；完整分析见
+[v1d 补篇](docs/verification/v1d-qda-linsolver-a800.md)。
 
 ## 文档
 

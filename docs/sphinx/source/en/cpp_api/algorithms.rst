@@ -37,3 +37,14 @@ Hamiltonian Simulation (``SparQ_Algorithm/include/hamiltonian_simulation.h``)
 
 .. doxygenfile:: hamiltonian_simulation.h
    :project: SparQ
+
+QRAM-Free Tridiagonal CKS Walk (``SparQ_Algorithm/include/hamiltonian_simulation_tridiagonal.h``)
+--------------------------------------------------------------------------------------------------
+
+For constant-diagonal tridiagonal matrices the CKS walk's QRAM table oracles are
+replaced by direct arithmetic oracles (``TridiagOracle1/2``, ``T_Tridiagonal``,
+``ChebyshevInverseCoefficients``); validated end to end at 2^20 dimensions on a
+single A800 (``docs/verification/v1e-cks-direct-oracle-linsolver.md``).
+
+.. doxygenfile:: hamiltonian_simulation_tridiagonal.h
+   :project: SparQ
