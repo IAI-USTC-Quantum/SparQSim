@@ -1,0 +1,137 @@
+PySparQ.pysparq.algorithms.grover
+=================================
+
+.. py:module:: PySparQ.pysparq.algorithms.grover
+
+.. autoapi-nested-parse::
+
+   Grover's Quantum Search Algorithm Implementation
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.grover.DiffusionOperator
+   PySparQ.pysparq.algorithms.grover.GroverOperator
+   PySparQ.pysparq.algorithms.grover.GroverOracle
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.grover.create_grover_demo
+   PySparQ.pysparq.algorithms.grover.grover_count
+   PySparQ.pysparq.algorithms.grover.grover_search
+
+
+Module Contents
+---------------
+
+.. py:class:: DiffusionOperator(addr_reg: str | int)
+
+   HPH (Hadamard-Phase-Hadamard) diffusion operator.
+
+
+   .. py:method:: clear_conditions() -> None
+
+
+   .. py:method:: conditioned_by_all_ones(conds: str | int | list[str | int]) -> DiffusionOperator
+
+
+   .. py:method:: conditioned_by_bit(reg: str | int, pos: int) -> DiffusionOperator
+
+
+   .. py:method:: conditioned_by_nonzeros(cond: str | int | list[str | int]) -> DiffusionOperator
+
+
+   .. py:method:: dag(state: pysparq.SparseState) -> None
+
+
+   .. py:attribute:: addr_reg
+      :type:  str | int
+
+
+.. py:class:: GroverOperator(qram: pysparq.QRAMCircuit_qutrit, addr_reg: str | int, data_reg: str | int, search_reg: str | int)
+
+   Combined Grover operator: Oracle followed by Diffusion.
+
+
+   .. py:method:: clear_conditions() -> None
+
+
+   .. py:method:: conditioned_by_all_ones(conds: str | int | list[str | int]) -> GroverOperator
+
+
+   .. py:method:: conditioned_by_bit(reg: str | int, pos: int) -> GroverOperator
+
+
+   .. py:method:: conditioned_by_nonzeros(cond: str | int | list[str | int]) -> GroverOperator
+
+
+   .. py:method:: dag(state: pysparq.SparseState) -> None
+
+
+   .. py:attribute:: diffusion
+      :type:  DiffusionOperator
+
+
+   .. py:attribute:: oracle
+      :type:  GroverOracle
+
+
+.. py:class:: GroverOracle(qram: pysparq.QRAMCircuit_qutrit, addr_reg: str | int, data_reg: str | int, search_reg: str | int)
+
+   Oracle for Grover's search that marks target values.
+
+
+   .. py:method:: clear_conditions() -> None
+
+
+   .. py:method:: conditioned_by_all_ones(conds: str | int | list[str | int]) -> GroverOracle
+
+
+   .. py:method:: conditioned_by_bit(reg: str | int, pos: int) -> GroverOracle
+
+
+   .. py:method:: conditioned_by_nonzeros(cond: str | int | list[str | int]) -> GroverOracle
+
+
+   .. py:method:: dag(state: pysparq.SparseState) -> None
+
+
+   .. py:attribute:: addr_reg
+      :type:  str | int
+
+
+   .. py:attribute:: data_reg
+      :type:  str | int
+
+
+   .. py:attribute:: qram
+      :type:  pysparq.QRAMCircuit_qutrit
+
+
+   .. py:attribute:: search_reg
+      :type:  str | int
+
+
+.. py:function:: create_grover_demo() -> str
+
+   Generate a demo script for Grover's algorithm.
+
+
+.. py:function:: grover_count(memory: list[int], target: int, precision_bits: int = ..., data_size: int = ...) -> tuple[int, float]
+
+   Quantum counting variant of Grover's algorithm.
+
+
+.. py:function:: grover_search(memory: list[int], target: int, n_iterations: int | None = ..., data_size: int = ...) -> tuple[int, float]
+
+   Execute Grover's search to find target in memory.
+
+

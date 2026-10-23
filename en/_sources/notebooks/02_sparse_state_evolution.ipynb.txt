@@ -1,0 +1,354 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Sparse State Evolution Example\n",
+    "\n",
+    "This tutorial shows how a SparseState evolves under operator applications (concept: [The SparseState Class](../guide/core_concepts/sparse_state.html)), and further demonstrates the use of composite operators such as [QFT](../operators/qft.html) and [QRAM](../operators/qram_ops.html)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:06.985323Z",
+     "iopub.status.busy": "2026-04-20T09:57:06.985061Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.003093Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.001849Z"
+    }
+   },
+   "outputs": [],
+   "source": "import pysparq as ps\n\nps.System.clear()\n\n# Create a 2-bit register\nps.System.add_register(\"q\", ps.UnsignedInteger, 2)\n\n# Initial state\nstate = ps.SparseState()\n\nprint(\"Initial state:\")\nps.pprint(state)\nprint(f\"\\nNumber of basis states: {state.size()}\")"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Hadamard Transform\n",
+    "\n",
+    "Hadamard creates a quantum superposition (see [Hadamard Operations](../operators/hadamard.html))."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.030498Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.030313Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.033492Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.032834Z"
+    }
+   },
+   "outputs": [],
+   "source": "# Hadamard_Int: apply Hadamard to a specified number of qubits\nps.Hadamard_Int(\"q\", 1)(state)\n\nprint(\"After Hadamard_Int(q, 1):\")\nps.pprint(state)\nprint(f\"\\nNumber of basis states: {state.size()}\")"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.034958Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.034818Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.037900Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.037070Z"
+    }
+   },
+   "outputs": [],
+   "source": "# Hadamard_Int_Full: apply a full Hadamard to all qubits\nps.Hadamard_Int_Full(\"q\")(state)\n\nprint(\"After Hadamard_Int_Full(q):\")\nps.pprint(state)\nprint(f\"\\nNumber of basis states: {state.size()}\")"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## State Print Modes\n",
+    "\n",
+    "StatePrint supports several display modes (see [Debugging Tools](../operators/debug.html))."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.039620Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.039463Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.042409Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.041628Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "print(\"Default mode:\")\nprint(ps.StatePrint(state, mode=ps.StatePrintDisplay.Default))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.043835Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.043701Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.047494Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.046808Z"
+    }
+   },
+   "outputs": [],
+   "source": "print(\"Binary mode:\")\nps.pprint(state, mode=ps.StatePrintDisplay.Binary)"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.048749Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.048622Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.051988Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.050643Z"
+    }
+   },
+   "outputs": [],
+   "source": "print(\"Prob mode:\")\nps.pprint(state, mode=ps.StatePrintDisplay.Prob)"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Arithmetic Operation Evolution"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.054020Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.053705Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.057521Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.056711Z"
+    }
+   },
+   "outputs": [],
+   "source": "ps.System.clear()\n\n# Create registers\nps.System.add_register(\"a\", ps.UnsignedInteger, 2)\nps.System.add_register(\"b\", ps.UnsignedInteger, 2)\nps.System.add_register(\"sum\", ps.UnsignedInteger, 2)\n\nstate = ps.SparseState()\n\n# Initialize\nps.Init_Unsafe(\"a\", 1)(state)\nps.Init_Unsafe(\"b\", 2)(state)\n\nprint(\"Initial state:\")\nps.pprint(state)"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.058723Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.058593Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.061398Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.060761Z"
+    }
+   },
+   "outputs": [],
+   "source": "# Addition: sum ^= a + b\nps.Add_UInt_UInt(\"a\", \"b\", \"sum\")(state)\n\nprint(\"After Add_UInt_UInt:\")\nps.pprint(state)\n# sum = 0 ^ (1 + 2) = 3"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.062570Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.062444Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.065053Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.064488Z"
+    }
+   },
+   "outputs": [],
+   "source": "# Applying it again undoes it (XOR mechanism)\nps.Add_UInt_UInt(\"a\", \"b\", \"sum\")(state)\n\nprint(\"After applying Add_UInt_UInt again:\")\nps.pprint(state)\n# sum = 3 ^ 3 = 0"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Arithmetic on Superpositions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.066449Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.066323Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.069553Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.068610Z"
+    }
+   },
+   "outputs": [],
+   "source": "ps.System.clear()\n\nps.System.add_register(\"x\", ps.UnsignedInteger, 2)\nps.System.add_register(\"y\", ps.UnsignedInteger, 2)\n\nstate = ps.SparseState()\n\n# x is in superposition\nps.Hadamard_Int_Full(\"x\")(state)\n\n# y is initialized to a constant\nps.Init_Unsafe(\"y\", 1)(state)\n\nprint(\"Initial superposition:\")\nps.pprint(state)"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.071145Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.070999Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.074291Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.073505Z"
+    }
+   },
+   "outputs": [],
+   "source": "# In-place addition: y += x (each branch computed independently)\nps.Add_UInt_UInt_InPlace(\"x\", \"y\")(state)\n\nprint(\"After Add_UInt_UInt_InPlace:\")\nps.pprint(state)\n# Each branch: y = 1 + x"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.076041Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.075885Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.078942Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.078261Z"
+    }
+   },
+   "outputs": [],
+   "source": "# Undo\nps.Add_UInt_UInt_InPlace(\"x\", \"y\").dag(state)\n\nprint(\"After dagger:\")\nps.pprint(state)"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Accessing Basis-State Data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-04-20T09:57:07.080513Z",
+     "iopub.status.busy": "2026-04-20T09:57:07.080382Z",
+     "iopub.status.idle": "2026-04-20T09:57:07.083617Z",
+     "shell.execute_reply": "2026-04-20T09:57:07.082908Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# Iterate over all basis states\n",
+    "print(\"Iterating over basis states:\")\n",
+    "for i, system in enumerate(state.basis_states):\n",
+    "    x_id = ps.System.get_id(\"x\")\n",
+    "    y_id = ps.System.get_id(\"y\")\n",
+    "    \n",
+    "    x_val = system.get(x_id).value\n",
+    "    y_val = system.get(y_id).value\n",
+    "    amp = system.amplitude\n",
+    "    \n",
+    "    print(f\"  basis state {i}: x={x_val}, y={y_val}, amplitude={amp}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "## QRAM Data Loading\n",
+    "\n",
+    "Load classical data in bulk through QRAM while in superposition (see [QRAM Operators](../operators/qram_ops.html)):"
+   ],
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "import numpy as np\n",
+    "\n",
+    "ps.System.clear()\n",
+    "n_addr, n_data = 3, 4\n",
+    "ps.System.add_register(\"addr\", ps.UnsignedInteger, n_addr)\n",
+    "ps.System.add_register(\"data\", ps.UnsignedInteger, n_data)\n",
+    "\n",
+    "state = ps.SparseState()\n",
+    "\n",
+    "# Classical data (8 memory locations)\n",
+    "memory = np.array([1, 3, 5, 7, 2, 4, 6, 8], dtype=np.uint64)\n",
+    "\n",
+    "# Superpose the address register → query all addresses at once\n",
+    "ps.Hadamard_Int(\"addr\", n_addr)(state)\n",
+    "\n",
+    "# QRAM load: data = memory[addr]\n",
+    "qram = ps.QRAMCircuit_qutrit(n_addr, n_data, memory)\n",
+    "ps.QRAMLoad(qram, \"addr\", \"data\")(state)\n",
+    "\n",
+    "# The state holds the amplitudes of all (addr, memory[addr]) pairs\n",
+    "print(ps.StatePrint(state))\n",
+    "print(f\"\\nNumber of basis states: {state.size()}\")"
+   ],
+   "metadata": {},
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "## QFT Transform\n",
+    "\n",
+    "See the [QFT reference](../operators/qft.html) for details."
+   ],
+   "metadata": {}
+  },
+  {
+   "cell_type": "code",
+   "source": [
+    "ps.System.clear()\n",
+    "ps.System.add_register(\"reg\", ps.UnsignedInteger, 3)\n",
+    "state = ps.SparseState()\n",
+    "\n",
+    "ps.Init_Unsafe(\"reg\", 1)(state)\n",
+    "print(\"Initial:\")\n",
+    "print(ps.StatePrint(state))\n",
+    "\n",
+    "ps.QFT(\"reg\")(state)\n",
+    "print(\"After QFT:\")\n",
+    "print(ps.StatePrint(state))\n",
+    "\n",
+    "ps.InverseQFT(\"reg\")(state)\n",
+    "print(\"After inverse QFT:\")\n",
+    "print(ps.StatePrint(state))  # restored to |1⟩"
+   ],
+   "metadata": {},
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "## Summary\n",
+    "\n",
+    "- SparseState stores only the non-zero basis states; their count grows with superposition\n",
+    "- Hadamard creates superpositions\n",
+    "- Arithmetic operations act on every basis state (sparse traversal)\n",
+    "- **[SelfAdjointOperator](../operators/index.html#selfadjoint-vs-baseoperator) restores the original value when applied twice; BaseOperator is undone with dag()**\n",
+    "- QRAM enables bulk lookup of classical data under superposition\n",
+    "- QFT / InverseQFT are used in phase-estimation-style algorithms"
+   ],
+   "metadata": {}
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

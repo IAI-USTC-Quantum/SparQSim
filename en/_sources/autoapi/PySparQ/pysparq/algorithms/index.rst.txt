@@ -1,0 +1,40 @@
+PySparQ.pysparq.algorithms
+==========================
+
+.. py:module:: PySparQ.pysparq.algorithms
+
+.. autoapi-nested-parse::
+
+   PySparQ algorithm examples
+
+   This package contains educational implementations of quantum algorithms using
+   the PySparQ register-level programming paradigm.
+
+   Available algorithms:
+       - grover: Grover quantum search algorithm
+       - shor: Shor integer factorization algorithm
+       - cks_solver: CKS linear system solver
+       - qda_solver: QDA linear system solver
+       - state_preparation: QRAM-based state preparation
+       - block_encoding: block encoding (tridiagonal and QRAM-based)
+
+   Utilities:
+       - qram_utils: classical helper functions for QRAM data construction
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/PySparQ/pysparq/algorithms/block_encoding/index
+   /autoapi/PySparQ/pysparq/algorithms/cks_solver/index
+   /autoapi/PySparQ/pysparq/algorithms/grover/index
+   /autoapi/PySparQ/pysparq/algorithms/qda_solver/index
+   /autoapi/PySparQ/pysparq/algorithms/qram_utils/index
+   /autoapi/PySparQ/pysparq/algorithms/shor/index
+   /autoapi/PySparQ/pysparq/algorithms/state_preparation/index
+
+

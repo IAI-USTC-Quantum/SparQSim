@@ -1,0 +1,163 @@
+PySparQ.pysparq.algorithms.state_preparation
+============================================
+
+.. py:module:: PySparQ.pysparq.algorithms.state_preparation
+
+.. autoapi-nested-parse::
+
+   Quantum state preparation based on QRAM binary-tree decomposition.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.state_preparation.StatePrepViaQRAM
+   PySparQ.pysparq.algorithms.state_preparation.StatePreparation
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.state_preparation.create_state_preparation_demo
+
+
+Module Contents
+---------------
+
+.. py:class:: StatePrepViaQRAM(qram: object, work_qubit: str, data_size: int, rational_size: int)
+
+   Quantum state-preparation operator based on QRAM binary-tree decomposition.
+
+
+   .. py:method:: clear_conditions() -> StatePrepViaQRAM
+
+
+   .. py:method:: conditioned_by_all_ones(cond: Union[str, int, list[Union[str, int]]]) -> StatePrepViaQRAM
+
+
+   .. py:method:: conditioned_by_bit(reg: Union[str, int], bit: int) -> StatePrepViaQRAM
+
+
+   .. py:method:: conditioned_by_nonzeros(cond: Union[str, int, list[Union[str, int]]]) -> StatePrepViaQRAM
+
+
+   .. py:method:: dag(state: SparseState) -> None
+
+
+   .. py:attribute:: addr_size
+      :type:  int
+
+
+   .. py:attribute:: data_size
+      :type:  int
+
+
+   .. py:attribute:: qram
+      :type:  object
+
+
+   .. py:attribute:: rational_size
+      :type:  int
+
+
+   .. py:attribute:: work_qubit
+      :type:  str
+
+
+.. py:class:: StatePreparation(qubit_number: int, data_size: int, data_range: int)
+
+   High-level wrapper managing the full state-preparation pipeline.
+
+
+   .. py:method:: get_fidelity() -> float
+
+      Compute the fidelity between the prepared state and the target state.
+
+
+
+   .. py:method:: get_real_dist() -> list[float]
+
+      Return the normalized amplitude distribution as a list of floats.
+
+
+
+   .. py:method:: make_qram() -> None
+
+      Create a QRAM circuit sized for the tree data.
+
+
+
+   .. py:method:: make_tree() -> None
+
+      Build the binary tree from the current distribution.
+
+
+
+   .. py:method:: random_distribution() -> None
+
+      Generate a random amplitude distribution.
+
+
+
+   .. py:method:: run() -> None
+
+      Run the full state-preparation pipeline.
+
+
+
+   .. py:method:: set_qram() -> None
+
+      Load the binary-tree data into the QRAM circuit.
+
+
+
+   .. py:method:: show_distribution() -> None
+
+      Print the raw values and normalized amplitudes of the distribution.
+
+
+
+   .. py:method:: show_tree() -> None
+
+      Print the binary tree level by level.
+
+
+
+   .. py:attribute:: data_range
+      :type:  int
+
+
+   .. py:attribute:: data_size
+      :type:  int
+
+
+   .. py:attribute:: dist
+      :type:  list[int]
+
+
+   .. py:attribute:: qram
+      :type:  Union[object, None]
+
+
+   .. py:attribute:: qubit_number
+      :type:  int
+
+
+   .. py:attribute:: rational_size
+      :type:  int
+
+
+   .. py:attribute:: tree
+      :type:  list[int]
+
+
+.. py:function:: create_state_preparation_demo() -> str
+
+   Return a demo script string for state preparation.
+
+

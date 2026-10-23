@@ -1,0 +1,159 @@
+PySparQ.pysparq
+===============
+
+.. py:module:: PySparQ.pysparq
+
+.. autoapi-nested-parse::
+
+   PySparQ type stubs - re-exports all public API from the _core module.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/PySparQ/pysparq/algorithms/index
+   /autoapi/PySparQ/pysparq/conformance/index
+   /autoapi/PySparQ/pysparq/dynamic_operator/index
+   /autoapi/PySparQ/pysparq/operators/index
+   /autoapi/PySparQ/pysparq/rir/index
+   /autoapi/PySparQ/pysparq/test/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.AddAssign_AnyInt_AnyInt_InPlace
+   PySparQ.pysparq.Div_Sqrt_Arccos_Int_Int
+   PySparQ.pysparq.GlobalPhase_Int
+   PySparQ.pysparq.Hadamard_PartialQubit
+   PySparQ.pysparq.QuantumBinarySearchFast
+   PySparQ.pysparq.RXgate_Bool
+   PySparQ.pysparq.RYgate_Bool
+   PySparQ.pysparq.RZgate_Bool
+   PySparQ.pysparq.SXgate_Bool
+   PySparQ.pysparq.Sgate_Bool
+   PySparQ.pysparq.Sqrt_Div_Arccos_Int_Int
+   PySparQ.pysparq.Tgate_Bool
+   PySparQ.pysparq.U2gate_Bool
+   PySparQ.pysparq.U3gate_Bool
+   PySparQ.pysparq.Xgate_Bool
+   PySparQ.pysparq.Ygate_Bool
+   PySparQ.pysparq.Zgate_Bool
+   PySparQ.pysparq.inverseQFT
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.StatePrinter
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.StatePrint
+   PySparQ.pysparq.print
+   PySparQ.pysparq.test_import
+   PySparQ.pysparq.to_string
+
+
+Package Contents
+----------------
+
+.. py:class:: StatePrinter(mode: int | pysparq._core.StatePrintDisplay = 1, precision: int = 0)
+
+   Reusable state formatter with configurable default mode.
+
+
+   .. py:attribute:: mode
+      :type:  int
+
+
+   .. py:attribute:: precision
+      :type:  int
+
+
+.. py:function:: StatePrint(state: pysparq._core.SparseState, mode: int | pysparq._core.StatePrintDisplay = 1, precision: int = 0) -> str
+
+   Return a formatted string representation of a SparseState.
+
+
+.. py:function:: print(state: pysparq._core.SparseState, mode: int | pysparq._core.StatePrintDisplay = 1, precision: int = 0) -> None
+
+   Print a SparseState to stdout in Detail mode.
+
+
+.. py:function:: test_import() -> None
+
+   Test that the PySparQ import works correctly.
+
+
+.. py:function:: to_string(state: pysparq._core.SparseState, mode: int | pysparq._core.StatePrintDisplay = 1, precision: int = 0) -> str
+
+   Return a formatted string representation of a SparseState (alias for StatePrint).
+
+
+.. py:data:: AddAssign_AnyInt_AnyInt_InPlace
+   :type:  type[pysparq._core.Add_AnyInt_AnyInt_InPlace]
+
+.. py:data:: Div_Sqrt_Arccos_Int_Int
+   :type:  type[pysparq._core.Div_Sqrt_Arccos_UInt_UInt]
+
+.. py:data:: GlobalPhase_Int
+   :type:  type[pysparq._core.GlobalPhase]
+
+.. py:data:: Hadamard_PartialQubit
+   :type:  type[pysparq._core.Hadamard_Partial]
+
+.. py:data:: QuantumBinarySearchFast
+   :type:  type[QuantumBinarySearch_Fast]
+
+.. py:data:: RXgate_Bool
+   :type:  type[pysparq._core.RX_Bool]
+
+.. py:data:: RYgate_Bool
+   :type:  type[pysparq._core.RY_Bool]
+
+.. py:data:: RZgate_Bool
+   :type:  type[pysparq._core.RZ_Bool]
+
+.. py:data:: SXgate_Bool
+   :type:  type[pysparq._core.SX_Bool]
+
+.. py:data:: Sgate_Bool
+   :type:  type[pysparq._core.S_Bool]
+
+.. py:data:: Sqrt_Div_Arccos_Int_Int
+   :type:  type[pysparq._core.Sqrt_Div_Arccos_Int_UInt]
+
+.. py:data:: Tgate_Bool
+   :type:  type[pysparq._core.T_Bool]
+
+.. py:data:: U2gate_Bool
+   :type:  type[pysparq._core.U2_Bool]
+
+.. py:data:: U3gate_Bool
+   :type:  type[pysparq._core.U3_Bool]
+
+.. py:data:: Xgate_Bool
+   :type:  type[pysparq._core.X_Bool]
+
+.. py:data:: Ygate_Bool
+   :type:  type[pysparq._core.Y_Bool]
+
+.. py:data:: Zgate_Bool
+   :type:  type[pysparq._core.Z_Bool]
+
+.. py:data:: inverseQFT
+   :type:  type[pysparq._core.InverseQFT]
+
