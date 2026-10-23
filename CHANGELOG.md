@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Final 2^20 QDA production matrix (three full-budget runs, `--czEps`
+  1e-16/1e-20/1e-22): canonical run `1e-16` ends at res_dir 5.178909e-3 /
+  fidelity 0.9999989 / success probability 0.0017 (133,231 s); the companions
+  end at ~4.3e-2 with identical transfer. At the fixed 40568-step budget the
+  adiabatic transfer completes at dim256 (succP 1.0) but not at 2^16 (0.027) or
+  2^20 (0.0017) — a budget-vs-spectral-gap property of the algorithm, not a
+  simulator defect; the ≥1e6-dimension convergence criterion is carried by the
+  CKS engine (res_dir 0, fidelity 1.0). Records in
+  `docs/verification/v1d-qda-linsolver-a800.md` (2026-10-23 section).
 - QRAM-free CKS (Chebyshev quantum-walk LCU) linear-solver path for the Poiseuille
   tridiagonal case: direct arithmetic oracles (`TridiagOracle1/2`, replacing the
   QRAM table lookups), `T_Tridiagonal`, `QuantumWalkNSteps_Tridiagonal`,

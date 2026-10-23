@@ -134,9 +134,9 @@ C++ 层提供 Poiseuille 三对角线性方程组的生产基准
 
 ```bash
 # QDA（离散绝热）——2^20 下默认 --czEps 会剪掉解分支，
-# 需按维度/调度自适应设置（见下）
+# 1e-16 为 canonical 生产设置（见下方自适应指南）
 ./Experiment_PoiseuilleQDABench_cuda --nqubit 20 --kappa 16 --steprate 1.1 \
-    --tol 1e-6 --logEvery 250 --czEps 1e-20 --outdir qda_2p20
+    --tol 1e-6 --logEvery 250 --czEps 1e-16 --outdir qda_2p20
 
 # CKS（Chebyshev 量子行走，QRAM-free 直接算术 Oracle）
 ./Experiment_CKS_PoiseuilleBench_cuda --nqubit 20 --kappa 16 --eps 0.01 \
@@ -150,8 +150,13 @@ C++ 层提供 Poiseuille 三对角线性方程组的生产基准
   成功概率 `4.75e-2`、20,971,512 个 walk 基态、2682 s；dim16/dim64 成功概率与
   CPU 参考逐位一致——[v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md)。
 - **QDA dim256**：全程 40568 步调度收敛到 `res_dir = 5.9485e-4`
-  （保真度 `1.000000`、成功概率 `1.0`）；2^20 生产复跑进行中，
-  验证记录持续更新——[v1d](docs/verification/v1d-qda-linsolver-a800.md)。
+  （保真度 `1.000000`、成功概率 `1.0`）。
+- **QDA 2^20**（三跑 `--czEps` 矩阵，终值）：canonical 跑（`--czEps 1e-16`）终值
+  `res_dir = 5.178909e-3`、保真度 `0.9999989`、成功概率 `0.0017`（133,231 s）；
+  `1e-20`/`1e-22` 伴随跑终值 `~4.3e-2`，转移量一致。该预算下 2^20 绝热转移不完整
+  （同调度成功概率 dim256 → 2^16 → 2^20 为 1.0 → 0.027 → 0.0017）——属算法的
+  预算-谱隙标度性质，非模拟器缺陷；≥10^6 维收敛判据由 CKS 承担——
+  [v1d](docs/verification/v1d-qda-linsolver-a800.md)。
 
 ### `--czEps` 按维度与调度自适应（QDA）
 
@@ -162,7 +167,7 @@ C++ 层提供 Poiseuille 三对角线性方程组的生产基准
 | 调度 | 可用 `--czEps` |
 |------|----------------|
 | 粗调度（`--steprate 0.1`） | `1e-16` |
-| 细调度（`--steprate 1.1`，生产） | `1e-20` ~ `1e-22` |
+| 细调度（`--steprate 1.1`，生产） | `1e-16` ~ `1e-22`（canonical `1e-16`；`1e-20`~`1e-22` 保留更多小幅值态） |
 
 在库默认 `1e-14`（幅值断点 1e-7）下，解分支从 2^19 维起在出生时即被剪掉——
 实测断崖：2^17（2.9e-7）、2^18（1.5e-7）存活，2^19（7.4e-8）、2^20（3.7e-8）被剪，

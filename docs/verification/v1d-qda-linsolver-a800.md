@@ -150,3 +150,63 @@ The archived failed run is kept at
 `05-测试报告/data/T2-稀疏态虚拟机/T2-LS-1e6-kappa16-qda-cpp-nan-failed-20261020/`
 as evidence of the failure mode; the fresh run directory is
 `T2-LS-1e6-kappa16-qda-cpp/`.
+
+## 2026-10-23: production re-run results (final)
+
+Three full-budget production runs completed (identical schedule: rate 1.1,
+40568 steps, kappa=16, tol 1e-6; single A800 CUDA sparse-state backend;
+only `--czEps` differs):
+
+| run | `--czEps` | final res_dir | final res_opt | fid | succP | wall (s) | max_sys |
+|-----|-----------|---------------|---------------|-----|-------|----------|---------|
+| **P1 (canonical)** | `1e-16` | **5.178909e-3** | 1.381066e-3 | **0.9999989** | 0.0017 | 133,230.6 | 50,334,366 |
+| C | `1e-20` | 4.330474e-2 | 1.155629e-2 | 0.9999710 | 0.0017 | 202,345.1 | 67,108,956 |
+| B | `1e-22` | 4.296244e-2 | 1.146482e-2 | 0.9999710 | 0.0017 | 220,601.9 | 67,108,956 |
+
+All three terminated on `fixed_step_budget` (tol not reached) and were collected
+into `05-测试报告/data/T2-稀疏态虚拟机/` under entry ids
+`T2-LS-1e6-kappa16-qda-cpp{-eps1e-20,-eps1e-22}`; manifest verify green.
+
+**Canonical choice: P1 (`--czEps 1e-16`)** — lowest res_dir by an order of
+magnitude, highest fidelity, smallest state, fastest wall. Its extraction readout
+is pinned at 5.1789e-3 for the whole run: with the solution branch surviving but
+weak (birth amplitude 3.7e-8 vs the 1e-8 cutoff), the extracted direction is
+dominated by the initial branch — 5.1789e-3 is that birth-dominated direction's
+intrinsic residual (the same value as the rate-0.1 full run and the 40/400-step
+compressed probes). B/C retain more small-amplitude states (67M vs 50M peak
+systems), so their readouts carry noise-state contamination (~4.3e-2) while the
+underlying transfer (succP 0.0017 in all three) is identical.
+
+### Corrected scaling conclusion (supersedes the 2026-10-21 expectation)
+
+The 2026-10-21 addendum expected the 2^16 full-schedule control "to confirm the
+same behavior" as dim256 (full convergence). It does not. At the *same* schedule
+(rate 1.1, 40568 steps) the end-of-run transfer completeness falls monotonically
+with dimension:
+
+| dim | run | final succP | final res_dir |
+|-----|-----|-------------|---------------|
+| 256 | rate 1.1, 40568 steps | **1.0000** (converged, 5.9485e-4) | 5.9485e-4 |
+| 2^16 | rate 1.1, 40568 steps, default eps (`/tmp/qda-diag-nq16-m999999999`) | 0.0269 | 2.071000e-2 (pinned birth-mode readout) |
+| 2^20 | rate 1.1, 40568 steps (three runs above) | 0.0017 | 5.179e-3 (P1) / ~4.3e-2 (B/C) |
+
+The Poisson-tridiagonal spectrum narrows with n, so the fixed
+`ceil(1.1 * 2305 * kappa)` budget completes the adiabatic transfer at dim256 but
+not at 2^16/2^20. The 2^20 non-convergence is a budget-vs-spectral-gap property
+of the algorithm on this case, not a simulator defect (engine-equivalence chain
+above; fidelity stays ≥ 0.99997 in every run).
+
+### czEps guidance (final wording)
+
+- Canonical production setting for this benchmark: `--czEps 1e-16` (sqrt -> |a|
+  cutoff 1e-8 < 3.7e-8 birth amplitude, 3.7x margin; cleanest readout).
+- `1e-20`/`1e-22` remain valid safe settings per the sqrt(czEps) < C·ds matching
+  rule; all three complete healthy walks with identical succP, so at 2^20 czEps
+  no longer gates the result — the step budget does.
+- The library default `1e-14` still prunes the solution branch at birth from 2^19
+  on; always set `--czEps` explicitly at scale.
+
+Judgement note: the ≥1e6-dimension convergence criterion (indicator 2.1,
+judgement ②) is carried by the CKS engine at 2^20 (`res_dir = 0`, fid 1.0,
+2682 s — see v1e); replay semantics count any quantum engine at scale, and the
+QDA runs above are recorded as-is (not converged at tol).

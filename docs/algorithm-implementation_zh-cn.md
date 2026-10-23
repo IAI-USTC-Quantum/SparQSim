@@ -409,7 +409,7 @@ vector<double> weights = ComputeFourierCoeffs(epsilon_, l_);
 
 三对角情形的 C++ 生产路径位于 `SparQ_Algorithm/include/DiscreteAdiabatic/qda_tridiagonal.h`：三对角 Poiseuille 矩阵的插值哈密顿量 H(s) 以算术方式块编码（`Walk_s_Tridiagonal`），调度 f(s) 离散化为 `ceil(rate * 2305 * kappa)` 个 walk 步，解向量由 `GetOutput` 后选择提取（对 Thomas 参考解计算 res_dir / res_opt / 保真度 / 成功概率）。复杂度遵循离散绝热 O(κ log(κ/ε)) 规模——步数越多收敛越深而非存在硬底：dim256 下 3688 步的 rate-0.1 调度终值 res_dir 3.1e-2，而全程 40568 步生产调度收敛到 5.9485e-4（保真度 1.000000，成功概率 1.0）。
 
-生产基准 `Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cu`（可执行文件 `Experiment_PoiseuilleQDABench_cuda`；CLI 与产物 schema 和 CKS bench 完全一致）在单张 A800 上验证该路径至 2^20 维——验证记录随生产复跑持续更新，见 [docs/verification/v1d-qda-linsolver-a800.md](verification/v1d-qda-linsolver-a800.md)。其 2026-10-21 补篇给出 `--czEps`（ClearZero）阈值的维度自适应方法：`ClearZero` 按 |振幅|² < eps 裁剪，解分支出生单态幅值 ≈ sqrt(2e-6/n) 且随调度细化（ds = 1/步数）线性缩小，应使 sqrt(czEps) 低于出生幅值——粗调度（`--steprate 0.1`）取 `1e-16`，细生产调度（`--steprate 1.1`）取 `1e-20`~`1e-22`；默认 `1e-14` 下解分支自 2^19 维起出生即被剪（实测出生幅值：2^17 2.9e-7 / 2^18 1.5e-7 存活，2^19 7.4e-8 / 2^20 3.7e-8 被剪，断点 1e-7）。
+生产基准 `Experiments/QDA/QDA_Poiseuille/PoiseuilleQDABench.cu`（可执行文件 `Experiment_PoiseuilleQDABench_cuda`；CLI 与产物 schema 和 CKS bench 完全一致）在单张 A800 上验证该路径至 2^20 维——三跑生产矩阵终值见 [docs/verification/v1d-qda-linsolver-a800.md](verification/v1d-qda-linsolver-a800.md)。其 2026-10-21 补篇给出 `--czEps`（ClearZero）阈值的维度自适应方法：`ClearZero` 按 |振幅|² < eps 裁剪，解分支出生单态幅值 ≈ sqrt(2e-6/n) 且随调度细化（ds = 1/步数）线性缩小，应使 sqrt(czEps) 低于出生幅值——可用范围 `1e-16`~`1e-22`（canonical `1e-16`，经三跑矩阵验证提取读数最干净；`1e-20`~`1e-22` 保留更多小幅值态）；默认 `1e-14` 下解分支自 2^19 维起出生即被剪（实测出生幅值：2^17 2.9e-7 / 2^18 1.5e-7 存活，2^19 7.4e-8 / 2^20 3.7e-8 被剪，断点 1e-7）。2^20 终局：固定 40568 步预算在 dim256 能完成绝热转移，在 2^16/2^20 不能（同调度成功概率 1.0 → 0.027 → 0.0017）——属算法的预算-谱隙标度性质；≥10^6 维收敛判据由 CKS 承担（v1e）。
 
 ---
 

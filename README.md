@@ -134,9 +134,9 @@ artifact schema for both engines (`residual_curve.csv` + `qda_summary_cpp.json`)
 
 ```bash
 # QDA (discrete adiabatic) — at 2^20 the default --czEps prunes the solution
-# branch; size it by dimension/schedule as described below
+# branch; 1e-16 is the canonical production setting (see the sizing guide below)
 ./Experiment_PoiseuilleQDABench_cuda --nqubit 20 --kappa 16 --steprate 1.1 \
-    --tol 1e-6 --logEvery 250 --czEps 1e-20 --outdir qda_2p20
+    --tol 1e-6 --logEvery 250 --czEps 1e-16 --outdir qda_2p20
 
 # CKS (Chebyshev quantum walk, QRAM-free direct oracles)
 ./Experiment_CKS_PoiseuilleBench_cuda --nqubit 20 --kappa 16 --eps 0.01 \
@@ -151,9 +151,15 @@ Verified results (single A800, CUDA sparse-state backend):
   2682 s wall time; dim16/dim64 success probabilities bitwise-identical to the CPU
   reference — [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md).
 - **QDA at dim256**: the full 40568-step schedule converges to `res_dir = 5.9485e-4`
-  (fidelity `1.000000`, success probability `1.0`); the 2^20 production re-run is in
-  progress and the record is continuously updated —
-  [v1d](docs/verification/v1d-qda-linsolver-a800.md).
+  (fidelity `1.000000`, success probability `1.0`).
+- **QDA at 2^20** (three-run `--czEps` matrix, final): the canonical run
+  (`--czEps 1e-16`) ends at `res_dir = 5.178909e-3`, fidelity `0.9999989`,
+  success probability `0.0017` (133,231 s); the `1e-20`/`1e-22` companions end at
+  `~4.3e-2` with identical transfer. At this budget the adiabatic transfer is
+  incomplete at 2^20 (success probability falls 1.0 → 0.027 → 0.0017 for
+  dim256 → 2^16 → 2^20 on the same schedule) — a budget-vs-spectral-gap property
+  of the algorithm, not a simulator defect; the ≥1e6-dimension convergence
+  criterion is carried by CKS — [v1d](docs/verification/v1d-qda-linsolver-a800.md).
 
 ### Sizing `--czEps` by dimension and schedule (QDA)
 
@@ -165,7 +171,7 @@ refined (ds = 1/steps), so the rule of thumb is
 | Schedule | Working `--czEps` |
 |----------|-------------------|
 | coarse (`--steprate 0.1`) | `1e-16` |
-| fine (`--steprate 1.1`, production) | `1e-20` – `1e-22` |
+| fine (`--steprate 1.1`, production) | `1e-16` – `1e-22` (canonical `1e-16`; `1e-20`–`1e-22` retain more small-amplitude states) |
 
 At the library default `1e-14` (amplitude cutoff 1e-7) the solution branch is pruned
 at birth from dim 2^19 upward — measured cliff: 2^17 (2.9e-7) and 2^18 (1.5e-7)
