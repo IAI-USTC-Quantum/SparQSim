@@ -60,7 +60,7 @@ Launched 2026-10-20 05:26 (a800, GPU 3), budget 40568 steps, log every 250
 steps, early break when `res_dir < 1e-6`. Results table to be appended on
 completion: final `res_dir` / `res_opt` / fidelity / success probability,
 steps executed, wall time, and the collected replay artifact path under
-`05-测试报告/data/T2-稀疏态虚拟机/`.
+`测试报告/data/T2-稀疏态虚拟机/`.
 
 Notes recorded for the report (non-judging quantities):
 
@@ -147,7 +147,7 @@ re-run production (2^20, rate 1.1, 40568 steps, `--czEps 1e-16`) and a
 rate-0.1 companion (3688 steps) are in flight — final tables to be appended.
 
 The archived failed run is kept at
-`05-测试报告/data/T2-稀疏态虚拟机/T2-LS-1e6-kappa16-qda-cpp-nan-failed-20261020/`
+`测试报告/data/T2-稀疏态虚拟机/T2-LS-1e6-kappa16-qda-cpp-nan-failed-20261020/`
 as evidence of the failure mode; the fresh run directory is
 `T2-LS-1e6-kappa16-qda-cpp/`.
 
@@ -164,7 +164,7 @@ only `--czEps` differs):
 | B | `1e-22` | 4.296244e-2 | 1.146482e-2 | 0.9999710 | 0.0017 | 220,601.9 | 67,108,956 |
 
 All three terminated on `fixed_step_budget` (tol not reached) and were collected
-into `05-测试报告/data/T2-稀疏态虚拟机/` under entry ids
+into `测试报告/data/T2-稀疏态虚拟机/` under entry ids
 `T2-LS-1e6-kappa16-qda-cpp{-eps1e-20,-eps1e-22}`; manifest verify green.
 
 **Canonical choice: P1 (`--czEps 1e-16`)** — lowest res_dir by an order of
