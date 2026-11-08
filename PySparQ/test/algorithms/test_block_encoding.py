@@ -206,7 +206,7 @@ class TestBlockEncodingTridiagonal:
 
     @pytest.mark.parametrize("alpha,beta", [
         (1.0, 0.0),  # Identity-like
-        pytest.param(0.0, 1.0, marks=pytest.mark.xfail(reason="alpha=0 normalization issue in ported code")),
+        (0.0, 1.0),  # Zero diagonal; state-preparation completion remains unitary
         (2.0, -1.0),  # Negative off-diagonal
         (1.5, 0.5),  # General
     ])
