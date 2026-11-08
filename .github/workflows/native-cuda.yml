@@ -26,9 +26,16 @@ jobs:
         with:
           python-version: '3.13'
       - name: Require a QRAM main-line dependency
+        shell: python
         run: |
-          git -C extern/qram-simulator fetch --no-tags origin main
-          git -C extern/qram-simulator merge-base --is-ancestor HEAD FETCH_HEAD
+          import subprocess
+          git = ['git', '-C', 'extern/qram-simulator']
+          shallow = subprocess.check_output(git + ['rev-parse', '--is-shallow-repository'], text=True).strip()
+          fetch = ['fetch', '--no-tags']
+          if shallow == 'true':
+              fetch.append('--unshallow')
+          subprocess.run(git + fetch + ['origin', 'main'], check=True)
+          subprocess.run(git + ['merge-base', '--is-ancestor', 'HEAD', 'FETCH_HEAD'], check=True)
       - name: Prepare independent build tools and pinned NVIDIA SDK
         run: |
           python -m pip install cmake==4.4.4 ninja==1.13.2 pybind11==3.0.2
