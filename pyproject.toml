@@ -106,6 +106,10 @@ skip = ["*-musllinux_*", "*-win32", "*-macos*"]
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
+# cibuildwheel installs the product before test-requires. Seed the tested
+# binary NumPy first so its unconstrained runtime dependency cannot select a
+# future sdist that no longer supports the manylinux2014 compiler/glibc.
+before-test = "uv pip install --only-binary=:all: numpy==2.2.6"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
