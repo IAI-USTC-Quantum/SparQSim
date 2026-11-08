@@ -39,6 +39,13 @@ support alongside the current exact joint damping/pruning implementation.
 Initialize the declared gitlink with `git submodule update --init --recursive`;
 do not substitute an arbitrary sibling checkout.
 
+The gitlink is a fixed source commit, not a request to follow QRAM's latest
+branch tip. Dependency auditing fetches complete QRAM history before checking
+that the selected commit is on main. A shallow submodule clone can otherwise
+hide this ancestry when QRAM main advances, even though the locked source is
+still valid. Fetching history preserves the pin; it does not upgrade it or
+replace the required ancestry assertion.
+
 The CUDA consumer CI verifies main-line ancestry and actually compiles all
 four device libraries (Common, QRAM, SparQ simulator and algorithm library)
 under pinned NVIDIA12.8.1 and13.3.0 SDKs. CPU wheels remain CPU-only. Compiling
