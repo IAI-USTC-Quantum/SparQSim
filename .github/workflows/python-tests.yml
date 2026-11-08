@@ -61,6 +61,9 @@ jobs:
     - name: Run import test
       run: python -c "import pysparq; pysparq.test_import()"
 
+    - name: Audit installed distribution notices and product assets
+      run: python tools/check_installed_product.py --notices-only
+
     - name: Run pytest
       # The Windows runner's Strawberry Perl ships a mingw g++: JIT compilation
       # works, but the MinGW runtime DLLs the artifact depends on

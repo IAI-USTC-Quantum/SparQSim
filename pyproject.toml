@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "scikit-build-core>=0.10",
-    "pybind11>=2.13",
+    "pybind11==3.0.2",
     "setuptools>=70",
     "setuptools-scm>=8",
 ]
@@ -33,6 +33,17 @@ minimum-version = "build-system.requires"
 cmake.version = ">=3.18"
 cmake.build-type = "Release"
 wheel.platlib = true
+wheel.license-files = [
+    "LICENSE", "THIRD_PARTY_NOTICES.md",
+    "extern/qram-simulator/LICENSE",
+    "extern/qram-simulator/THIRD_PARTY_NOTICES.md",
+    "extern/qram-simulator/ThirdParty/notice-provenance.json",
+    "extern/qram-simulator/ThirdParty/fmt/LICENSE",
+    "extern/qram-simulator/ThirdParty/eigen-3.4.0/COPYING.*",
+    "extern/qram-simulator/ThirdParty/argparse/LICENSE.Apache-2.0-with-LLVM-exception.txt",
+    "extern/qram-simulator/ThirdParty/pybind11/LICENSE",
+    "extern/qram-simulator/ThirdParty/gcc-runtime/*",
+]
 # wheel.packages is required WITH wheel.platlib to include Python source
 # files from PySparQ/pysparq/ in the wheel alongside the compiled .so
 # extensions from the CMake install prefix (platlib).
@@ -42,16 +53,17 @@ metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
 # The sdist must be self-contained (PyPI policy: no network fetches during
 # build): embed the QRAM-Simulator submodule source checked out next to it,
-# plus the local SparQ framework sources. Remember to init submodules
+# plus the local SparQ framework sources. Default source selection already
+# traverses the initialized submodule. Do not force-include its entire directory:
+# include patterns take precedence over exclusions and would bundle .git pointers.
+# Remember to init submodules
 # (`git submodule update --init`) before `python -m build --sdist`.
 [tool.scikit-build.sdist]
-include = [
-    "extern/qram-simulator/*",
-    "SparQ/*",
-    "SparQ_Algorithm/*",
-]
 exclude = [
-    "extern/qram-simulator/.git",
+    "/extern/qram-simulator/.git",
+    "/extern/qram-simulator/.github",
+    "/extern/qram-simulator/.gitea",
+    "/extern/qram-simulator/docs",
     "extern/qram-simulator/Experiments",
     "extern/qram-simulator/test",
     "extern/qram-simulator/ThirdParty/googletest",
@@ -85,13 +97,15 @@ fallback_version = "0.0.0"
 
 [tool.cibuildwheel]
 build-frontend = "build[uv]"
+test-requires = ["pytest==8.4.2", "numpy==2.2.6"]
+test-command = 'python "{project}/tools/check_installed_product.py"'
+environment = { OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1" }
 # 32-bit systems not supported yet (size_t != uint64_t)
 # macOS support temporarily removed
 skip = ["*-musllinux_*", "*-win32", "*-macos*"]
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
-before-all = "yum install -y libgomp"
 
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
