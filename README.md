@@ -68,6 +68,31 @@ pip install pysparq
 
 **Requirements**: Python 3.10 – 3.13, NumPy.
 
+### Standalone simulator workbench
+
+```bash
+pysparq info
+pysparq run --case ghz --qubits 32 --out results/ghz.json
+pysparq run --case qft --qubits 6 --basis 3
+pysparq run --case stateprep --qubits 8 --seed 20261109
+pysparq gui
+```
+
+The installed package contains its own local GUI and native CPU experiments;
+no separate demo-suite or external web assets are needed. GHZ keeps two
+nonzero amplitudes up to 32 qubits. Fourier and complex state preparation
+support 2..10 qubits in this bounded workbench; state preparation deliberately
+includes a zero first amplitude. Each run compares complex amplitudes against
+an independent reference and checks the actual inverse. JSON/CSV exports
+include amplitudes, logical qubits, sparse support, native binary hash and
+separate constructor/execution times. These are classical CPU simulation
+times, not quantum runtime estimates or application speedup certificates.
+
+`pysparq gui --no-browser --port 8000` prints a loopback URL. Its experiments
+run in separate subprocesses with a 60-second deadline because the native
+register system is process-global. Calling `pysparq.demo.run` directly clears
+that register system; use a separate process when sharing other simulator work.
+
 If you need the QRAM circuit-level Python API (the `QRAMCircuitQubit`/`QRAMCircuitQutrit`
 noise-simulation workflow), additionally install the standalone package released by the
 [QRAM-Simulator](https://github.com/IAI-USTC-Quantum/QRAM-Simulator) repository:

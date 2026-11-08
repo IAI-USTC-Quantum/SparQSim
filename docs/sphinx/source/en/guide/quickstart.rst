@@ -1,6 +1,27 @@
 Quick Start
 ===========
 
+Standalone simulator workbench
+------------------------------
+
+.. code-block:: bash
+
+   pysparq info
+   pysparq run --case ghz --qubits 32 --out results/ghz.json
+   pysparq run --case qft --qubits 6 --basis 3
+   pysparq run --case stateprep --qubits 8 --seed 20261109
+   pysparq gui
+
+The installed package has its own local GUI with no external web assets.
+The bounded experiments use the actual CPU native simulator, expose complex
+amplitudes, and check independent references and inverse operations. Reports
+include logical qubits, sparse support, normalization, phase-sensitive error,
+native binary hash and separate construction/execution times. GHZ supports
+up to 32 qubits; Fourier and dense unitary state preparation support 2..10.
+These timings describe classical simulation, not quantum runtime or an
+application speedup certificate. The GUI runs each experiment in a separate
+subprocess with a 60-second deadline; it submits no hardware jobs.
+
 Register-Level Programming
 --------------------------
 

@@ -1,6 +1,24 @@
 快速入门
 ========
 
+独立模拟工作台
+--------------
+
+.. code-block:: bash
+
+   pysparq info
+   pysparq run --case ghz --qubits 32 --out results/ghz.json
+   pysparq run --case qft --qubits 6 --basis 3
+   pysparq run --case stateprep --qubits 8 --seed 20261109
+   pysparq gui
+
+安装包自带独立本地界面，不依赖 demo-suite 或外部网页资源。示例实际调用 CPU
+原生模拟器，导出复振幅，并核对独立参考值和逆操作。报告包含逻辑比特数、稀疏
+支撑规模、归一化、复相位误差、原生二进制摘要及构造/执行分项耗时。GHZ 支持
+至多32比特，傅里叶变换和稠密酉态制备支持2..10比特。这些是经典模拟耗时，
+不是量子运行时间或应用加速验收证明。界面每次使用独立子进程，限时60秒；
+不提交任何真机任务。
+
 寄存器级编程
 ------------
 
