@@ -1,12 +1,14 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+
+concurrency:
+  group: pypi-publish-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -85,10 +87,16 @@ jobs:
 
       - name: Verify sdist is self-contained
         run: |
-          tar -tzf dist/pysparq-*.tar.gz | grep -q "SparQ/include/sparse_state_simulator.h" \
-            || { echo "ERROR: sdist missing SparQ framework headers"; exit 1; }
-          tar -tzf dist/pysparq-*.tar.gz | grep -q "extern/qram-simulator/QRAM/include/qram_circuit_qubit.h" \
-            || { echo "ERROR: sdist missing embedded QRAM-Simulator core"; exit 1; }
+          python tools/check_sdist_contents.py dist/pysparq-*.tar.gz
+
+      - name: Build and test the actual source archive
+        env:
+          OMP_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+        run: |
+          python -m pip wheel --no-deps --wheel-dir sdist-wheelhouse dist/pysparq-*.tar.gz
+          python -m pip install sdist-wheelhouse/*.whl pytest==8.4.2 numpy==2.2.6
+          python tools/check_installed_product.py
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,7 +107,7 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'IAI-USTC-Quantum' && (github.event_name == 'push' || github.event_name == 'release')
+    if: github.repository_owner == 'IAI-USTC-Quantum' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     environment:
       name: pypi
       url: https://pypi.org/project/pysparq/
