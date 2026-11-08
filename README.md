@@ -30,6 +30,24 @@ the QRAM base (Common + QRAM + ThirdParty) is released independently from the
 [QRAM-Simulator repository](https://github.com/IAI-USTC-Quantum/QRAM-Simulator)
 and is referenced and compiled by this repository as a git submodule (relative URL `../QRAM-Simulator.git`).
 
+### Current core dependency
+
+`extern/qram-simulator` is pinned to QRAM-Simulator main commit
+`8016d2014f57e17c7ee1dfd8d5200e7635feaec9`. This replaces the former CUDA
+feature-branch pin with an integrated main-line core, preserving CUDA build
+support alongside the current exact joint damping/pruning implementation.
+Initialize the declared gitlink with `git submodule update --init --recursive`;
+do not substitute an arbitrary sibling checkout.
+
+The CUDA consumer CI verifies main-line ancestry and actually compiles all
+four device libraries (Common, QRAM, SparQ simulator and algorithm library)
+under pinned NVIDIA12.8.1 and13.3.0 SDKs. CPU wheels remain CPU-only. Compiling
+sm80 on a driver-free runner does not verify GPU execution or throughput.
+Local source-wheel regression passed486 tests; the pre-existing two CKS
+replacement-API skips and alpha=0 block-encoding xfail remain explicit gaps.
+Neither those skips nor the historical GPU reports certify the entire current
+software acceptance matrix.
+
 | Repository | Contents | PyPI package |
 |------------|----------|--------------|
 | **SparQSim** (this repository) | SparQ C++ framework + the full-featured pysparq Python framework (rich core.cpp bindings + pure-Python algorithm layer) | `pysparq` |
