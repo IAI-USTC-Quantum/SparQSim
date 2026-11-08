@@ -478,42 +478,57 @@ namespace qram_simulator
 		operate(state, true);
 	}
 
-	static void normalize(std::vector<complex_t>& psi) {
-		double norm = 0.0;
-		for (const auto& element : psi) {
-			norm += abs_sqr(element);
+	DenseMatrix<complex_t> stateprep_unitary_build_schmidt(const std::vector<complex_t>& target) {
+		const auto N = target.size();
+		if (N == 0) throw std::invalid_argument("Cannot prepare an empty vector.");
+		// Scale first to avoid overflow/underflow in the norm. A finite nonzero
+		// target is normalized, as in the original state-preparation interface.
+		double scale = 0;
+		for (const auto& value : target) {
+			if (!std::isfinite(value.real()) || !std::isfinite(value.imag()))
+				throw std::invalid_argument("State amplitudes must be finite.");
+			scale = std::max(scale, std::max(std::abs(value.real()), std::abs(value.imag())));
 		}
-		norm = std::sqrt(norm);
-		for (auto& element : psi) {
-			element /= norm;
+		if (scale == 0) throw std::invalid_argument("Cannot prepare the zero vector.");
+		std::vector<complex_t> v(N);
+		double norm_squared = 0;
+		for (size_t i = 0; i < N; ++i) {
+			v[i] = target[i] / scale;
+			norm_squared += abs_sqr(v[i]);
 		}
+		const double norm = std::sqrt(norm_squared);
+		for (auto& value : v) value /= norm;
+		// Stable complex Householder completion: v=psi+phase(psi[0])*e0.
+		// H=I-2vv*/<v,v> maps e0 to -conj(phase)*psi. Multiplying H's
+		// first column by -phase gives Ue0=psi with its exact complex phase.
+		// <v,v> >= 2, including zero or nearly-unit first amplitudes.
+		const double first_abs = std::abs(v[0]);
+		const complex_t phase = first_abs == 0 ? complex_t(1) : v[0] / first_abs;
+		v[0] += phase;
+		double v_norm_squared = 0;
+		for (const auto& value : v) v_norm_squared += abs_sqr(value);
+		DenseMatrix<complex_t> ret(N);
+		for (size_t i = 0; i < N; ++i) {
+			for (size_t j = 0; j < N; ++j) {
+				ret(i, j) = complex_t(i == j ? 1 : 0)
+					- (2.0 / v_norm_squared) * v[i] * std::conj(v[j]);
+				if (j == 0) ret(i, j) *= -phase;
+			}
+		}
+		return ret;
 	}
 
-	DenseMatrix<complex_t> stateprep_unitary_build_schmidt(const std::vector<complex_t>& psi) {
-		auto N = psi.size(); // Dimension of the state vector
-		DenseMatrix<complex_t> ret(N);
-
-		// Fill U such that U|0> = |psi>
-		for (size_t j = 0; j < N; ++j){
-			for (size_t i = 0; i < N; ++i) {
-				if (j == 0)
-					// U[i][0] should be psi[i]
-					ret(i, j) = psi[i];
-
-				else
-					ret(i, j) = (i == j ? 1 : 0);
-			}
-			normalize_column(ret, j);
-		}		
-		gram_schmidt_process(ret);
-
-		return ret;
+	static DenseMatrix<complex_t> stateprep_unitary_build(size_t register_id,
+		const std::vector<complex_t>& target) {
+		if (target.size() != pow2(System::size_of(register_id)))
+			throw std::invalid_argument("State size does not match the register's size.");
+		return stateprep_unitary_build_schmidt(target);
 	}
 
 	Rot_GeneralStatePrep::Rot_GeneralStatePrep(std::string_view reg_in, const std::vector<complex_t>& vec_)
 		: id(System::get(reg_in)), 
 		vec(vec_), 
-		rot_general(System::get(reg_in), stateprep_unitary_build_schmidt(vec_))
+		rot_general(System::get(reg_in), stateprep_unitary_build(System::get(reg_in), vec_))
 	{
 		n_digits = System::size_of(id);
 		full_size = pow2(n_digits);
@@ -525,7 +540,7 @@ namespace qram_simulator
 	Rot_GeneralStatePrep::Rot_GeneralStatePrep(size_t reg_in, const std::vector<complex_t>& vec_)
 		: id(reg_in),
 		vec(vec_),
-		rot_general(reg_in, stateprep_unitary_build_schmidt(vec_))
+		rot_general(reg_in, stateprep_unitary_build(reg_in, vec_))
 	{
 		n_digits = System::size_of(id);
 		full_size = pow2(n_digits);

@@ -116,9 +116,11 @@ namespace qram_simulator
 	};
 
 	/**
-	 * @brief Build a state preparation unitary using Schmidt decomposition
-	 * @param vec Target state vector
-	 * @return State preparation unitary matrix
+	 * @brief Build a phase-exact state-preparation unitary (historical API name).
+	 * @param vec Finite nonzero target, normalized internally with scaling.
+	 * @return U with U|0>=vec/||vec||, using a stable complex Householder
+	 *         completion in O(N^2) time. Other columns are a deterministic
+	 *         unitary completion, not the former Gram-Schmidt columns.
 	 */
 	DenseMatrix<complex_t> stateprep_unitary_build_schmidt(const std::vector<complex_t>& vec);
 
