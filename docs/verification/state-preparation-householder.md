@@ -10,9 +10,11 @@ For normalized psi, choose phase=psi[0]/abs(psi[0]) (or1 at zero), v=psi+phase*e
 
 The installed final-source CPU wheel passes507 tests; two pre-existing CKS replacement-API skips remain. The zero-diagonal tridiagonal case first XPASSed with its original normalization assertion, then its xfail marker was removed.20 new cases reconstruct the complete native gate/dagger matrices, compare target phases, test complex random inputs and numerical extremes, and retain the historical public builder. Native CUDA compilation is tracked separately; no GPU runtime result is asserted.
 
+The same native extension additionally passes the five fixed-OracQ15a82e pure-function real-backend tests (131.39s), including checkpoint/uncompute execution, and the real PySparQ/OriginIR algorithm-contract comparison (2.34s). UniQC is fixed to a8a936; these are local simulator runs, not hardware submissions. Extension SHA256 was checked again after installing compatibility dependencies.
+
 ## Constructor timing
 
-Intel Xeon Gold5118,2sockets×12physical cores,48SMT threads. This benchmark uses OMP_NUM_THREADS=1 and OPENBLAS_NUM_THREADS=1. Identical positive-real normalized targets are constructed three times at each size; medians below include the complete native gate constructor. Old C++ source is the unchanged SparQSim4b9a129 core with the integrated QRAM8016d201 dependency; new source is the Householder candidate. This measures classical simulator setup, not quantum algorithm execution, logical gate counts or the project200× application criterion.
+Intel Xeon Gold5118,2sockets×12physical cores,48SMT threads. This benchmark uses OMP_NUM_THREADS=1 and OPENBLAS_NUM_THREADS=1. Identical positive-real normalized targets are constructed three times at each size; medians below include the complete native gate constructor. Old C++ source is the unchanged SparQSim4b9a129 core with the integrated QRAM8016d201 dependency; new source is the Householder candidate. This measures classical simulator setup, not quantum algorithm execution, logical gate counts or end-to-end application performance.
 
 | Dimension | Old median / s | New median / s | Ratio |
 |---|---:|---:|---:|
