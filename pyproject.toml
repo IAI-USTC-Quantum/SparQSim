@@ -18,6 +18,9 @@ authors = [{ name = "Agony", email = "chenzhaoyun@iai.ustc.edu.cn" }]
 
 dependencies = ["numpy", "typing_extensions; python_version < '3.11'"]
 
+[project.scripts]
+pysparq = "pysparq.demo:main"
+
 [project.urls]
 Core = "https://github.com/IAI-USTC-Quantum/QRAM-Simulator"
 
