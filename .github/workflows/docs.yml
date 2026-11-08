@@ -13,6 +13,8 @@ on:
     branches: [ "main", "develop" ]
     paths:
       - 'docs/**'
+      - 'extern/qram-simulator'
+      - 'pyproject.toml'
       - 'PySparQ/**'
       - 'SparQ/**'
       - 'SparQ_Algorithm/**'
@@ -24,6 +26,8 @@ on:
     branches: [ "main", "develop" ]
     paths:
       - 'docs/**'
+      - 'extern/qram-simulator'
+      - 'pyproject.toml'
       - 'PySparQ/**'
       - 'SparQ/**'
       - 'SparQ_Algorithm/**'
