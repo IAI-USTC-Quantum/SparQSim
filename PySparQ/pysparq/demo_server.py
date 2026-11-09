@@ -85,17 +85,19 @@ def make_server(port: int = 0) -> ThreadingHTTPServer:
                            "--basis", str(config.basis)]
                 result = subprocess.run(command, capture_output=True, text=True, timeout=60, check=False)
                 if result.returncode:
-                    self.reply(422, {"error": result.stderr[-2048:]})
+                    code, body = 422, {"error": result.stderr[-2048:]}
                 else:
-                    self.reply(200, json.loads(result.stdout))
-            except ConnectionError:
-                pass
+                    code, body = 200, json.loads(result.stdout)
             except subprocess.TimeoutExpired:
-                self.reply(504, {"error": "experiment exceeded 60 seconds"})
+                code, body = 504, {"error": "experiment exceeded 60 seconds"}
             except (OSError, ValueError) as exc:
-                self.reply(500, {"error": str(exc)})
+                code, body = 500, {"error": str(exc)}
             finally:
+                # Release before replying: the client may send its next request
+                # the instant the response arrives, and the 409 guard must not
+                # fire against a finished experiment.
                 busy.release()
+            self.reply(code, body)
 
         def run_rir_request(self):
             try:
@@ -125,17 +127,17 @@ def make_server(port: int = 0) -> ThreadingHTTPServer:
                     result = subprocess.run(command, capture_output=True, text=True,
                                             timeout=60, check=False)
                     if result.returncode:
-                        self.reply(422, {"error": result.stderr[-2048:]})
+                        code, body = 422, {"error": result.stderr[-2048:]}
                     else:
-                        self.reply(200, json.loads(result.stdout))
-            except ConnectionError:
-                pass
+                        code, body = 200, json.loads(result.stdout)
             except subprocess.TimeoutExpired:
-                self.reply(504, {"error": "RIR execution exceeded 60 seconds"})
+                code, body = 504, {"error": "RIR execution exceeded 60 seconds"}
             except (OSError, ValueError) as exc:
-                self.reply(500, {"error": str(exc)})
+                code, body = 500, {"error": str(exc)}
             finally:
+                # Same release-before-reply ordering as /api/run.
                 busy.release()
+            self.reply(code, body)
 
     return ThreadingHTTPServer(("127.0.0.1", port), Handler)
 
