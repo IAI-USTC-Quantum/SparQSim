@@ -23,6 +23,7 @@ def check(archive: Path) -> None:
             "SparQ_Algorithm/include/state_preparation.h",
             "extern/qram-simulator/CMakeLists.txt",
             "extern/qram-simulator/QRAM/include/qram_circuit_qubit.h",
+            "extern/qram-simulator/bindings/python/qram_simulator/word_memory.py",
             "extern/qram-simulator/ThirdParty/fmt/src/format.cc",
             "extern/qram-simulator/ThirdParty/eigen-3.4.0/COPYING.MPL2",
             "extern/qram-simulator/ThirdParty/notice-provenance.json",
