@@ -112,6 +112,11 @@ The formal gitlink bump, 8-platform wheel + sdist matrix, tag and release
 happen only after QRAM-Simulator lands and releases the helper on its main;
 those results will be recorded separately.
 
+> Update 2026-11-09: the forward-looking sentence above is kept as the
+> historical rehearsal record it was; the formal gitlink bump to `53f0261`,
+> the 8-platform wheel + sdist matrix and the releases have since happened
+> (v0.4.0 and v0.4.1 tags on main; see the repository releases).
+
 ## Round 2 (2026-11-09): narrow zero-control shared-address defect, fixed
 
 The narrow dense path had the exact defect the wide path was designed
