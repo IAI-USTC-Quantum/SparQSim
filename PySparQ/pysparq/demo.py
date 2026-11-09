@@ -140,6 +140,45 @@ def run(config: Experiment) -> dict:
         ps.System.clear()
 
 
+def run_rir_document(program_source: str, memory_source: str | None) -> dict:
+    """Execute one RIR JSON document natively (wide registers and QRAM included).
+
+    ``program_source`` and ``memory_source`` are filesystem paths or inline
+    JSON strings; ``run_rir`` performs the actual native sparse-state
+    execution, so widths beyond 64 bits and wide sparse QRAM queries run on
+    the real backend. The exported record carries provenance, the program
+    digest and every nonzero amplitude keyed by full-width register values.
+    """
+    import pysparq as ps
+
+    document = ps.load_rir(program_source)
+    memory = None
+    if memory_source:
+        text = memory_source.lstrip()
+        if text.startswith("{"):
+            memory = json.loads(memory_source)
+        else:
+            memory = json.loads(Path(memory_source).read_text(encoding="utf-8"))
+        # JSON object keys are strings; run_rir addresses are integers.
+        memory = {name: {int(address): word for address, word in cells.items()}
+                  if isinstance(cells, dict) else cells
+                  for name, cells in memory.items()}
+    started = time.perf_counter()
+    result = ps.run_rir(document, memory)
+    elapsed = time.perf_counter()-started
+    program_bytes = json.dumps(document, sort_keys=True, separators=(",", ":")).encode()
+    return {"schema": "pysparq.rir-run.v1", "software": information(),
+            "program_sha256": hashlib.sha256(program_bytes).hexdigest(),
+            "registers": [{"name": name, "width": width} for name, width in result.registers],
+            "amplitudes": [
+                {"values": list(key), "real": value.real, "imag": value.imag,
+                 "probability": abs(value)**2}
+                for key, value in sorted(result.amplitudes.items())],
+            "timing": {"native_execution_s": elapsed, "total_s": elapsed},
+            "scope": {"timing_kind": "classical CPU simulation", "quantum_runtime_estimate": False,
+                      "application_speedup_certificate": False}}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -150,6 +189,13 @@ def main() -> None:
     experiment.add_argument("--seed", type=int, default=20261109)
     experiment.add_argument("--basis", type=int, default=3)
     experiment.add_argument("--out", type=Path)
+    rir = commands.add_parser(
+        "rir", help="execute an RIR JSON program natively (wide registers and QRAM)")
+    rir.add_argument("--program", required=True,
+                     help="path to the RIR JSON document (or inline JSON text)")
+    rir.add_argument("--memory",
+                     help="optional path to a JSON object of QRAM cells keyed by resource name")
+    rir.add_argument("--out", type=Path)
     gui = commands.add_parser("gui", help="start the packaged local simulator workbench")
     gui.add_argument("--port", type=int, default=0)
     gui.add_argument("--no-browser", action="store_true")
@@ -160,15 +206,18 @@ def main() -> None:
 
             serve(port=args.port, open_browser=not args.no_browser)
             return
-        result = information() if args.command == "info" else run(
-            Experiment(args.case, args.qubits, args.seed, args.basis))
+        if args.command == "rir":
+            result = run_rir_document(args.program, args.memory)
+        else:
+            result = information() if args.command == "info" else run(
+                Experiment(args.case, args.qubits, args.seed, args.basis))
         text = json.dumps(result, indent=2, allow_nan=False)+"\n"
         if getattr(args, "out", None):
             args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(text, encoding="utf-8")
         else:
             print(text, end="")
-    except (ValueError, TypeError, OSError, RuntimeError) as exc:
+    except (ValueError, TypeError, OSError, RuntimeError, json.JSONDecodeError) as exc:
         parser.exit(2, f"pysparq: {exc}\n")
 
 

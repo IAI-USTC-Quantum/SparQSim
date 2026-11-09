@@ -366,8 +366,16 @@ The interpreter enforces two kinds of budgets; exceeding one raises an
 
 There are also structural checks:
 
-- materialization is refused when a single QRAM's ``address_width``
-  exceeds 20 (i.e. more than 2^20 cells);
+- QRAM resources are routed to one of two **real native execution paths**:
+  narrow resources (``address_width <= 20`` and
+  ``address_width + data_width <= 64``) are materialized as a
+  :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>` and queried via
+  :class:`QRAMLoad <pysparq.QRAMLoad>`; wider resources execute through the
+  ideal sparse word path (``pysparq._qram_words.SparseWordMemory``, installed
+  from the QRAM-Simulator submodule), which applies exact controlled native
+  ``X_Bool`` queries over a zero-default sparse cell dictionary and never
+  allocates 2^address space. The two paths are cross-validated against each
+  other and against the reference semantics;
 - ``memory`` must correspond one-to-one with the QRAM resources declared
   by the entry module, and both addresses and words are range-checked;
 - a ``Module.locals`` private workspace must be clean again when the
@@ -376,6 +384,19 @@ There are also structural checks:
   the simulator;
 - the global register table must be empty before the call (``run_rir``
   performs ``System.clear()`` automatically on exit).
+
+Registers wider than the 64-bit machine word
+--------------------------------------------
+
+The native ABI addresses registers up to 64 bits. ``run_rir`` (and the
+public :class:`pysparq.register_layout.RegisterLayout` API) therefore back
+one **logical** register with several native 64-bit machine words
+(``<name>__word_<i>``): every gate, control, phase, view, carry/wrap
+arithmetic and result readout still executes on the real sparse-state
+backend, while full-width logical values are reconstructed as Python
+integers. Nothing truncates to the low 64 bits, no reference interpreter is
+substituted for the native path, and the global register table is restored
+on exit.
 
 Cross-validation with pyqecclang
 --------------------------------

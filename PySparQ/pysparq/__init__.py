@@ -408,6 +408,7 @@ from pysparq.algorithms.qda_solver import (
 # RIR (QECC.Lang intermediate representation) execution
 # --------------------------------------------------------------------
 from pysparq.rir import RIRError, RIRResult, load_rir, run_rir, run_rir_file
+from pysparq.register_layout import RegisterLayout
 
 # --------------------------------------------------------------------
 # Deprecated operator aliases (naming refactor; see docs/naming_conventions.md)

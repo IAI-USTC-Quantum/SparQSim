@@ -678,7 +678,10 @@ namespace qram_simulator {
 					System& s = state[i];
 					for (auto &reg_id : anc_registers)
 					{
-						if (s.GetAs(reg_id, size_t) != 0)
+						// Raw value check: truncating conversions preserve zero, and the
+						// GetAs macro's as<size_t> template argument trips CUDA 13.4's
+						// device-frontend parser in this host template.
+						if (s.get(reg_id).value != 0)
 							return false;
 					}
 				}

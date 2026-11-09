@@ -33,9 +33,12 @@ and is referenced and compiled by this repository as a git submodule (relative U
 ### Current core dependency
 
 `extern/qram-simulator` is pinned to QRAM-Simulator main commit
-`8016d2014f57e17c7ee1dfd8d5200e7635feaec9`. This replaces the former CUDA
-feature-branch pin with an integrated main-line core, preserving CUDA build
-support alongside the current exact joint damping/pruning implementation.
+`53f0261c4e3190f9ef823176850dd1bcacc8e744` (merged as #93, full CI green).
+Besides the integrated main-line core with CUDA build support and the exact
+joint damping/pruning implementation, this pin carries the authoritative
+`word_memory.py`: the ideal sparse wide-word QRAM XOR query that CMake
+installs into the wheel as `pysparq/_qram_words.py` for registers and QRAM
+words beyond 64 native bits.
 Initialize the declared gitlink with `git submodule update --init --recursive`;
 do not substitute an arbitrary sibling checkout.
 

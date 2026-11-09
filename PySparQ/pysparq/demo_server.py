@@ -6,12 +6,16 @@ import json
 import secrets
 import subprocess
 import sys
+import tempfile
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
+from pathlib import Path
 
 from .demo import Experiment, information
+
+_RIR_BODY_LIMIT = 262_144
 
 
 def make_server(port: int = 0) -> ThreadingHTTPServer:
@@ -61,6 +65,8 @@ def make_server(port: int = 0) -> ThreadingHTTPServer:
         def do_POST(self):
             if not self.local() or not hmac.compare_digest(self.headers.get("X-Session", ""), token):
                 return self.reply(403, {"error": "local session required"})
+            if self.path == "/api/rir":
+                return self.run_rir_request()
             if self.path != "/api/run":
                 return self.reply(404, {"error": "not found"})
             try:
@@ -79,17 +85,59 @@ def make_server(port: int = 0) -> ThreadingHTTPServer:
                            "--basis", str(config.basis)]
                 result = subprocess.run(command, capture_output=True, text=True, timeout=60, check=False)
                 if result.returncode:
-                    self.reply(422, {"error": result.stderr[-2048:]})
+                    code, body = 422, {"error": result.stderr[-2048:]}
                 else:
-                    self.reply(200, json.loads(result.stdout))
-            except ConnectionError:
-                pass
+                    code, body = 200, json.loads(result.stdout)
             except subprocess.TimeoutExpired:
-                self.reply(504, {"error": "experiment exceeded 60 seconds"})
+                code, body = 504, {"error": "experiment exceeded 60 seconds"}
             except (OSError, ValueError) as exc:
-                self.reply(500, {"error": str(exc)})
+                code, body = 500, {"error": str(exc)}
             finally:
+                # Release before replying: the client may send its next request
+                # the instant the response arrives, and the 409 guard must not
+                # fire against a finished experiment.
                 busy.release()
+            self.reply(code, body)
+
+        def run_rir_request(self):
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 0 < length <= _RIR_BODY_LIMIT or self.headers.get("Content-Type") != "application/json":
+                    raise ValueError(f"a JSON request of at most {_RIR_BODY_LIMIT//1024} KiB is required")
+                payload = json.loads(self.rfile.read(length))
+                if not isinstance(payload, dict) or "program" not in payload:
+                    raise ValueError("the request must carry a 'program' entry")
+                program = payload["program"]
+                memory = payload.get("memory")
+                if not isinstance(program, (dict, str)) or memory is not None and not isinstance(memory, (dict, str)):
+                    raise ValueError("'program' and 'memory' must be objects or JSON text")
+            except (ValueError, TypeError, json.JSONDecodeError) as exc:
+                return self.reply(400, {"error": str(exc)})
+            if not busy.acquire(blocking=False):
+                return self.reply(409, {"error": "an experiment is already running"})
+            try:
+                with tempfile.TemporaryDirectory(prefix="pysparq-rir-") as workdir:
+                    program_path = Path(workdir)/"program.json"
+                    program_path.write_text(json.dumps(program), encoding="utf-8")
+                    command = [sys.executable, "-m", "pysparq.demo", "rir", "--program", str(program_path)]
+                    if memory is not None:
+                        memory_path = Path(workdir)/"memory.json"
+                        memory_path.write_text(json.dumps(memory), encoding="utf-8")
+                        command += ["--memory", str(memory_path)]
+                    result = subprocess.run(command, capture_output=True, text=True,
+                                            timeout=60, check=False)
+                    if result.returncode:
+                        code, body = 422, {"error": result.stderr[-2048:]}
+                    else:
+                        code, body = 200, json.loads(result.stdout)
+            except subprocess.TimeoutExpired:
+                code, body = 504, {"error": "RIR execution exceeded 60 seconds"}
+            except (OSError, ValueError) as exc:
+                code, body = 500, {"error": str(exc)}
+            finally:
+                # Same release-before-reply ordering as /api/run.
+                busy.release()
+            self.reply(code, body)
 
     return ThreadingHTTPServer(("127.0.0.1", port), Handler)
 
