@@ -48,6 +48,12 @@ def main() -> None:
         if files("pysparq").joinpath(name).read_bytes() != (
                 project / "PySparQ/pysparq" / name).read_bytes():
             raise ValueError("installed wheel omitted/changed product asset: " + name)
+    # The shared wide-QRAM helper must come from the pinned QRAM-Simulator
+    # submodule (installed by CMake as pysparq/_qram_words.py); a drifted or
+    # hand-copied copy is a provenance failure.
+    if files("pysparq").joinpath("_qram_words.py").read_bytes() != (
+            core / "bindings/python/qram_simulator/word_memory.py").read_bytes():
+        raise ValueError("installed _qram_words.py does not match the pinned QRAM submodule")
     command = next((entry for entry in dist.entry_points
                     if entry.group == "console_scripts" and entry.name == "pysparq"), None)
     if command is None or command.value != "pysparq.demo:main":
