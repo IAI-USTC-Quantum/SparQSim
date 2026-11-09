@@ -375,7 +375,15 @@ There are also structural checks:
   from the QRAM-Simulator submodule), which applies exact controlled native
   ``X_Bool`` queries over a zero-default sparse cell dictionary and never
   allocates 2^address space. The two paths are cross-validated against each
-  other and against the reference semantics;
+  other and against the reference semantics. A narrow query whose
+  **zero-expectation control bit coincides with an address bit** also takes
+  the sparse word path: the dense path emulates zero controls by toggling
+  the control bits, and a toggled address bit would re-address the query,
+  while the shared helper merges the original address and control
+  constraints before any toggling;
+- accumulated ``Control`` conditions are merged per bit, so repeated
+  requirements on one bit collapse and contradictory requirements (one bit
+  expected to hold both 0 and 1) make the guarded body a structural no-op;
 - ``memory`` must correspond one-to-one with the QRAM resources declared
   by the entry module, and both addresses and words are range-checked;
 - a ``Module.locals`` private workspace must be clean again when the
