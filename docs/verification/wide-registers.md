@@ -82,7 +82,10 @@ the copy is an environment overlay, not a second source in this repository).
   h+phase at six widths, cross-word carry, view xor/swap, multi-span view,
   adjoint add_const, workspace uncompute, wide QRAM with non-zero data +
   mixed controls, unquery, 40-bit sparse address space). Log:
-  `out/xval_oracq.log`.
+  `out/xval_oracq.log`. The same narrow program set (plus a 64-bit-boundary
+  register case) also agrees **7/7 against the formally released OracQ
+  0.4.0** from PyPI (`out/xval_oracq_formal.log`); wide cases against the
+  formal interpreter become possible once OracQ lifts its 0..64 validation.
 - Product paths: `pysparq rir` CLI (real wide RIR file input, full-width
   amplitude export) and the workbench `/api/rir` panel (session/origin/size
   guarded, subprocess execution) — 24 demo tests pass.
