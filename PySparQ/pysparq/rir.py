@@ -37,6 +37,7 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
 
 import pysparq._core as _core
+from pysparq.register_layout import RegisterLayout, register_bits
 
 __all__ = ["RIRError", "RIRResult", "load_rir", "run_rir", "run_rir_file"]
 
@@ -242,7 +243,7 @@ class _Expander:
             self._local_counter += 1
             native = f"rir_local_{self._local_counter}"
             width = register["type"]["width"]
-            mapping[register["name"]] = [(native, i) for i in range(width)]
+            mapping[register["name"]] = register_bits(native, width)
             allocated.append((native, register["type"]["kind"], width))
             yield (_EVENT_ENTER, native, register["type"]["kind"], width)
         yield from self._walk(body, mapping, resources, controls, inverse)
@@ -353,16 +354,15 @@ class _Runner:
         self.entry = modules[document["entry"]]
         self.max_states = max_states
         self.memories = _check_memory(self.entry["resources"], memory)
-        for resource in self.entry["resources"]:
-            if resource["type"]["address_width"] > 20:
-                raise RIRError("refusing to materialize a QRAM with more than 2^20 cells")
         self.state = _core.SparseState()
         self.qrams: dict[str, Any] = {}
         self.widths: dict[str, int] = {}
+        self.layout = RegisterLayout(self.state)
 
     def _add_register(self, native: str, kind: str, width: int) -> None:
-        _core.AddRegister(native, _STORAGE_KINDS[kind], width)(self.state)
-        self.widths[native] = width
+        self.layout.add(native, _STORAGE_KINDS[kind], width)
+        for word, size in self.layout.words[native]:
+            self.widths[word] = size
 
     def setup(self) -> tuple[dict[str, Bits], dict[str, str]]:
         mapping: dict[str, Bits] = {}
@@ -373,10 +373,16 @@ class _Runner:
                 continue
             native = f"rir_root_{i}"
             self._add_register(native, register["type"]["kind"], width)
-            mapping[register["name"]] = [(native, bit) for bit in range(width)]
+            mapping[register["name"]] = register_bits(native, width)
         resources = {}
         for resource in self.entry["resources"]:
             spec = resource["type"]
+            if spec["address_width"] > 20 or spec["address_width"] + spec["data_width"] > 64:
+                from pysparq._qram_words import SparseWordMemory
+                self.qrams[resource["name"]] = SparseWordMemory(
+                    spec["address_width"], spec["data_width"], self.memories[resource["name"]])
+                resources[resource["name"]] = resource["name"]
+                continue
             data = [0] * (1 << spec["address_width"])
             for address, value in self.memories[resource["name"]].items():
                 data[address] = value
@@ -422,11 +428,10 @@ class _Runner:
         if kind == _EVENT_EXIT:
             _, native, width = event
             if width:
-                rid = _core.System.get_id(native)
-                mask = (1 << width) - 1
-                if any(int(basis.get(rid).value) & mask for basis in self.state.basis_states):
-                    raise RIRError(f"local register not uncomputed: {native}")
-                _core.RemoveRegister(native)(self.state)
+                try:
+                    self.layout.remove(native)
+                except ValueError as error:
+                    raise RIRError(f"local register not uncomputed: {native}") from error
             return
         if kind == _EVENT_GPHASE:
             _, theta, controls = event
@@ -527,6 +532,12 @@ class _Runner:
         data: Bits,
         controls: tuple[tuple[Bits, int], ...],
     ) -> None:
+        if hasattr(self.qrams[qram_name], "apply_xor"):
+            try:
+                self.qrams[qram_name].apply_xor(self.state, address, data, _core, conditions=controls)
+            except ValueError as error:
+                raise RIRError(f"QRAM {qram_name!r} query rejected: {error}") from error
+            return
         addr_tmp, data_tmp = "rir_tmp_addr", "rir_tmp_data"
         self._add_register(addr_tmp, "bits", len(address))
         self._add_register(data_tmp, "bits", len(data))
@@ -545,24 +556,21 @@ class _Runner:
 
             self._with_conditions(controls, body)
         finally:
-            _core.RemoveRegister(data_tmp)(self.state)
-            _core.RemoveRegister(addr_tmp)(self.state)
+            self.layout.remove(data_tmp, require_zero=False)
+            self.layout.remove(addr_tmp, require_zero=False)
 
     def result(self, mapping: dict[str, Bits]) -> RIRResult:
         registers = tuple(
             (register["name"], register["type"]["width"]) for register in self.entry["registers"]
         )
         amplitudes: dict[tuple[int, ...], complex] = {}
-        ids = {
-            register["name"]: _core.System.get_id(bits[0][0])
-            for register in self.entry["registers"]
-            for bits in [mapping[register["name"]]]
-            if bits
-        }
-        widths = {register["name"]: register["type"]["width"] for register in self.entry["registers"]}
+        ids = {name: _core.System.get_id(name)
+               for bits in mapping.values() for name, _ in bits}
         for basis in self.state.basis_states:
+            values = {name: int(basis.get(rid).value) for name, rid in ids.items()}
             key = tuple(
-                (int(basis.get(ids[name]).value) & ((1 << widths[name]) - 1)) if widths[name] else 0
+                sum(((values[native] >> bit) & 1) << offset
+                    for offset, (native, bit) in enumerate(mapping[name]))
                 for name, _ in registers
             )
             amplitudes[key] = amplitudes.get(key, 0j) + complex(basis.amplitude)

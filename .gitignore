@@ -17,6 +17,9 @@ uv.lock
 build*/
 cmake-build-*/
 
+# Local development environments, build trees and run logs (out/)
+/out/
+
 # Sphinx documentation build
 docs/sphinx/build/
 docs/sphinx/_build/
@@ -31,3 +34,6 @@ docs/sphinx/.venv/
 # Archives
 *.7z
 *.rar
+
+# 本地并行开发交接资料
+/.agent-task/

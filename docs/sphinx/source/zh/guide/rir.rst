@@ -320,11 +320,27 @@ RIR 的 ``Ref`` 可以引用寄存器切片。被调模块的形式寄存器绑�
 
 另有结构性检查：
 
-- 单个 QRAM 的 ``address_width`` 超过 20（即超过 2^20 个单元）时拒绝物化；
+- QRAM 资源走两条**真实原生执行路径**之一：窄资源
+  （ ``address_width <= 20`` 且 ``address_width + data_width <= 64`` ）物化为
+  :class:`QRAMCircuit_qutrit <pysparq.QRAMCircuit_qutrit>` 并经
+  :class:`QRAMLoad <pysparq.QRAMLoad>` 查询；更宽的资源走理想稀疏字路径
+  （ ``pysparq._qram_words.SparseWordMemory`` ，由 QRAM-Simulator 子模块安装），
+  以默认零的稀疏单元字典施加精确的受控原生 ``X_Bool`` 查询，绝不分配
+  2^address 空间。两条路径互相对拍并与参考语义一致；
 - ``memory`` 必须与入口模块声明的 QRAM 资源一一对应，地址与字都做范围检查；
 - ``Module.locals`` 私有工作区在模块退出时必须复净，否则报
   "local register not uncomputed"——这是 RIR 规范交给模拟器的运行期义务；
 - 调用前全局寄存器表必须为空（ ``run_rir`` 退出时自动 ``System.clear()`` ）。
+
+超过 64 位机器字的宽寄存器
+--------------------------
+
+原生 ABI 以 64 位为寄存器寻址上限。 ``run_rir`` （及公共 API
+:class:`pysparq.register_layout.RegisterLayout` ）因此把一个**逻辑**寄存器
+落到多个原生 64 位机器字（ ``<name>__word_<i>`` ）上：所有门、控制、相位、
+view、跨字进位/回绕算术与结果读出仍在真实稀疏态后端执行，而全宽逻辑值以
+Python 整数重建。不会截断到低 64 位，不以参考解释器冒充原生路径，退出时
+恢复全局寄存器表。
 
 与 pyqecclang 的交叉验证
 ------------------------

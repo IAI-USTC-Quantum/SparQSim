@@ -19,3 +19,5 @@ target_include_directories(_dynamic_operator PRIVATE
 # The install directory is the output (wheel) directory
 install(TARGETS _core DESTINATION pysparq)
 install(TARGETS _dynamic_operator DESTINATION pysparq)
+install(FILES "${QRAM_CORE_DIR}/bindings/python/qram_simulator/word_memory.py"
+        DESTINATION pysparq RENAME _qram_words.py)

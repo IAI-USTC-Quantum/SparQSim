@@ -15,6 +15,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Wide logical registers beyond the 64-bit machine word: `pysparq.register_layout.RegisterLayout`
+  splits one logical register across multiple native 64-bit words on a real
+  `SparseState`, reconstructs full-width values for result extraction, enforces
+  zero-restored recycling, and rejects native word-name collisions (the native
+  `AddRegister` alone would silently create ambiguous duplicate names). `run_rir`
+  now executes RIR programs whose registers exceed 64 bits natively: views,
+  controlled gates/phases, `add_const` carry/wrap across word boundaries, wide
+  local workspaces with uncompute checks, and full-width coherent results are
+  all executed on the sparse-state backend — no reference interpreter is
+  substituted. QRAM resources with `address_width > 20` or
+  `address_width + data_width > 64` (the dense qutrit path packs words into one
+  64-bit entry) execute through the ideal sparse `SparseWordMemory` XOR path
+  (`pysparq._qram_words`, installed from the QRAM-Simulator submodule), which
+  applies real controlled native X queries, never allocates 2^address space,
+  and keeps arbitrary-width addresses/data with sparse zero defaults. Narrow
+  resources keep the existing dense native qutrit path unchanged.
 - Final 2^20 QDA production matrix (three full-budget runs, `--czEps`
   1e-16/1e-20/1e-22): canonical run `1e-16` ends at res_dir 5.178909e-3 /
   fidelity 0.9999989 / success probability 0.0017 (133,231 s); the companions
