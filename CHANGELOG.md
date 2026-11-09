@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-09
+
 ### Fixed
 - Controlled narrow QRAM queries whose zero-expectation control bits coincide
   with the query address no longer re-address the query: the dense native path
@@ -29,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   requirements (a bit expected to hold both 0 and 1) make the guarded body a
   structural no-op instead of firing on the toggled pattern, and the sparse
   word query path now enforces the `max_states` budget like every other event.
+
+### Added
+- Task-2 million-dimensional solve run entry points and capability boundaries
+  catalogued in `docs/verification/task2-million-dim-entrypoints.md` (GPU
+  build/run recipe, dimension padding contract, trajectory-level MPI vs
+  distributed state slicing, metric hygiene).
+
+## [0.4.0] - 2026-11-09
 
 ### Added
 - Wide logical registers beyond the 64-bit machine word: `pysparq.register_layout.RegisterLayout`
