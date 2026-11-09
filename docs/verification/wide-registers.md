@@ -43,10 +43,15 @@ zero control overlapping the address register cannot redirect the query.
 
 Development environment: uv venv `out/native-env`, installed formal
 `pysparq==0.3.0` wheel (cp313) overlaid with the branch's Python sources and
-the QRAM candidate `word_memory.py` (sha256
+the QRAM `word_memory.py` as committed on the QRAM candidate branch
+(`985ff35`, sha256
 `0e1ef2212906f103eca8ddbd5de40d23e64f9b2b967b8e0036e12578957a0539`,
 byte-identical to the file the CMake install will take from the submodule;
 the copy is an environment overlay, not a second source in this repository).
+The committed version adds condition-aliasing validation, portable
+`conditioned_by_bit` return handling and read-only capacity properties over
+the earlier draft; the full regression and cross-validation below were
+re-run against exactly this committed content.
 
 - `pytest PySparQ/test -q` → **555 passed, 2 skipped** (the two pre-existing
   CKS replacement-API skips from the issue-84 refactor, unrelated).
