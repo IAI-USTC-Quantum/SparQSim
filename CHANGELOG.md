@@ -31,6 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   applies real controlled native X queries, never allocates 2^address space,
   and keeps arbitrary-width addresses/data with sparse zero defaults. Narrow
   resources keep the existing dense native qutrit path unchanged.
+- `pysparq rir` CLI command and a workbench `/api/rir` panel: execute an RIR
+  JSON program (plus optional sparse QRAM cells) natively from a file or the
+  GUI, with provenance, program digest and full-width amplitude export.
+- Compatibility: `SparQ_Algorithm`'s `check_removable` now reads the raw
+  register value instead of the `GetAs` macro, restoring compilation of
+  `SparQ_Algorithm_cuda` under CUDA 13.4's device frontend (sm80 and sm120).
 - Final 2^20 QDA production matrix (three full-budget runs, `--czEps`
   1e-16/1e-20/1e-22): canonical run `1e-16` ends at res_dir 5.178909e-3 /
   fidelity 0.9999989 / success probability 0.0017 (133,231 s); the companions

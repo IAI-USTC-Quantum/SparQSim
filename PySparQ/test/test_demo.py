@@ -73,6 +73,63 @@ def test_real_cli_writes_complete_native_report(tmp_path):
     assert len(report["software"]["native_sha256"]) == 64
 
 
+def test_real_cli_executes_wide_rir_program_natively(tmp_path):
+    program = {
+        "tag": "Program", "version": "0.3", "entry": "main",
+        "modules": [{"tag": "Module", "name": "main", "attributes": [],
+                     "registers": [
+                         {"tag": "Register", "name": "address",
+                          "type": {"tag": "RegType", "kind": "uint", "width": 65}},
+                         {"tag": "Register", "name": "data",
+                          "type": {"tag": "RegType", "kind": "uint", "width": 129}}],
+                     "locals": [],
+                     "resources": [{"tag": "Resource", "name": "bank", "type": {
+                         "tag": "QRAM", "address_width": 65, "data_width": 129}}],
+                     "body": [
+                         {"tag": "Primitive", "op": "h", "value": None, "angle": None,
+                          "operands": [{"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 1},
+                                        "parts": [{"tag": "Span", "register": "address", "start": 64, "width": 1}]}]},
+                         {"tag": "Control",
+                          "register": {"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 1},
+                                       "parts": [{"tag": "Span", "register": "address", "start": 64, "width": 1}]},
+                          "value": 0,
+                          "body": [{"tag": "Load", "resource": "bank",
+                                    "address": {"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 65},
+                                                "parts": [{"tag": "Span", "register": "address", "start": 0, "width": 65}]},
+                                    "data": {"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 129},
+                                             "parts": [{"tag": "Span", "register": "data", "start": 0, "width": 129}]}}]}]}]}
+    memory = {"bank": {0: (1 << 128)+3}}
+    program_file = tmp_path/"wide.json"
+    program_file.write_text(json.dumps(program))
+    memory_file = tmp_path/"memory.json"
+    memory_file.write_text(json.dumps(memory))
+    output = tmp_path/"result.json"
+    child = subprocess.run([sys.executable, "-m", "pysparq.demo", "rir",
+                            "--program", str(program_file), "--memory", str(memory_file),
+                            "--out", str(output)],
+                           capture_output=True, text=True, check=True)
+    assert not child.stdout
+    report = json.loads(output.read_text())
+    assert report["schema"] == "pysparq.rir-run.v1"
+    assert len(report["program_sha256"]) == 64
+    assert report["registers"] == [{"name": "address", "width": 65}, {"name": "data", "width": 129}]
+    assert report["amplitudes"] == [
+        {"values": [0, (1 << 128)+3], "real": pytest.approx(2**-0.5),
+         "imag": pytest.approx(0), "probability": pytest.approx(0.5)},
+        {"values": [1 << 64, 0], "real": pytest.approx(2**-0.5),
+         "imag": pytest.approx(0), "probability": pytest.approx(0.5)}]
+    assert report["scope"]["quantum_runtime_estimate"] is False
+
+
+def test_cli_rir_rejects_broken_program_with_clear_error(tmp_path):
+    broken = tmp_path/"broken.json"
+    broken.write_text('{"tag": "Module"}')
+    child = subprocess.run([sys.executable, "-m", "pysparq.demo", "rir", "--program", str(broken)],
+                           capture_output=True, text=True)
+    assert child.returncode == 2
+    assert "Program" in child.stderr
+
+
 def test_packaged_gui_and_real_subprocess_native_execution():
     with make_server() as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -82,10 +139,11 @@ def test_packaged_gui_and_real_subprocess_native_execution():
             with urllib.request.urlopen(base) as response:
                 html = response.read().decode()
                 assert "frame-ancestors 'none'" in response.headers["Content-Security-Policy"]
+                assert "Execute RIR natively" in html
             token = re.search(r"const token='([^']+)'", html).group(1)
             data = json.dumps({"case": "stateprep", "qubits": 3}).encode()
-            def post(headers):
-                return urllib.request.urlopen(urllib.request.Request(base+"/api/run", data=data,
+            def post(headers, path="/api/run", payload=data):
+                return urllib.request.urlopen(urllib.request.Request(base+path, data=payload,
                     headers={"Content-Type": "application/json", **headers}))
             with pytest.raises(urllib.error.HTTPError) as missing:
                 post({})
@@ -99,6 +157,72 @@ def test_packaged_gui_and_real_subprocess_native_execution():
             assert report["scope"]["application_speedup_certificate"] is False
             with urllib.request.urlopen(base+"/api/info") as response:
                 assert json.load(response)["hardware_submission"] is False
+        finally:
+            server.shutdown()
+            thread.join(timeout=3)
+
+
+def _wide_qram_payload():
+    program = {
+        "tag": "Program", "version": "0.3", "entry": "main",
+        "modules": [{"tag": "Module", "name": "main", "attributes": [],
+                     "registers": [
+                         {"tag": "Register", "name": "address",
+                          "type": {"tag": "RegType", "kind": "uint", "width": 65}},
+                         {"tag": "Register", "name": "data",
+                          "type": {"tag": "RegType", "kind": "uint", "width": 129}}],
+                     "locals": [],
+                     "resources": [{"tag": "Resource", "name": "bank", "type": {
+                         "tag": "QRAM", "address_width": 65, "data_width": 129}}],
+                     "body": [
+                         {"tag": "Primitive", "op": "h", "value": None, "angle": None,
+                          "operands": [{"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 1},
+                                        "parts": [{"tag": "Span", "register": "address", "start": 64, "width": 1}]}]},
+                         {"tag": "Load", "resource": "bank",
+                          "address": {"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 65},
+                                      "parts": [{"tag": "Span", "register": "address", "start": 0, "width": 65}]},
+                          "data": {"tag": "Ref", "type": {"tag": "RegType", "kind": "uint", "width": 129},
+                                   "parts": [{"tag": "Span", "register": "data", "start": 0, "width": 129}]}}]}]}
+    memory = {"bank": {0: (1 << 128)+3, 3: 5}}
+    return json.dumps({"program": program, "memory": memory}).encode()
+
+
+def test_gui_executes_wide_rir_and_guards_the_endpoint():
+    with make_server() as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with urllib.request.urlopen(base) as response:
+                token = re.search(r"const token='([^']+)'", response.read().decode()).group(1)
+            headers = {"Content-Type": "application/json", "X-Session": token}
+            with pytest.raises(urllib.error.HTTPError) as missing:
+                urllib.request.urlopen(urllib.request.Request(
+                    base+"/api/rir", data=_wide_qram_payload(),
+                    headers={"Content-Type": "application/json"}))
+            assert missing.value.code == 403
+            with pytest.raises(urllib.error.HTTPError) as oversized:
+                urllib.request.urlopen(urllib.request.Request(
+                    base+"/api/rir", data=b'{"program":' + b'{"pad":"' + b"x"*300_000 + b'"}}',
+                    headers=headers))
+            assert oversized.value.code == 400
+            with pytest.raises(urllib.error.HTTPError) as broken:
+                urllib.request.urlopen(urllib.request.Request(
+                    base+"/api/rir", data=b'{"program": {"tag": "Module"}}', headers=headers))
+            assert broken.value.code == 422
+            assert "Program" in json.load(broken.value).get("error", "")
+            with urllib.request.urlopen(urllib.request.Request(
+                    base+"/api/rir", data=_wide_qram_payload(), headers=headers)) as response:
+                report = json.load(response)
+            assert report["schema"] == "pysparq.rir-run.v1"
+            amplitudes = {tuple(item["values"]): item["probability"]
+                          for item in report["amplitudes"]}
+            # Uncontrolled load queries both superposed branches: address 0 loads
+            # the stored word, address 2^64 holds no cell and keeps data at 0.
+            assert amplitudes == {(0, (1 << 128)+3): pytest.approx(0.5),
+                                  (1 << 64, 0): pytest.approx(0.5)}
+            assert report["registers"] == [{"name": "address", "width": 65},
+                                           {"name": "data", "width": 129}]
         finally:
             server.shutdown()
             thread.join(timeout=3)
