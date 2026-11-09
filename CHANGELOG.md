@@ -14,6 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Controlled narrow QRAM queries whose zero-expectation control bits coincide
+  with the query address no longer re-address the query: the dense native path
+  emulated zero controls by toggling the control bits, and a toggled address
+  bit redirected the query to the bit-flipped cell (round-2 reported defect:
+  `Bits(address=4, data=3)`, `H(address[3])`, querying `bank={0:5, 3:7, 8:1}`
+  under `address[3] == 0` returned the word of cell 8 instead of cell 0).
+  Such queries now execute through the shared authoritative
+  `pysparq._qram_words.SparseWordMemory.apply_xor`, which merges the original
+  address and control constraints and keeps the zero bits restored; queries
+  without zero controls sharing the address keep the dense native fast path.
+  Accumulated `Control` conditions are merged per bit, so contradictory
+  requirements (a bit expected to hold both 0 and 1) make the guarded body a
+  structural no-op instead of firing on the toggled pattern, and the sparse
+  word query path now enforces the `max_states` budget like every other event.
+
 ### Added
 - Wide logical registers beyond the 64-bit machine word: `pysparq.register_layout.RegisterLayout`
   splits one logical register across multiple native 64-bit words on a real

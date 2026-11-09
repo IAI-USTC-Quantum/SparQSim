@@ -111,3 +111,61 @@ wheel was built from source (`python -m build --wheel`):
 The formal gitlink bump, 8-platform wheel + sdist matrix, tag and release
 happen only after QRAM-Simulator lands and releases the helper on its main;
 those results will be recorded separately.
+
+## Round 2 (2026-11-09): narrow zero-control shared-address defect, fixed
+
+The narrow dense path had the exact defect the wide path was designed
+against: `_with_conditions` emulated zero controls by toggling the control
+bits, and a toggled bit that also belonged to the query address re-addressed
+the dense query. Reported reproduction (see
+`out/acceptance/20261109T210828/`, local evidence only):
+`Bits(address=4, data=3)`, `H(address[3])`, querying `bank={0:5, 3:7, 8:1}`
+under `address[3] == 0` returned the word of the bit-flipped cell 8 (result
+`(0, 1)` instead of `(0, 5)`) on the released **pysparq 0.4.0** from PyPI.
+The classical interpreter and the OracQ gate-level adapter both give
+`(0, 5)`.
+
+Fix (`PySparQ/pysparq/rir.py`), mirroring the OracQ candidate adapter:
+
+- a narrow query with a zero-expectation control bit inside its address view
+  routes through the same authoritative `SparseWordMemory.apply_xor` (single
+  source in the pinned submodule), which merges the original address and
+  control constraints and restores the toggled zero bits;
+- queries without such sharing (including one-controls sharing the address)
+  keep the dense native fast path unchanged;
+- accumulated `Control` conditions merge per bit — contradictory
+  requirements are a structural no-op, duplicate requirements collapse —
+  in `_with_conditions` and `_gphase` alike;
+- the sparse word path now enforces the `max_states` budget after the query
+  like every other event.
+
+Evidence (all under `out/acceptance/20261109T210828/`):
+
+- New regression `PySparQ/test/test_rir.py::TestControlledQueries` (11
+  cases: reported scenario, one-control sharing, dense 4/3 uniform
+  superposition under a zero control, external 0/1 controls, condition
+  conflicting with cells, contradictory controls, non-zero target XOR,
+  double-query restore, module call, Repeat, relative phase). Against the
+  released 0.4.0 wheel: **7 of 11 fail**; against the fixed tree: **all
+  pass** with the full suite at 555 passed / 2 skipped.
+- Three-way cross-validation (`xval_controlled_queries.py`): the OracQ
+  candidate (`feat/wide-registers` c554ab1) agrees **11/11 scenarios** on
+  all four paths — `simulate`, `run_pysparq`, `run_pysparq_rir` (through the
+  installed fixed wheel) and direct `pysparq.run_rir`. The formally released
+  OracQ 0.4.0 still rejects address-sharing controls at construction
+  ("operands modify a protected control register") and agrees on the 2
+  scenarios it accepts; the overlap relaxation rides the OracQ candidate
+  (recorded in `.agent-task/interfaces.md`).
+- CLI/GUI parity (`cli_gui_rir_parity.py`): `pysparq rir` and the workbench
+  `/api/rir` share `run_rir_document`; 15/15 checks pass — identical
+  schema/digest/registers/amplitudes/scope on the zero-control and the
+  65/129-bit wide fixtures, identical rejection texts for invalid program
+  and missing memory (CLI exit 2 / GUI 422), 403 session and 400 size
+  guards, and fresh results per request (documented boundary: the GUI body
+  cap is a server-side anti-DoS guard; the CLI reads local files without a
+  cap).
+- Real-browser check (`browser_rir_panel.py`, headless Chrome): 11/11 —
+  execute the zero-control program, correct `(0, 5)` result shown, export
+  produces a JSON blob download, editing the program invalidates the stale
+  result and disables export, re-execution works, zero browser console
+  errors, and the exported record reproduces via CLI re-run.

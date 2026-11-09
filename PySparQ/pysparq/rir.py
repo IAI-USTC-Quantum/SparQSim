@@ -166,6 +166,35 @@ def _dagger(matrix: tuple[tuple[complex, ...], ...]) -> tuple[tuple[complex, ...
 Bit = tuple[str, int]  # (native register name, bit index)
 Bits = list[Bit]
 
+
+def _merged_conditions(
+    controls: tuple[tuple[Bits, int], ...],
+) -> dict[Bit, int] | None:
+    """Merge control groups into per-bit requirements; ``None`` marks a conflict.
+
+    Control groups accumulate by logical conjunction, so repeated
+    requirements on one bit collapse and a bit required to hold both 0 and
+    1 makes every guarded body unreachable (a structural no-op).
+    """
+    required: dict[Bit, int] = {}
+    for bits, expected in controls:
+        for index, pair in enumerate(bits):
+            value = (expected >> index) & 1
+            if required.setdefault(pair, value) != value:
+                return None
+    return required
+
+
+def _shares_zero_control(address: Bits, controls: tuple[tuple[Bits, int], ...]) -> bool:
+    """Report whether any zero-expectation control bit joins the query address view."""
+    seen = set(address)
+    return any(
+        not (expected >> index) & 1 and pair in seen
+        for bits, expected in controls
+        for index, pair in enumerate(bits)
+    )
+
+
 _EVENT_ENTER = "enter"
 _EVENT_EXIT = "exit"
 _EVENT_GATE = "gate"
@@ -401,17 +430,14 @@ class _Runner:
             raise RIRError(f"execution exceeds the sparse-state budget ({self.max_states})")
 
     def _with_conditions(self, controls: tuple[tuple[Bits, int], ...], body) -> None:
-        flat: list[Bit] = []
-        zeros: list[Bit] = []
-        for bits, expected in controls:
-            for index, pair in enumerate(bits):
-                flat.append(pair)
-                if not (expected >> index) & 1:
-                    zeros.append(pair)
+        required = _merged_conditions(controls)
+        if required is None:
+            return
+        zeros = [pair for pair, value in required.items() if not value]
         for pair in zeros:
             _core.X_Bool(*pair)(self.state)
         try:
-            body(tuple(flat))
+            body(tuple(required))
         finally:
             for pair in reversed(zeros):
                 _core.X_Bool(*pair)(self.state)
@@ -462,15 +488,13 @@ class _Runner:
         if not controls:
             self._apply(_core.GlobalPhase(cmath.exp(1j * theta)))
             return
-        flat: list[Bit] = []
-        zeros: list[Bit] = []
-        for bits, expected in controls:
-            for index, pair in enumerate(bits):
-                flat.append(pair)
-                if not (expected >> index) & 1:
-                    zeros.append(pair)
+        required = _merged_conditions(controls)
+        if required is None:
+            return
+        flat = tuple(required)
         target = flat[-1]
-        rest = tuple(flat[:-1])
+        rest = flat[:-1]
+        zeros = [pair for pair, value in required.items() if not value]
         for pair in zeros:
             _core.X_Bool(*pair)(self.state)
         try:
@@ -532,11 +556,23 @@ class _Runner:
         data: Bits,
         controls: tuple[tuple[Bits, int], ...],
     ) -> None:
-        if hasattr(self.qrams[qram_name], "apply_xor"):
+        bank = self.qrams[qram_name]
+        if not hasattr(bank, "apply_xor") and _shares_zero_control(address, controls):
+            # The dense native path emulates zero controls by toggling the
+            # control bits, and toggled address bits would re-address the
+            # query. Route such queries through the shared sparse-word
+            # helper, which merges the original address and control
+            # constraints and keeps the zero bits restored.
+            from pysparq._qram_words import SparseWordMemory
+
+            bank = SparseWordMemory(len(address), len(data), self.memories[qram_name])
+        if hasattr(bank, "apply_xor"):
             try:
-                self.qrams[qram_name].apply_xor(self.state, address, data, _core, conditions=controls)
+                bank.apply_xor(self.state, address, data, _core, conditions=controls)
             except ValueError as error:
                 raise RIRError(f"QRAM {qram_name!r} query rejected: {error}") from error
+            if len(self.state.basis_states) > self.max_states:
+                raise RIRError(f"execution exceeds the sparse-state budget ({self.max_states})")
             return
         addr_tmp, data_tmp = "rir_tmp_addr", "rir_tmp_data"
         self._add_register(addr_tmp, "bits", len(address))

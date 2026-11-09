@@ -298,6 +298,193 @@ class TestQRAM:
         assert vector[(7 << 2) | 3] == pytest.approx(0.5)
 
 
+class TestControlledQueries:
+    """Narrow dense QRAM queries under controls, including controls that share
+    address bits.
+
+    A zero-expectation control that coincides with a query address bit must
+    restrict the query to cells whose address agrees with it — never
+    re-address the query through the toggled control bit (the round-2
+    reported defect: ``Bits(address=4, data=3)``, ``H(address[3])``, querying
+    ``bank={0:5, 3:7, 8:1}`` under ``address[3] == 0`` must read the word 5
+    on the address-0 branch, not the bit-flipped cell's word 1).
+    """
+
+    BANK = {0: 5, 3: 7, 8: 1}
+    RESOURCE = {"tag": "Resource", "name": "bank",
+                "type": {"tag": "QRAM", "address_width": 4, "data_width": 3}}
+
+    def _doc(self, body, registers=None, resources=None):
+        registers = registers or [register("address", 4, "bits"), register("data", 3, "bits")]
+        main = module("main", registers, body, resources=resources or [self.RESOURCE])
+        return program("main", [main])
+
+    def _load(self):
+        return {"tag": "Load", "resource": "bank",
+                "address": whole("address", 4), "data": whole("data", 3)}
+
+    def test_reported_zero_control_shared_address(self):
+        body = [
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 0,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 5): pytest.approx(a), (8, 0): pytest.approx(a)}
+
+    def test_one_control_shared_with_address_keeps_native_path(self):
+        body = [
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 1,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 0): pytest.approx(a), (8, 1): pytest.approx(a)}
+
+    def test_dense_4_3_superposition_with_zero_control(self):
+        memory = {address: (3 * address + 1) % 8 for address in range(16)}
+        body = [
+            prim("h", [whole("address", 4, "bits")]),
+            {"tag": "Control", "register": ref("address", 2, 1, "bits"), "value": 0,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": memory})
+        expected = {}
+        for address in range(16):
+            word = memory[address] if not (address >> 2) & 1 else 0
+            expected[(address, word)] = pytest.approx(0.25)
+        assert result.amplitudes == expected
+
+    def test_external_zero_and_one_controls(self):
+        body = [
+            prim("x", [whole("flag", 1, "bits")]),
+            {"tag": "Control", "register": whole("flag", 1, "bits"), "value": 1,
+             "body": [self._load()]},
+        ]
+        registers = [register("flag", 1, "bits"), register("address", 4, "bits"),
+                     register("data", 3, "bits")]
+        doc = self._doc(body, registers)
+        # address 0 is definite, flag is definite 1: the word lands.
+        result = ps.run_rir(doc, memory={"bank": self.BANK})
+        assert result.amplitudes == {(1, 0, 5): pytest.approx(1)}
+
+        body = [
+            prim("h", [whole("flag", 1, "bits")]),
+            {"tag": "Control", "register": whole("flag", 1, "bits"), "value": 0,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body, registers), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 0, 5): pytest.approx(a), (1, 0, 0): pytest.approx(a)}
+
+    def test_condition_conflicting_with_cells_restricts_the_query(self):
+        bank = {0: 5, 1: 3, 2: 7, 3: 1}
+        resource = {"tag": "Resource", "name": "bank",
+                    "type": {"tag": "QRAM", "address_width": 2, "data_width": 3}}
+        load = {"tag": "Load", "resource": "bank",
+                "address": whole("address", 2), "data": whole("data", 3)}
+        body = [
+            prim("h", [whole("address", 2, "bits")]),
+            {"tag": "Control", "register": ref("address", 1, 1, "bits"), "value": 0,
+             "body": [load]},
+        ]
+        registers = [register("address", 2, "bits"), register("data", 3, "bits")]
+        main = module("main", registers, body, resources=[resource])
+        result = ps.run_rir(program("main", [main]), memory={"bank": bank})
+        # Cells 2 and 3 conflict with the condition and are never read.
+        assert result.amplitudes == {(0, 5): pytest.approx(0.5), (1, 3): pytest.approx(0.5),
+                                     (2, 0): pytest.approx(0.5), (3, 0): pytest.approx(0.5)}
+
+    def test_contradictory_controls_are_a_noop(self):
+        body = [
+            prim("h", [ref("address", 0, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 0, 1, "bits"), "value": 1,
+             "body": [{"tag": "Control", "register": ref("address", 0, 1, "bits"), "value": 0,
+                       "body": [self._load()]}]},
+        ]
+        # Cell 1 sits exactly at the address the buggy zero-toggle would
+        # redirect to, so a leaked query would be visible here.
+        result = ps.run_rir(self._doc(body), memory={"bank": {0: 5, 1: 7}})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 0): pytest.approx(a), (1, 0): pytest.approx(a)}
+
+    def test_query_xors_onto_nonzero_data(self):
+        body = [
+            prim("x", [ref("data", 0, 1, "bits")]),
+            prim("x", [ref("data", 1, 1, "bits")]),
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 0,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 3 ^ 5): pytest.approx(a), (8, 3): pytest.approx(a)}
+
+    def test_query_twice_restores_nonzero_data(self):
+        load = self._load()
+        body = [
+            prim("x", [ref("data", 0, 1, "bits")]),
+            prim("x", [ref("data", 1, 1, "bits")]),
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 0,
+             "body": [load, load]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 3): pytest.approx(a), (8, 3): pytest.approx(a)}
+
+    def test_query_through_module_call_under_shared_zero_control(self):
+        query = module(
+            "query",
+            [register("q_address", 4, "bits"), register("q_data", 3, "bits")],
+            [{"tag": "Load", "resource": "mem",
+              "address": whole("q_address", 4), "data": whole("q_data", 3)}],
+            resources=[{"tag": "Resource", "name": "mem",
+                        "type": {"tag": "QRAM", "address_width": 4, "data_width": 3}}],
+        )
+        body = [
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 0,
+             "body": [call("query", [whole("address", 4), whole("data", 3)],
+                           resources=["bank"])]},
+        ]
+        main = module("main", [register("address", 4, "bits"), register("data", 3, "bits")],
+                      body, resources=[self.RESOURCE])
+        result = ps.run_rir(program("main", [main, query]), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 5): pytest.approx(a), (8, 0): pytest.approx(a)}
+
+    def test_repeat_two_queries_restore_through_shared_control(self):
+        load = self._load()
+        body = [
+            prim("x", [ref("data", 0, 1, "bits")]),
+            prim("x", [ref("data", 1, 1, "bits")]),
+            prim("h", [ref("address", 3, 1, "bits")]),
+            {"tag": "Control", "register": ref("address", 3, 1, "bits"), "value": 0,
+             "body": [{"tag": "Repeat", "count": 2, "body": [load]}]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {(0, 3): pytest.approx(a), (8, 3): pytest.approx(a)}
+
+    def test_zero_control_query_preserves_relative_phase(self):
+        theta = 0.7
+        body = [
+            prim("h", [ref("address", 1, 1, "bits")]),
+            prim("rz", [ref("address", 1, 1, "bits")], angle=theta),
+            {"tag": "Control", "register": ref("address", 1, 1, "bits"), "value": 0,
+             "body": [self._load()]},
+        ]
+        result = ps.run_rir(self._doc(body), memory={"bank": self.BANK})
+        a = 1 / math.sqrt(2)
+        assert result.amplitudes == {
+            (0, 5): pytest.approx(a * cmath.exp(-0.5j * theta)),
+            (2, 0): pytest.approx(a * cmath.exp(0.5j * theta)),
+        }
+
+
 class TestFileInterface:
     def test_run_rir_file(self, tmp_path):
         import json
