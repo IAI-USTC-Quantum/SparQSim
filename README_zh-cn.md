@@ -19,7 +19,7 @@
 
 - **稀疏态量子模拟 + Register Level Programming**——直接寄存器级算术、原生 QRAM、动态算子与 RIR 解释器（见下方快速上手）
 - **量子线性方程组求解，双引擎**——离散绝热 **QDA** 与 Chebyshev 量子行走 **CKS** 求解器，在单张 A800 上完成最高 **2^20 维**的端到端验证（[v1d](docs/verification/v1d-qda-linsolver-a800.md)、[v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md)）
-- **CPU（OpenMP）与 CUDA 双后端**，内核逐位交叉验证（[v1c](docs/verification/v1c-gpu-cuda-a800.md)）；2^20 求解的运行入口与能力边界（GPU 编译运行、维度 padding、轨迹级 MPI 与态切分之辨）汇总于[任务2入口清单](docs/verification/task2-million-dim-entrypoints.md)
+- **CPU（OpenMP）与 CUDA 双后端**，内核逐位交叉验证（[v1c](docs/verification/v1c-gpu-cuda-a800.md)）；2^20 求解的运行入口与能力边界（GPU 编译运行、维度 padding、轨迹级 MPI 与态切分之辨）汇总于[百万维算例入口](docs/verification/million-dim-entrypoints.md)
 
 ## 仓库分工
 

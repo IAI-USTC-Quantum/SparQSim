@@ -90,8 +90,8 @@ Two different capabilities that must not be conflated:
 
 Constructor-level improvements (e.g. the sparse-QRAM constructor gains
 recorded in the workspace acceptance materials, including the 404x figure)
-are memory-construction engineering wins. They are **not** task-1
-end-to-end solve-speedup claims, and no task-1 acceleration is asserted from
+are memory-construction engineering wins. They are **not** application-level
+end-to-end solve-speedup claims, and no application acceleration is asserted from
 them anywhere in this repository.
 
 ## Target-machine re-test (listed separately, not claimed done)
