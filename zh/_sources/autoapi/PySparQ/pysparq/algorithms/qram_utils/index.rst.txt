@@ -1,0 +1,88 @@
+PySparQ.pysparq.algorithms.qram_utils
+=====================================
+
+.. py:module:: PySparQ.pysparq.algorithms.qram_utils
+
+.. autoapi-nested-parse::
+
+   Classical helper functions for building QRAM circuits.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.qram_utils.PI
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.algorithms.qram_utils.column_flatten
+   PySparQ.pysparq.algorithms.qram_utils.create_qram_utils_demo
+   PySparQ.pysparq.algorithms.qram_utils.get_complement
+   PySparQ.pysparq.algorithms.qram_utils.make_complement
+   PySparQ.pysparq.algorithms.qram_utils.make_func
+   PySparQ.pysparq.algorithms.qram_utils.make_func_inv
+   PySparQ.pysparq.algorithms.qram_utils.make_vector_tree
+   PySparQ.pysparq.algorithms.qram_utils.pow2
+   PySparQ.pysparq.algorithms.qram_utils.scale_and_convert_vector
+
+
+Module Contents
+---------------
+
+.. py:function:: column_flatten(row_vec: list[float]) -> list[float]
+
+   Transpose a row-major square matrix into its column-major representation.
+
+
+.. py:function:: create_qram_utils_demo() -> str
+
+   Return a demo script string showing typical usage of this module.
+
+
+.. py:function:: get_complement(data: int, data_sz: int) -> int
+
+   Inverse two's complement: sign-extend an unsigned value to a signed integer.
+
+
+.. py:function:: make_complement(data: int, data_sz: int) -> int
+
+   Convert a signed integer to its two's-complement representation.
+
+
+.. py:function:: make_func(value: int, n_digit: int) -> list[complex]
+
+   Compute a 2x2 rotation matrix from a rational register value.
+
+
+.. py:function:: make_func_inv(value: int, n_digit: int) -> list[complex]
+
+   Compute the inverse 2x2 rotation matrix from a rational register value.
+
+
+.. py:function:: make_vector_tree(dist: list[int], data_size: int) -> list[int]
+
+   Build a binary tree for QRAM circuits from leaf-distribution data.
+
+
+.. py:function:: pow2(n: int) -> int
+
+   Return ``2**n`` via a left shift, matching ``basic.h`` semantics.
+
+
+.. py:function:: scale_and_convert_vector(input_vec: Union[list[float], numpy.ndarray], exponent: int, data_size: int, from_matrix: bool = ...) -> list[int]
+
+   Scale floating-point values and convert to two's-complement integers.
+
+
+.. py:data:: PI
+   :type:  float
+
+   Pi constant matching the C++ ``constexpr double pi``.
+

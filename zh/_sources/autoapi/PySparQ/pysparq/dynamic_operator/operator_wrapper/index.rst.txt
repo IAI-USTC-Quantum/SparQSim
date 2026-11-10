@@ -1,0 +1,183 @@
+PySparQ.pysparq.dynamic_operator.operator_wrapper
+=================================================
+
+.. py:module:: PySparQ.pysparq.dynamic_operator.operator_wrapper
+
+.. autoapi-nested-parse::
+
+   Dynamic operator wrapper module
+
+   Calls C++ operators in dynamic libraries via ctypes and creates Python proxy classes.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.SparseState
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.DynamicOperatorError
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.DynamicOperatorFactoryError
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.DynamicOperatorLoadError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.CppOperatorWrapper
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.cleanup_all_instances
+   PySparQ.pysparq.dynamic_operator.operator_wrapper.create_operator_class
+
+
+Module Contents
+---------------
+
+.. py:exception:: DynamicOperatorError
+
+   Bases: :py:obj:`Exception`
+
+
+   Dynamic operator error.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:exception:: DynamicOperatorFactoryError
+
+   Bases: :py:obj:`DynamicOperatorError`
+
+
+   Factory function invocation error.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:exception:: DynamicOperatorLoadError
+
+   Bases: :py:obj:`DynamicOperatorError`
+
+
+   Dynamic library load error.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+.. py:class:: CppOperatorWrapper(lib_path: str)
+
+   C++ operator wrapper
+
+   Loads the dynamic library and invokes the factory functions to create/destroy C++ operator objects
+
+   Initialize the wrapper
+
+   :param lib_path: Dynamic library path
+
+
+   .. py:method:: apply(ptr: int, state_cpp_ptr: int)
+
+      Apply the operator to a SparseState
+
+      :param ptr: Operator object address
+      :param state_cpp_ptr: C++ SparseState* pointer (obtained via state._cpp_ptr())
+
+
+
+   .. py:method:: apply_dag(ptr: int, state_cpp_ptr: int)
+
+      Apply the dagger to a SparseState
+
+      :param ptr: Operator object address
+      :param state_cpp_ptr: C++ SparseState* pointer (obtained via state._cpp_ptr())
+
+
+
+   .. py:method:: close()
+
+      Close the dynamic library and release resources
+
+      Note: on Windows, all C++ objects must already be destroyed
+      before the dynamic library file can be deleted successfully
+
+
+
+   .. py:method:: create(*args) -> int
+
+      Create a C++ operator instance
+
+      :param \*args: Constructor arguments
+
+      :returns: C++ object address (as a Python int)
+
+
+
+   .. py:method:: destroy(ptr: int)
+
+      Destroy a C++ operator instance
+
+      :param ptr: C++ object address
+
+
+
+   .. py:method:: get_base_class() -> str
+
+      Get the base class name.
+
+
+
+   .. py:method:: get_name() -> str
+
+      Get the operator name.
+
+
+
+   .. py:method:: load(arg_types: List[str] = None)
+
+      Load the dynamic library
+
+      :param arg_types: List of constructor argument types
+
+      :raises DynamicOperatorLoadError: Load failed
+
+
+
+   .. py:attribute:: lib_path
+
+
+.. py:function:: cleanup_all_instances()
+
+   Clean up all active dynamic operator instances
+
+
+.. py:function:: create_operator_class(name: str, lib_path: str, base_class: str = 'BaseOperator', constructor_args: List[Tuple[str, str]] = None) -> Type
+
+   Create a dynamic operator Python class
+
+   :param name: Operator class name
+   :param lib_path: Dynamic library path
+   :param base_class: Base class name ("BaseOperator" or "SelfAdjointOperator")
+   :param constructor_args: List of constructor arguments [(type, name), ...]
+
+   :returns: The dynamically created operator class
+
+
+.. py:data:: SparseState
+   :value: None
+
+

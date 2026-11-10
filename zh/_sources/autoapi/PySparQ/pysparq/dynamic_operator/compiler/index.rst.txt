@@ -1,0 +1,362 @@
+PySparQ.pysparq.dynamic_operator.compiler
+=========================================
+
+.. py:module:: PySparQ.pysparq.dynamic_operator.compiler
+
+.. autoapi-nested-parse::
+
+   Runtime C++ code compilation system
+
+   Provides the ability to compile user-defined C++ operators at runtime, with support for:
+   - Automatic code skeleton generation
+   - Invoking g++ to build a shared library (.so)
+   - Code hash based caching to avoid redundant compilation
+   - Compilation error capture and formatting
+
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.compiler.CompilationError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.compiler.CompilerConfig
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.dynamic_operator.compiler.clear_cache
+   PySparQ.pysparq.dynamic_operator.compiler.compile_cpp_code
+   PySparQ.pysparq.dynamic_operator.compiler.compute_code_hash
+   PySparQ.pysparq.dynamic_operator.compiler.find_project_root
+   PySparQ.pysparq.dynamic_operator.compiler.format_compile_error
+   PySparQ.pysparq.dynamic_operator.compiler.generate_cpp_source
+   PySparQ.pysparq.dynamic_operator.compiler.get_cache_info
+   PySparQ.pysparq.dynamic_operator.compiler.quick_compile
+
+
+Module Contents
+---------------
+
+.. py:exception:: CompilationError(message: str, stderr: str = '', returncode: int = 0)
+
+   Bases: :py:obj:`Exception`
+
+
+   Compilation error exception.
+
+   Initialize self.  See help(type(self)) for accurate signature.
+
+
+   .. py:attribute:: returncode
+      :value: 0
+
+
+
+   .. py:attribute:: stderr
+      :value: ''
+
+
+
+.. py:class:: CompilerConfig(cxx: str = 'g++', std: str = 'c++17', opt_level: str = 'O2', include_paths: Optional[list] = None, lib_paths: Optional[list] = None, libraries: Optional[list] = None, extra_flags: Optional[list] = None, template: Optional[str] = None)
+
+   Compiler configuration.
+
+   Initialize the compiler configuration
+
+   :param cxx: C++ compiler command (default g++)
+   :param std: C++ standard version (default c++17)
+   :param opt_level: Optimization level (default O2)
+   :param include_paths: Extra header search paths
+   :param lib_paths: Extra library search paths
+   :param libraries: Libraries to link against
+   :param extra_flags: Extra compiler flags
+   :param template: Custom code template
+
+
+   .. py:method:: get_compile_flags() -> list
+
+      Generate the list of compiler flags.
+
+
+
+   .. py:attribute:: DEFAULT_TEMPLATE
+      :value: Multiline-String
+
+      .. raw:: html
+
+         <details><summary>Show Value</summary>
+
+      .. code-block:: python
+
+         """#include "basic_components.h"
+         #include <vector>
+         #include <complex>
+         
+         using namespace qram_simulator;
+         
+         {USER_CPP_CODE}
+         
+         extern "C" BaseOperator* create_operator({CTOR_PARAMS}) {{
+             return new {CLASS_NAME}({CTOR_ARGS});
+         }}
+         
+         extern "C" void destroy_operator(BaseOperator* op) {{
+             delete op;
+         }}
+         
+         extern "C" const char* get_operator_name() {{
+             return "{CLASS_NAME}";
+         }}
+         """
+
+      .. raw:: html
+
+         </details>
+
+
+
+
+   .. py:attribute:: PYTHON_TEMPLATE
+      :value: Multiline-String
+
+      .. raw:: html
+
+         <details><summary>Show Value</summary>
+
+      .. code-block:: python
+
+         """#include "basic_components.h"
+         #include <vector>
+         #include <complex>
+         
+         using namespace qram_simulator;
+         
+         {USER_CPP_CODE}
+         
+         extern "C" BaseOperator* create_operator({CTOR_PARAMS}) {{
+             return new {CLASS_NAME}({CTOR_ARGS});
+         }}
+         
+         extern "C" void destroy_operator(BaseOperator* op) {{
+             delete op;
+         }}
+         
+         extern "C" const char* get_operator_name() {{
+             return "{CLASS_NAME}";
+         }}
+         
+         // Python call helper - applies the operator to a SparseState
+         // The Python side obtains the C++ SparseState* pointer via state._cpp_ptr(),
+         // which ctypes passes as ctypes.c_void_p.
+         extern "C" void apply_operator(BaseOperator* op, SparseState* state) {{
+             if (op && state) {{
+                 (*op)(*state);
+             }}
+         }}
+         
+         // Python call helper - applies the dagger
+         extern "C" void apply_operator_dag(BaseOperator* op, SparseState* state) {{
+             if (op && state) {{
+                 op->dag(*state);
+             }}
+         }}
+         
+         // Returns the base class type
+         extern "C" const char* get_base_class() {{
+             return "{BASE_CLASS}";
+         }}
+         """
+
+      .. raw:: html
+
+         </details>
+
+
+
+
+   .. py:attribute:: cxx
+      :value: 'g++'
+
+
+
+   .. py:attribute:: extra_flags
+      :value: []
+
+
+
+   .. py:attribute:: include_paths
+      :value: []
+
+
+
+   .. py:attribute:: lib_paths
+      :value: []
+
+
+
+   .. py:attribute:: libraries
+      :value: []
+
+
+
+   .. py:attribute:: opt_level
+      :value: 'O2'
+
+
+
+   .. py:attribute:: std
+      :value: 'c++17'
+
+
+
+   .. py:attribute:: template
+      :value: Multiline-String
+
+      .. raw:: html
+
+         <details><summary>Show Value</summary>
+
+      .. code-block:: python
+
+         """#include "basic_components.h"
+         #include <vector>
+         #include <complex>
+         
+         using namespace qram_simulator;
+         
+         {USER_CPP_CODE}
+         
+         extern "C" BaseOperator* create_operator({CTOR_PARAMS}) {{
+             return new {CLASS_NAME}({CTOR_ARGS});
+         }}
+         
+         extern "C" void destroy_operator(BaseOperator* op) {{
+             delete op;
+         }}
+         
+         extern "C" const char* get_operator_name() {{
+             return "{CLASS_NAME}";
+         }}
+         """
+
+      .. raw:: html
+
+         </details>
+
+
+
+
+.. py:function:: clear_cache(cache_dir: Optional[str] = None) -> int
+
+   Clear the compilation cache
+
+   :param cache_dir: Cache directory (defaults to the system temporary directory)
+
+   :returns: The number of deleted files
+
+
+.. py:function:: compile_cpp_code(cpp_code: str, class_name: str, cache_dir: Optional[str] = None, ctor_params: str = '', ctor_args: str = '', config: Optional[CompilerConfig] = None, project_root: Optional[str] = None, verbose: bool = False) -> str
+
+   Compile C++ code into a shared library
+
+   :param cpp_code: User-provided C++ code (containing the class definition)
+   :param class_name: Operator class name
+   :param cache_dir: Cache directory (defaults to the system temporary directory)
+   :param ctor_params: Constructor parameter declarations
+   :param ctor_args: Constructor call arguments
+   :param config: Compiler configuration
+   :param project_root: Project root directory (auto-detected)
+   :param verbose: Whether to print verbose logs
+
+   :returns: Path of the compiled shared library (.so file)
+
+   :raises CompilationError: Compilation failed
+   :raises FileNotFoundError: Compiler not found
+
+
+.. py:function:: compute_code_hash(cpp_code: str, class_name: str, config: CompilerConfig) -> str
+
+   Compute the code hash used for caching
+
+   The hash covers: code content, class name, compiler version, and configuration
+
+   :param cpp_code: User C++ code
+   :param class_name: Operator class name
+   :param config: Compiler configuration
+
+   :returns: A 16-character hexadecimal hash string
+
+
+.. py:function:: find_project_root() -> Optional[pathlib.Path]
+
+   Locate the project root directory or the installed package directory
+
+   For an installed package, the directory layout is:
+   - site-packages/pysparq/ (Python package)
+   - site-packages/include/ (headers, including basic_components.h)
+
+   For a source checkout (the SparQSim repository):
+   - The project root contains extern/qram-simulator/ (C++ core submodule) and PySparQ/
+
+   :returns: The project root path or the installed package directory; None if not found
+
+
+.. py:function:: format_compile_error(stderr: str, source_path: str) -> str
+
+   Format compiler error output
+
+   - Simplifies file paths
+   - Highlights error lines
+   - Extracts the key error information
+
+   :param stderr: Compiler standard error output
+   :param source_path: Source file path
+
+   :returns: The formatted error message
+
+
+.. py:function:: generate_cpp_source(cpp_code: str, class_name: str, ctor_params: str = '', ctor_args: str = '', config: Optional[CompilerConfig] = None) -> str
+
+   Generate the complete C++ source file
+
+   :param cpp_code: User-provided C++ code (containing the class definition)
+   :param class_name: Operator class name
+   :param ctor_params: Constructor parameter declarations (e.g. "int n, double theta")
+   :param ctor_args: Constructor call arguments (e.g. "n, theta")
+   :param config: Compiler configuration (provides the template)
+
+   :returns: The complete C++ source code string
+
+
+.. py:function:: get_cache_info(cache_dir: Optional[str] = None) -> dict
+
+   Get cache information
+
+   :param cache_dir: Cache directory
+
+   :returns: A dictionary with cache statistics
+
+
+.. py:function:: quick_compile(class_code: str, class_name: str, verbose: bool = False) -> str
+
+   Quickly compile C++ operator code
+
+   :param class_code: C++ code containing the class definition
+   :param class_name: Class name
+   :param verbose: Whether to print verbose logs
+
+   :returns: The shared library file path
+
+

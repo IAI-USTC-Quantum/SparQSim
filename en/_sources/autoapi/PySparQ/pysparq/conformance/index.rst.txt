@@ -1,0 +1,315 @@
+PySparQ.pysparq.conformance
+===========================
+
+.. py:module:: PySparQ.pysparq.conformance
+
+.. autoapi-nested-parse::
+
+   Reusable semantic conformance harness for PySparQ built-in operators.
+
+   Stage 1 of the native QECC.Lang / QFVM plan requires every PySparQ primitive
+   accelerated for use by QECC.Lang / quantum-cfd-software to pass a shared
+   conformance matrix before it may be relied upon as a leaf semantics for a
+   reversible ``xor_into`` or ``inplace_bijective`` contract (see
+   ``pysparq.dynamic_operator`` module docstring and README for the contract
+   vocabulary). This module provides that matrix as small, composable
+   assertions so individual test files stay short and declarative.
+
+   The matrix covers:
+
+   * **basis exhaustive / arbitrary nonzero targets** — :func:`build_forward_map`
+     runs the operator on every (or a spot-checked sample of) classical basis
+     input and records the resulting output tuple;
+   * **collisions** — :func:`build_forward_map` (and
+     :func:`assert_no_collisions`) fail loudly if two distinct inputs map to the
+     same output tuple over the *full* set of touched registers. This is
+     exactly the bug class described for non-conformant ``compile_operator``
+     callbacks that "overwrite outputs" instead of computing a genuine
+     bijection / XOR-into map;
+   * **superposition linearity** — :func:`assert_superposition_linearity`
+     builds a *real*, coherent equal-amplitude superposition (via
+     ``Hadamard_Int``) over every swept input, applies the operator once, and
+     checks that each surviving branch agrees with the basis-by-basis reference
+     map with the correct, unchanged amplitude magnitude and branch count. This
+     catches implementations that behave correctly in isolation but corrupt or
+     cross-talk between branches when several coexist;
+   * **controls** — :func:`assert_controls` exercises
+     ``conditioned_by_nonzeros`` / ``conditioned_by_all_ones`` in the positive
+     (condition true), negative (condition false => identity), and
+     multi-register conjunction configurations already provided by every
+     ``ClassControllable`` C++ operator;
+   * **forward/dagger identity** — :func:`assert_forward_dagger_identity` and
+     :func:`assert_dagger_forward_identity` check that applying the operator
+     and its adjoint in either order returns the state to its starting values
+     for arbitrary (not just zero) starting register contents.
+
+   Everything in this module operates on named registers pre-declared once via
+   :func:`setup_registers`, then exercised across many independent
+   ``SparseState`` instances — mirroring the ``AddRegister(...)(state)`` /
+   ``Init_Unsafe(...)(state)`` idiom already used throughout
+   ``pysparq/algorithms``.
+
+   .. warning::
+      ``pysparq.dynamic_operator.compile_operator()`` produces an arbitrary,
+      runtime-compiled C++ operator. Compilation only checks that the supplied
+      ``operator()``/``dag()`` pair type-checks; it can neither statically nor
+      dynamically *prove* the pair is unitary or mutually inverse. This harness
+      is therefore intentionally restricted to named, statically inspectable
+      PySparQ built-ins (and Python composites built from them) — it cannot
+      "bless" a dynamically compiled operator, and dynamically compiled
+      operators must not be used on the supported QCFD path (see
+      ``pysparq/dynamic_operator/README.md``).
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.conformance.WIDTH_BOUNDARIES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.conformance.RegisterSpec
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.conformance.assert_collision_free_for_output_starts
+   PySparQ.pysparq.conformance.assert_controls
+   PySparQ.pysparq.conformance.assert_dagger_forward_identity
+   PySparQ.pysparq.conformance.assert_forward_dagger_identity
+   PySparQ.pysparq.conformance.assert_no_collisions
+   PySparQ.pysparq.conformance.assert_superposition_linearity
+   PySparQ.pysparq.conformance.build_forward_map
+   PySparQ.pysparq.conformance.make_basis_state
+   PySparQ.pysparq.conformance.read_registers
+   PySparQ.pysparq.conformance.sample_values
+   PySparQ.pysparq.conformance.setup_registers
+   PySparQ.pysparq.conformance.sign_extend
+   PySparQ.pysparq.conformance.two_complement_decode
+   PySparQ.pysparq.conformance.width_matrix_case
+
+
+Module Contents
+---------------
+
+.. py:class:: RegisterSpec
+
+   Declares one register participating in a conformance check.
+
+   .. attribute:: name
+
+      Register name, used both for ``AddRegister``/``Init_Unsafe``
+      and for looking up the register id via ``System.get_id``.
+
+   .. attribute:: storage_type
+
+      One of ``ps.UnsignedInteger``, ``ps.SignedInteger``,
+      ``ps.Boolean``.
+
+   .. attribute:: width
+
+      Register width in bits (or trits-worth of qubits, per the
+      underlying storage type).
+
+
+   .. py:property:: mask
+      :type: int
+
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: storage_type
+      :type:  object
+
+
+   .. py:attribute:: width
+      :type:  int
+
+
+.. py:function:: assert_collision_free_for_output_starts(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], sweep: Mapping[str, Iterable[int]], output_start_values: Mapping[str, Iterable[int]]) -> None
+
+   Re-check collision-freeness with the output register(s) seeded at
+   several arbitrary (including nonzero) starting values.
+
+   For a genuine ``xor_into`` leaf, ``out_new = out_old XOR f(inputs)`` is
+   a bijection on ``inputs`` for *any* fixed ``out_old``. Only probing
+   with a clean (zero) starting output — as a single
+   :func:`build_forward_map` call conventionally does — cannot
+   distinguish a real XOR-into implementation from one that discards the
+   incoming output value and simply overwrites it with ``f(inputs)``: the
+   two agree when ``out_old == 0`` but diverge for any other starting
+   value. This function makes that distinction part of the conformance
+   matrix by rebuilding the forward map (and therefore re-running
+   :func:`build_forward_map`'s collision check) once per combination of
+   ``output_start_values``.
+
+   :param output_start_values: one entry per xor_into output register,
+                               mapping its name to the (ideally including at least one
+                               nonzero) starting values to probe, e.g. ``{"c": [0, 1, 5, 7]}``.
+
+
+.. py:function:: assert_controls(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], control_specs: Sequence[RegisterSpec], active_values: Mapping[str, int], inactive_values: Mapping[str, int], fixed: Mapping[str, int] | None = None, conditioned_by: str = 'nonzeros') -> None
+
+   Check control-gated behavior: identity when off, action when on.
+
+   Exercises single controls (one register at a time) as well as the
+   full multi-register conjunction (all controls active together, and
+   each one individually inactive while the others are active — the
+   negative-control cases required by the matrix).
+
+   ``conditioned_by`` selects ``conditioned_by_nonzeros`` or
+   ``conditioned_by_all_ones``.
+
+
+.. py:function:: assert_dagger_forward_identity(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], sweep: Mapping[str, Iterable[int]], fixed: Mapping[str, int] | None = None) -> None
+
+   Check ``op(op.dag(state)) == state`` for every swept input.
+
+
+.. py:function:: assert_forward_dagger_identity(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], sweep: Mapping[str, Iterable[int]], fixed: Mapping[str, int] | None = None) -> None
+
+   Check ``op.dag(op(state)) == state`` for every swept input.
+
+   Uses arbitrary (not just zero) starting values for every touched
+   register, per the Stage 1 conformance matrix.
+
+
+.. py:function:: assert_no_collisions(forward_map: Mapping[tuple, tuple]) -> None
+
+   Re-check an already-built forward map for output collisions.
+
+   Useful when the map was built once and reused by several assertions.
+
+
+.. py:function:: assert_superposition_linearity(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], hadamard_regs: Sequence[tuple[str, int]], fixed: Mapping[str, int] | None = None, forward_map: Mapping[tuple, tuple] | None = None) -> None
+
+   Verify linearity: one coherent call must equal per-branch reference.
+
+   Builds a genuine equal-amplitude superposition over every combination
+   of the registers in ``hadamard_regs`` (each entry is ``(name, width)``)
+   using ``Hadamard_Int``, applies ``make_op()`` exactly once, and checks
+   that the branch count, per-branch amplitude magnitude, and per-branch
+   output all agree with ``forward_map`` (built with
+   :func:`build_forward_map` over the same sweep/fixed values if not
+   supplied).
+
+
+.. py:function:: build_forward_map(make_op: Callable[[], pysparq.BaseOperator], touched: Sequence[str], masks: Mapping[str, int], sweep: Mapping[str, Iterable[int]], fixed: Mapping[str, int] | None = None) -> dict[tuple, tuple]
+
+   Apply ``make_op()`` to every swept basis input and record the result.
+
+   ``touched`` must list *every* register the operator reads or writes
+   (inputs and outputs alike). ``sweep`` gives the register(s) whose value
+   is varied; ``fixed`` gives the starting value for any other touched
+   register (defaults to 0, i.e. a clean output/work register).
+
+   .. important::
+      For an ``xor_into`` leaf (``out_new = out_old XOR f(inputs)``),
+      collision-freeness must hold for *every* starting value of the
+      output register(s), not only the conventional clean/zero-ancilla
+      start. Calling this function once with the output left at its
+      default (0) is necessary but not sufficient: an implementation
+      that discards/overwrites the incoming output value (rather than
+      genuinely XORing into it) can still happen to look collision-free
+      when the probe always starts from a clean register. Use
+      :func:`assert_collision_free_for_output_starts` to additionally
+      sweep arbitrary (including nonzero) starting output values.
+
+   Returns a dict mapping the full input tuple (over ``touched``, in
+   order) to the full output tuple. Raises ``AssertionError`` if:
+
+   * the operator turns a basis state into a superposition (a classical
+     leaf must map one basis state to exactly one basis state), or
+   * two distinct inputs collide onto the same output tuple (the
+     destructive-overwrite bug class this harness exists to catch).
+
+
+.. py:function:: make_basis_state(values: Mapping[str, int]) -> pysparq.SparseState
+
+   Build a fresh, single-branch basis state with the given register values.
+
+   Registers not present in ``values`` are left at their default (zero).
+
+
+.. py:function:: read_registers(state: pysparq.SparseState, names: Sequence[str], masks: Mapping[str, int], branch: int = 0) -> tuple
+
+   Read the (masked) values of ``names`` from one branch of ``state``.
+
+
+.. py:function:: sample_values(width: int, *, max_exhaustive: int = 5, samples: int = 12, rng: random.Random | None = None) -> list[int]
+
+   Return the values to sweep for a register of the given width.
+
+   Widths up to ``max_exhaustive`` bits are covered exhaustively (basis
+   exhaustive coverage). Wider registers are spot-checked with
+   ``samples`` pseudo-random values (arbitrary nonzero output targets),
+   always including 0, 1, and the all-ones value so edge cases are never
+   skipped.
+
+
+.. py:function:: setup_registers(specs: Sequence[RegisterSpec]) -> None
+
+   Clear the global ``System`` schema and (re)declare every register.
+
+   Must be called once before creating any ``SparseState`` used by the
+   checks in this module. Individual ``SparseState`` instances created
+   afterwards do not need to repeat ``AddRegister`` — the fixed-size
+   per-branch register array already reserves every declared slot at
+   zero, so ``Init_Unsafe`` can be used directly on a fresh state.
+
+
+.. py:function:: sign_extend(value: int, width: int) -> int
+
+   Sign-extend a bit pattern per the ``_SInt_`` slot rule.
+
+
+.. py:function:: two_complement_decode(value: int, width: int) -> int
+
+   Decode a two's-complement bit pattern of the given width.
+
+   Mirrors the SparQ ``get_complement`` read used by ``_SInt_`` slots.
+
+
+.. py:function:: width_matrix_case(*, label: str, specs_factory: Callable[[tuple[int, ...]], Sequence[RegisterSpec]], make_op: Callable[[Mapping[str, int]], pysparq.BaseOperator], model: Callable[[Mapping[str, int], Mapping[str, int]], Mapping[str, int]], input_names: Sequence[str], output_names: Sequence[str], width_combos: Sequence[tuple[int, ...]], max_exhaustive_pairs: int = 4096, sampled_pairs: int = 48, superposition_max_bits: int = 6, control_case: tuple[tuple[int, ...], Sequence[RegisterSpec], Mapping[str, int], Mapping[str, int]] | None = None, rng: random.Random | None = None) -> None
+
+   Run the full conformance matrix across a set of width combinations.
+
+   Implements the reversibility coverage required by the width and truncation conventions:
+   for every combo in ``width_combos`` (a tuple of widths, one per register
+   in the order ``specs_factory`` expects):
+
+   * **model check** — the forward map (basis exhaustive when the swept
+     input space is small, sampled otherwise, always including 0/1/all-ones
+     edge values) must equal ``model(values, widths)`` XOR-ed into the
+     starting output values, with inputs untouched;
+   * **collision check at nonzero output starts** — the ``xor_into``
+     bijection must hold for arbitrary starting output values;
+   * **dagger identity in both orders** (self-adjoint ops: ``dag == call``);
+   * **superposition linearity** for combos whose swept input bits fit
+     ``superposition_max_bits``;
+   * **controls** once per call when ``control_case`` is provided.
+
+   ``model(values, widths)`` returns a mapping of *output-name -> increment*
+   (the value XOR-ed into an initially-zero output register); ``make_op``
+   receives the per-register widths (``name -> width``) and constructs the
+   operator under test.
+
+
+.. py:data:: WIDTH_BOUNDARIES
+   :type:  tuple[int, ...]
+   :value: (1, 2, 3, 5, 8, 63, 64)
+
+

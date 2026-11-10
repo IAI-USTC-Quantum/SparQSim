@@ -1,0 +1,82 @@
+PySparQ.pysparq.register_layout
+===============================
+
+.. py:module:: PySparQ.pysparq.register_layout
+
+.. autoapi-nested-parse::
+
+   Logical registers backed by multiple native words, without truncating high bits.
+
+   The C++ machine-word ABI stays intact. Every bit operation still executes on
+   the real sparse-state backend; logical values are reconstructed as Python ints.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.register_layout.WORD_BITS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.register_layout.RegisterLayout
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.register_layout.register_bits
+
+
+Module Contents
+---------------
+
+.. py:class:: RegisterLayout(state: Any)
+
+   Own logical register allocations in one native SparseState.
+
+   ``add`` returns bit coordinates accepted by native gate operators. ``value``
+   reads a complete logical word from a basis state, including every high word.
+   Names must be distinct within the process-global native register namespace.
+
+
+   .. py:method:: add(name: str, kind: Any, width: int) -> list[tuple[str, int]]
+
+
+   .. py:method:: bits(name: str) -> list[tuple[str, int]]
+
+
+   .. py:method:: remove(name: str, *, require_zero: bool = True) -> None
+
+
+   .. py:method:: value(name: str, basis: Any) -> int
+
+
+   .. py:attribute:: state
+
+
+   .. py:attribute:: widths
+      :type:  dict[str, int]
+
+
+   .. py:attribute:: words
+      :type:  dict[str, tuple[tuple[str, int], ...]]
+
+
+.. py:function:: register_bits(name: str, width: int) -> list[tuple[str, int]]
+
+   Resolve one logical register to little-endian native bit coordinates.
+
+
+.. py:data:: WORD_BITS
+   :value: 64
+
+

@@ -1,0 +1,89 @@
+PySparQ.pysparq.demo
+====================
+
+.. py:module:: PySparQ.pysparq.demo
+
+.. autoapi-nested-parse::
+
+   Standalone native simulator experiments: ``pysparq info|run|gui``.
+
+   These CPU experiments expose complex amplitudes, phase-sensitive reference
+   errors, sparse support, and actual classical construction/execution times.
+   They do not submit quantum hardware jobs or estimate quantum execution time.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.demo.Experiment
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.demo.information
+   PySparQ.pysparq.demo.main
+   PySparQ.pysparq.demo.run
+   PySparQ.pysparq.demo.run_rir_document
+
+
+Module Contents
+---------------
+
+.. py:class:: Experiment
+
+   .. py:method:: validate() -> None
+
+
+   .. py:attribute:: basis
+      :type:  int
+      :value: 3
+
+
+
+   .. py:attribute:: case
+      :type:  str
+      :value: 'ghz'
+
+
+
+   .. py:attribute:: qubits
+      :type:  int
+      :value: 4
+
+
+
+   .. py:attribute:: seed
+      :type:  int
+      :value: 20261109
+
+
+
+.. py:function:: information() -> dict
+
+.. py:function:: main() -> None
+
+.. py:function:: run(config: Experiment) -> dict
+
+   Run a native experiment and its inverse against independent references.
+
+   System register state is process-global. Use a separate process for each
+   experiment when other code shares the simulator (the GUI does this).
+
+
+.. py:function:: run_rir_document(program_source: str, memory_source: str | None) -> dict
+
+   Execute one RIR JSON document natively (wide registers and QRAM included).
+
+   ``program_source`` and ``memory_source`` are filesystem paths or inline
+   JSON strings; ``run_rir`` performs the actual native sparse-state
+   execution, so widths beyond 64 bits and wide sparse QRAM queries run on
+   the real backend. The exported record carries provenance, the program
+   digest and every nonzero amplitude keyed by full-width register values.
+
+

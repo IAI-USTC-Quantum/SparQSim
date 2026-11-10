@@ -1,0 +1,27 @@
+PySparQ.pysparq.demo_server
+===========================
+
+.. py:module:: PySparQ.pysparq.demo_server
+
+.. autoapi-nested-parse::
+
+   Local native simulator UI with one bounded subprocess per experiment.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   PySparQ.pysparq.demo_server.make_server
+   PySparQ.pysparq.demo_server.serve
+
+
+Module Contents
+---------------
+
+.. py:function:: make_server(port: int = 0) -> http.server.ThreadingHTTPServer
+
+.. py:function:: serve(*, port=0, open_browser=True)
+
