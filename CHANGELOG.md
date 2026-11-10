@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.2] - 2026-11-10
 
+- Pin the unchanged native core and canonical shared word-memory helper from a fixed upstream main commit.
 - Give the million-dimensional benchmark a neutral documentation path and bilingual link labels.
 - Describe scope limits in terms of application-level acceleration; simulator kernels, wide-register behavior and benchmark parameters are unchanged.
 
