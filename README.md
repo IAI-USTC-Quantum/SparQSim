@@ -19,7 +19,7 @@ English | [简体中文](README_zh-cn.md)
 
 - **Sparse-state quantum simulation with Register Level Programming** — direct register-level arithmetic, native QRAM, dynamic operators, and an RIR interpreter (see the quick start below)
 - **Quantum linear-system solving, dual engines** — discrete-adiabatic **QDA** and Chebyshev-quantum-walk **CKS** solvers, validated end to end up to **2^20 dimensions** on a single A800 GPU ([v1d](docs/verification/v1d-qda-linsolver-a800.md), [v1e](docs/verification/v1e-cks-direct-oracle-linsolver.md))
-- **CPU (OpenMP) and CUDA backends** with bitwise kernel cross-validation ([v1c](docs/verification/v1c-gpu-cuda-a800.md)); run entry points and capability boundaries of the 2^20 solve (GPU build/run, dimension padding, trajectory MPI vs state slicing) are catalogued in [task2 entry points](docs/verification/task2-million-dim-entrypoints.md)
+- **CPU (OpenMP) and CUDA backends** with bitwise kernel cross-validation ([v1c](docs/verification/v1c-gpu-cuda-a800.md)); run entry points and capability boundaries of the 2^20 solve (GPU build/run, dimension padding, trajectory MPI vs state slicing) are catalogued in [million-dimensional entry points](docs/verification/million-dim-entrypoints.md)
 
 ## Repository Responsibilities
 

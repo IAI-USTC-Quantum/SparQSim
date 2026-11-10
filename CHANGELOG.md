@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-11-10
+
+- Pin the unchanged native core and canonical shared word-memory helper from a fixed upstream main commit.
+- Give the million-dimensional benchmark a neutral documentation path and bilingual link labels.
+- Describe scope limits in terms of application-level acceleration; simulator kernels, wide-register behavior and benchmark parameters are unchanged.
+
 ## [0.4.1] - 2026-11-09
 
 ### Fixed
@@ -34,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Task-2 million-dimensional solve run entry points and capability boundaries
-  catalogued in `docs/verification/task2-million-dim-entrypoints.md` (GPU
+  catalogued in `docs/verification/million-dim-entrypoints.md` (GPU
   build/run recipe, dimension padding contract, trajectory-level MPI vs
   distributed state slicing, metric hygiene).
 
