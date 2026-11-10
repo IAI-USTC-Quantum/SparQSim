@@ -61,6 +61,14 @@ metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 [tool.scikit-build.sdist]
 exclude = [
     "/extern/qram-simulator/.git",
+    # Only the native build and shared word-memory helper belong in this SDK.
+    "/extern/qram-simulator/README*",
+    "/extern/qram-simulator/CHANGELOG.md",
+    "/extern/qram-simulator/tools",
+    "/extern/qram-simulator/bindings/python/qram_simulator/demo.py",
+    "/extern/qram-simulator/bindings/python/qram_simulator/demo.html",
+    "/extern/qram-simulator/bindings/python/qram_simulator/evidence.py",
+    "/extern/qram-simulator/bindings/python/qram_simulator/baseline.py",
     "/extern/qram-simulator/.github",
     "/extern/qram-simulator/.gitea",
     "/extern/qram-simulator/docs",
